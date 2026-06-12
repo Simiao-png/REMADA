@@ -52,10 +52,17 @@ O objetivo deste sistema é reduzir esse trabalho manual e ajudar a escola a ger
 
 ### Fase 2 - Banco de dados
 
-- [ ] Instalar/configurar PostgreSQL
-- [ ] Criar banco grade_horaria
-- [ ] Criar tabelas iniciais
-- [ ] Conectar Flask ao PostgreSQL
+## Fase 2 — Banco de Dados
+
+- [x] Instalar PostgreSQL
+- [x] Modelar tabela professores
+- [x] Modelar tabela disciplinas
+- [x] Modelar tabela turmas
+- [x] Modelar tabela disponibilidade
+- [x] Modelar tabela carga_horaria
+- [x] Criar schema.sql
+- [x] Criar banco local
+- [x] Definir relacionamentos entre entidades
 
 ## Status
 
