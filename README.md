@@ -14,56 +14,113 @@ O objetivo deste sistema é reduzir esse trabalho manual e ajudar a escola a ger
 
 ## Tecnologias
 
-- Python
-- Flask
-- PostgreSQL
-- HTML/CSS/JavaScript
-- Git/GitHub
+* Python
+* Flask
+* PostgreSQL
+* HTML/CSS/JavaScript
+* Git/GitHub
 
 ## MVP
 
-- Cadastro de professores
-- Cadastro de disciplinas
-- Cadastro de turmas
-- Cadastro de disponibilidade dos professores
-- Definição de carga horária por turma/disciplina
-- Geração automática da grade
-- Relatório de conflitos/divergências
-- Exportação da grade
+* Cadastro de professores
+* Cadastro de disciplinas
+* Cadastro de turmas
+* Cadastro de disponibilidade dos professores
+* Definição de carga horária por turma/disciplina
+* Geração automática da grade
+* Relatório de conflitos/divergências
+* Exportação da grade
 
 ## Roadmap
 
 ### Fase 0 - Estrutura do projeto
 
-- [x] Criar estrutura de pastas
-- [x] Criar ambiente virtual
-- [x] Instalar Flask
-- [x] Rodar aplicação local
-- [x] Configurar Git
-- [x] Subir projeto para o GitHub
+* [x] Criar estrutura de pastas
+* [x] Criar ambiente virtual
+* [x] Instalar Flask
+* [x] Rodar aplicação local
+* [x] Configurar Git
+* [x] Subir projeto para o GitHub
 
 ### Fase 1 - Modelagem do negócio
 
-- [x] Definir entidades principais
-- [x] Definir regras de negócio
-- [x] Definir conflitos obrigatórios
-- [x] Definir restrições opcionais
-- [x] Definir funcionamento do motor de geração
+* [x] Definir entidades principais
+* [x] Definir regras de negócio
+* [x] Definir conflitos obrigatórios
+* [x] Definir restrições opcionais
+* [x] Definir funcionamento do motor de geração
 
-### Fase 2 - Banco de dados
+### Fase 2 - Banco de Dados e Integração
 
-## Fase 2 — Banco de Dados
+* [x] Instalar PostgreSQL
+* [x] Criar banco local
+* [x] Criar schema.sql
 
-- [x] Instalar PostgreSQL
-- [x] Modelar tabela professores
-- [x] Modelar tabela disciplinas
-- [x] Modelar tabela turmas
-- [x] Modelar tabela disponibilidade
-- [x] Modelar tabela carga_horaria
-- [x] Criar schema.sql
-- [x] Criar banco local
-- [x] Definir relacionamentos entre entidades
+#### Tabelas modeladas
+
+* [x] escolas
+* [x] professores
+* [x] disciplinas
+* [x] turmas
+* [x] disponibilidade_professor
+* [x] carga_horaria
+* [x] professor_disciplina
+* [x] professor_turma
+* [x] turma_disciplina
+
+#### Integração com Flask
+
+* [x] Configurar SQLAlchemy
+* [x] Criar models das entidades
+* [x] Criar blueprints iniciais
+* [x] Conectar aplicação ao PostgreSQL
+* [x] Testar leitura das entidades cadastradas
+
+### Fase 3 - CRUDs
+
+* [ ] CRUD de Escolas
+* [ ] CRUD de Professores
+* [ ] CRUD de Disciplinas
+* [ ] CRUD de Turmas
+* [ ] CRUD de Disponibilidade
+* [ ] CRUD de Carga Horária
+* [ ] CRUD dos relacionamentos
+
+### Fase 4 - Motor de Geração
+
+* [ ] Implementar algoritmo de geração
+* [ ] Validar conflitos
+* [ ] Aplicar restrições obrigatórias
+* [ ] Aplicar preferências e penalidades
+* [ ] Gerar grade completa
+
+### Fase 5 - Interface Web
+
+* [ ] Dashboard
+* [ ] Formulários de cadastro
+* [ ] Visualização da grade
+* [ ] Relatórios
+
+### Fase 6 - Deploy
+
+* [ ] Deploy da aplicação
+* [ ] Configuração de domínio
+* [ ] Testes em ambiente real
 
 ## Status
 
 🟡 Em desenvolvimento
+
+### Progresso atual
+
+✅ Estrutura do projeto concluída
+
+✅ Regras de negócio definidas
+
+✅ Banco PostgreSQL modelado
+
+✅ Models integrados ao Flask
+
+✅ Primeiras consultas funcionando
+
+🚧 Próxima etapa: desenvolvimento dos CRUDs
