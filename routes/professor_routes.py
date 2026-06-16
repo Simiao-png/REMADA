@@ -8,7 +8,25 @@ professor_bp = Blueprint("professor", __name__)
 @professor_bp.route("/professores")
 def listar_professores():
     lista = Professor.query.all()
-    return f"Total de professores: {len(lista)}"
+
+    if not lista:
+        return "Nenhum professor cadastrado."
+
+    resposta = "<h1>Professores</h1>"
+
+    for professor in lista:
+        resposta += f"""
+        <p>
+            <strong>ID:</strong> {professor.id}<br>
+            <strong>Nome:</strong> {professor.nome}<br>
+            <strong>E-mail:</strong> {professor.email}<br>
+            <strong>Telefone:</strong> {professor.telefone}<br>
+            <strong>Ativo:</strong> {professor.ativo}
+        </p>
+        <hr>
+        """
+
+    return resposta
 
 
 @professor_bp.route("/criar-professor")
