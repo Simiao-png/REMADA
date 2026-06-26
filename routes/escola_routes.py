@@ -1,42 +1,84 @@
-from flask import Blueprint
+from flask import Blueprint, request, jsonify
 from models.db import db
 from models.escola import Escola
 
 escola_bp = Blueprint("escola", __name__)
 
 
-@escola_bp.route("/escolas")
+@escola_bp.route("/escolas", methods=["GET"])
 def listar_escolas():
-    lista = Escola.query.all()
+    escolas = Escola.query.all()
 
-    if not lista:
-        return "Nenhuma escola cadastrada."
+    resultado = []
 
-    resposta = "<h1>Escolas</h1>"
+    for escola in escolas:
+        resultado.append({
+            "id": escola.id,
+            "nome": escola.nome,
+            "cidade": escola.cidade,
+            "estado": escola.estado
+        })
 
-    for escola in lista:
-        resposta += f"""
-        <p>
-            <strong>ID:</strong> {escola.id}<br>
-            <strong>Nome:</strong> {escola.nome}<br>
-            <strong>Cidade:</strong> {escola.cidade}<br>
-            <strong>Estado:</strong> {escola.estado}
-        </p>
-        <hr>
-        """
-
-    return resposta
+    return jsonify(resultado)
 
 
-@escola_bp.route("/criar-escola")
+@escola_bp.route("/escolas/<int:id>", methods=["GET"])
+def buscar_escola(id):
+    escola = Escola.query.get(id)
+
+    if not escola:
+        return jsonify({"erro": "Escola não encontrada"}), 404
+
+    return jsonify({
+        "id": escola.id,
+        "nome": escola.nome,
+        "cidade": escola.cidade,
+        "estado": escola.estado
+    })
+
+
+@escola_bp.route("/escolas", methods=["POST"])
 def criar_escola():
-    escola = Escola(
-        nome="Escola Teste",
-        cidade="São Paulo",
-        estado="SP"
+    dados = request.get_json()
+
+    nova_escola = Escola(
+        nome=dados["nome"],
+        cidade=dados["cidade"],
+        estado=dados["estado"]
     )
 
-    db.session.add(escola)
+    db.session.add(nova_escola)
     db.session.commit()
 
-    return "Escola criada com sucesso!"
+    return jsonify({"mensagem": "Escola criada com sucesso!"}), 201
+
+
+@escola_bp.route("/escolas/<int:id>", methods=["PUT"])
+def atualizar_escola(id):
+    escola = Escola.query.get(id)
+
+    if not escola:
+        return jsonify({"erro": "Escola não encontrada"}), 404
+
+    dados = request.get_json()
+
+    escola.nome = dados["nome"]
+    escola.cidade = dados["cidade"]
+    escola.estado = dados["estado"]
+
+    db.session.commit()
+
+    return jsonify({"mensagem": "Escola atualizada com sucesso!"})
+
+
+@escola_bp.route("/escolas/<int:id>", methods=["DELETE"])
+def deletar_escola(id):
+    escola = Escola.query.get(id)
+
+    if not escola:
+        return jsonify({"erro": "Escola não encontrada"}), 404
+
+    db.session.delete(escola)
+    db.session.commit()
+
+    return jsonify({"mensagem": "Escola deletada com sucesso!"})
