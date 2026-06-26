@@ -1,25 +1,36 @@
-from flask import Blueprint
-from models.turma_disciplina import TurmaDisciplina
+from flask import Blueprint, request
 
-turma_disciplina_bp = Blueprint(
-    "turma_disciplina",
-    __name__
+from services.turma_disciplina_service import (
+    listar_turma_disciplinas,
+    buscar_turma_disciplina,
+    criar_turma_disciplina,
+    deletar_turma_disciplina
 )
 
+turma_disciplina_bp = Blueprint("turma_disciplina", __name__)
 
-@turma_disciplina_bp.route("/turma-disciplinas")
-def listar_turma_disciplinas():
-    registros = TurmaDisciplina.query.all()
 
-    html = "<h1>Turma x Disciplina</h1>"
+@turma_disciplina_bp.route("/turma-disciplinas", methods=["GET"])
+def listar():
+    return listar_turma_disciplinas()
 
-    for registro in registros:
-        html += f"""
-        <p>
-            Turma ID: {registro.turma_id}<br>
-            Disciplina ID: {registro.disciplina_id}
-        </p>
-        <hr>
-        """
 
-    return html
+@turma_disciplina_bp.route(
+    "/turma-disciplinas/<int:turma_id>/<int:disciplina_id>",
+    methods=["GET"]
+)
+def buscar(turma_id, disciplina_id):
+    return buscar_turma_disciplina(turma_id, disciplina_id)
+
+
+@turma_disciplina_bp.route("/turma-disciplinas", methods=["POST"])
+def criar():
+    return criar_turma_disciplina(request.get_json())
+
+
+@turma_disciplina_bp.route(
+    "/turma-disciplinas/<int:turma_id>/<int:disciplina_id>",
+    methods=["DELETE"]
+)
+def deletar(turma_id, disciplina_id):
+    return deletar_turma_disciplina(turma_id, disciplina_id)

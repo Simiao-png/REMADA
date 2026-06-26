@@ -89,3 +89,9 @@ CREATE TABLE carga_horaria (
     quantidade_minima_dias_semana INTEGER DEFAULT 1,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE turma_disciplina (
+    turma_id INTEGER NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+    disciplina_id INTEGER NOT NULL REFERENCES disciplinas(id) ON DELETE CASCADE,
+    PRIMARY KEY (turma_id, disciplina_id)
+);
