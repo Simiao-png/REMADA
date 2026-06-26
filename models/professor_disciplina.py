@@ -8,11 +8,13 @@ class ProfessorDisciplina(db.Model):
 
     professor_id = db.Column(
         db.Integer,
+        db.ForeignKey("professores.id"),
         nullable=False
     )
 
     disciplina_id = db.Column(
         db.Integer,
+        db.ForeignKey("disciplinas.id"),
         nullable=False
     )
 

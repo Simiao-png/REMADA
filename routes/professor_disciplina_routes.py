@@ -1,39 +1,42 @@
-from flask import Blueprint
-from models.db import db
-from models.professor_disciplina import ProfessorDisciplina
+from flask import Blueprint, request
 
-professor_disciplina_bp = Blueprint("professor_disciplina", __name__)
+from services.professor_disciplina_service import (
+    listar_professor_disciplinas,
+    buscar_professor_disciplina,
+    criar_professor_disciplina,
+    atualizar_professor_disciplina,
+    deletar_professor_disciplina
+)
 
-
-@professor_disciplina_bp.route("/professor-disciplinas")
-def listar_professor_disciplinas():
-    lista = ProfessorDisciplina.query.all()
-
-    if not lista:
-        return "Nenhum vínculo cadastrado."
-
-    resposta = "<h1>Professor x Disciplina</h1>"
-
-    for item in lista:
-        resposta += f"""
-        <p>
-            Professor ID: {item.professor_id}<br>
-            Disciplina ID: {item.disciplina_id}
-        </p>
-        <hr>
-        """
-
-    return resposta
+professor_disciplina_bp = Blueprint(
+    "professor_disciplina",
+    __name__
+)
 
 
-@professor_disciplina_bp.route("/criar-professor-disciplina")
-def criar_professor_disciplina():
-    vinculo = ProfessorDisciplina(
-        professor_id=2,
-        disciplina_id=1
+@professor_disciplina_bp.route("/professor-disciplinas", methods=["GET"])
+def listar():
+    return listar_professor_disciplinas()
+
+
+@professor_disciplina_bp.route("/professor-disciplinas/<int:id>", methods=["GET"])
+def buscar(id):
+    return buscar_professor_disciplina(id)
+
+
+@professor_disciplina_bp.route("/professor-disciplinas", methods=["POST"])
+def criar():
+    return criar_professor_disciplina(request.get_json())
+
+
+@professor_disciplina_bp.route("/professor-disciplinas/<int:id>", methods=["PUT"])
+def atualizar(id):
+    return atualizar_professor_disciplina(
+        id,
+        request.get_json()
     )
 
-    db.session.add(vinculo)
-    db.session.commit()
 
-    return "Vínculo criado com sucesso!"
+@professor_disciplina_bp.route("/professor-disciplinas/<int:id>", methods=["DELETE"])
+def deletar(id):
+    return deletar_professor_disciplina(id)
