@@ -14,6 +14,7 @@ from models.turma_disciplina import TurmaDisciplina
 from routes.configuracao_horaria_routes import configuracao_horaria_bp
 from routes.disponibilidade_professor_routes import disponibilidade_professor_bp
 from routes.carga_horaria_routes import carga_horaria_bp
+from routes.motor_grade_routes import motor_grade_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -31,6 +32,8 @@ app.register_blueprint(turma_disciplina_bp)
 app.register_blueprint(configuracao_horaria_bp)
 app.register_blueprint(disponibilidade_professor_bp)
 app.register_blueprint(carga_horaria_bp)
+app.register_blueprint(motor_grade_bp)
+
 
 @app.route("/")
 def home():

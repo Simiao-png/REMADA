@@ -10,117 +10,151 @@ Automatizar a construção de grades horárias escolares, respeitando disponibil
 
 Muitas escolas já possuem sistemas para notas, faltas e cadastros, mas a montagem da grade horária ainda costuma ser feita manualmente por coordenadores ou professores.
 
-O objetivo deste sistema é reduzir esse trabalho manual e ajudar a escola a gerar horários de forma mais rápida, organizada e sem conflitos.
+O objetivo deste sistema é reduzir esse trabalho manual e ajudar a escola a gerar horários de forma rápida, organizada e sem conflitos.
 
 ## Tecnologias
 
 * Python
 * Flask
 * PostgreSQL
-* HTML/CSS/JavaScript
-* Git/GitHub
+* HTML/CSS
+* JavaScript
+* SQLAlchemy
+* Git / GitHub
 
-## MVP
+---
 
-* Cadastro de professores
-* Cadastro de disciplinas
-* Cadastro de turmas
-* Cadastro de disponibilidade dos professores
-* Definição de carga horária por turma/disciplina
-* Geração automática da grade
-* Relatório de conflitos/divergências
-* Exportação da grade
+## Funcionalidades atuais
+
+* Cadastro de Escolas
+* Cadastro de Professores
+* Cadastro de Disciplinas
+* Cadastro de Turmas
+* Cadastro de Disponibilidade dos Professores
+* Cadastro de Carga Horária
+* Relacionamento Professor × Disciplina
+* Relacionamento Professor × Turma
+* Relacionamento Turma × Disciplina
+* Geração automática de grades horárias
+* Validação automática de conflitos
+* Sistema de penalidades para otimização da grade
+
+---
 
 ## Roadmap
 
-### Fase 0 - Estrutura do projeto
+### Fase 0 — Estrutura do Projeto
 
 * [x] Criar estrutura de pastas
 * [x] Criar ambiente virtual
 * [x] Instalar Flask
 * [x] Rodar aplicação local
 * [x] Configurar Git
-* [x] Subir projeto para o GitHub
+* [x] Publicar projeto no GitHub
 
-### Fase 1 - Modelagem do negócio
+---
 
-* [x] Definir entidades principais
+### Fase 1 — Modelagem do Negócio
+
+* [x] Definir entidades
 * [x] Definir regras de negócio
 * [x] Definir conflitos obrigatórios
 * [x] Definir restrições opcionais
-* [x] Definir funcionamento do motor de geração
+* [x] Projetar o motor de geração
 
-### Fase 2 - Banco de Dados e Integração
+---
+
+### Fase 2 — Banco de Dados
 
 * [x] Instalar PostgreSQL
-* [x] Criar banco local
+* [x] Criar banco de dados
 * [x] Criar schema.sql
+* [x] Modelar todas as tabelas
+* [x] Integrar SQLAlchemy
 
-#### Tabelas modeladas
+---
 
-* [x] escolas
-* [x] professores
-* [x] disciplinas
-* [x] turmas
-* [x] disponibilidade_professor
-* [x] carga_horaria
-* [x] professor_disciplina
-* [x] professor_turma
-* [x] turma_disciplina
+### Fase 3 — CRUDs
 
-#### Integração com Flask
+* [x] Escolas
+* [x] Professores
+* [x] Disciplinas
+* [x] Turmas
+* [x] Disponibilidade
+* [x] Carga Horária
+* [x] Professor × Disciplina
+* [x] Professor × Turma
+* [x] Turma × Disciplina
 
-* [x] Configurar SQLAlchemy
-* [x] Criar models das entidades
-* [x] Criar blueprints iniciais
-* [x] Conectar aplicação ao PostgreSQL
-* [x] Testar leitura das entidades cadastradas
+---
 
-### Fase 3 - CRUDs
+### Fase 4 — Motor de Geração
 
-* [ ] CRUD de Escolas
-* [ ] CRUD de Professores
-* [ ] CRUD de Disciplinas
-* [ ] CRUD de Turmas
-* [ ] CRUD de Disponibilidade
-* [ ] CRUD de Carga Horária
-* [ ] CRUD dos relacionamentos
+* [x] Definir algoritmo inicial
+* [x] Implementar validação de conflitos
+* [x] Implementar distribuição de aulas
+* [x] Implementar cálculo de penalidades
+* [ ] Implementar análise de inviabilidade
+* [ ] Otimização da grade
 
-### Fase 4 - Motor de Geração
+---
 
-* [ ] Implementar algoritmo de geração
-* [ ] Validar conflitos
-* [ ] Aplicar restrições obrigatórias
-* [ ] Aplicar preferências e penalidades
-* [ ] Gerar grade completa
-
-### Fase 5 - Interface Web
+### Fase 5 — Interface Web
 
 * [ ] Dashboard
-* [ ] Formulários de cadastro
-* [ ] Visualização da grade
+* [ ] Tela de Escolas
+* [ ] Tela de Professores
+* [ ] Tela de Disciplinas
+* [ ] Tela de Turmas
+* [ ] Tela de Disponibilidade
+* [ ] Tela de Geração
+* [ ] Visualização da Grade
 * [ ] Relatórios
 
-### Fase 6 - Deploy
+---
 
-* [ ] Deploy da aplicação
-* [ ] Configuração de domínio
-* [ ] Testes em ambiente real
+### Fase 6 — Deploy
+
+* [ ] Deploy em produção
+* [ ] Domínio próprio
+* [ ] Testes de carga
+* [ ] Documentação da API
+
+---
 
 ## Status
 
 🟡 Em desenvolvimento
 
-### Progresso atual
+### Progresso Atual
 
-✅ Estrutura do projeto concluída
+* ✅ Modelagem concluída
+* ✅ Banco de dados integrado
+* ✅ CRUDs principais implementados
+* ✅ Motor de geração funcional
+* ✅ Sistema de penalidades implementado
+* 🚧 Próxima etapa: análise de inviabilidade e otimização da grade
 
-✅ Regras de negócio definidas
+---
 
-✅ Banco PostgreSQL modelado
+## Estrutura do Projeto
 
-✅ Models integrados ao Flask
+```
+grade-horaria/
 
-✅ Primeiras consultas funcionando
-
-🚧 Próxima etapa: desenvolvimento dos CRUDs
+├── models/
+├── routes/
+├── services/
+│   └── motor/
+│       ├── gerador.py
+│       ├── alocador.py
+│       ├── aulas.py
+│       ├── estrutura.py
+│       ├── validacoes.py
+│       ├── heuristicas.py
+│       └── penalidades.py
+├── database/
+├── templates/
+├── static/
+└── app.py
+```
