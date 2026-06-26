@@ -12,6 +12,7 @@ from models.professor_turma import ProfessorTurma
 from routes.turma_disciplina_routes import turma_disciplina_bp
 from models.turma_disciplina import TurmaDisciplina
 from routes.configuracao_horaria_routes import configuracao_horaria_bp
+from routes.disponibilidade_professor_routes import disponibilidade_professor_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -27,7 +28,7 @@ app.register_blueprint(professor_disciplina_bp)
 app.register_blueprint(professor_turma_bp)
 app.register_blueprint(turma_disciplina_bp)
 app.register_blueprint(configuracao_horaria_bp)
-
+app.register_blueprint(disponibilidade_professor_bp)
 
 @app.route("/")
 def home():
