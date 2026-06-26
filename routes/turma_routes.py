@@ -1,54 +1,36 @@
-from flask import Blueprint
-from models.db import db
-from models.turma import Turma
-from sqlalchemy import text
+from flask import Blueprint, request
+
+from services.turma_service import (
+    listar_turmas,
+    buscar_turma,
+    criar_turma,
+    atualizar_turma,
+    deletar_turma
+)
 
 turma_bp = Blueprint("turma", __name__)
 
 
-@turma_bp.route("/turmas")
-def listar_turmas():
-    lista = Turma.query.all()
-    return f"Total de turmas: {len(lista)}"
+@turma_bp.route("/turmas", methods=["GET"])
+def listar():
+    return listar_turmas()
 
 
-@turma_bp.route("/criar-configuracao")
-def criar_configuracao():
-    db.session.execute(
-        text("""
-            INSERT INTO configuracao_horaria (
-                escola_id,
-                nome,
-                aulas_por_dia,
-                duracao_aula_minutos,
-                duracao_intervalo_minutos
-            )
-            VALUES (
-                1,
-                'Manhã - 6 aulas',
-                6,
-                50,
-                20
-            )
-        """)
-    )
-
-    db.session.commit()
-
-    return "Configuração horária criada com sucesso!"
+@turma_bp.route("/turmas/<int:id>", methods=["GET"])
+def buscar(id):
+    return buscar_turma(id)
 
 
-@turma_bp.route("/criar-turma")
-def criar_turma():
-    turma = Turma(
-        escola_id=1,
-        configuracao_horaria_id=1,
-        nome="6A",
-        serie="6º Ano",
-        turno="Manhã"
-    )
+@turma_bp.route("/turmas", methods=["POST"])
+def criar():
+    return criar_turma(request.get_json())
 
-    db.session.add(turma)
-    db.session.commit()
 
-    return "Turma criada com sucesso!"
+@turma_bp.route("/turmas/<int:id>", methods=["PUT"])
+def atualizar(id):
+    return atualizar_turma(id, request.get_json())
+
+
+@turma_bp.route("/turmas/<int:id>", methods=["DELETE"])
+def deletar(id):
+    return deletar_turma(id)
