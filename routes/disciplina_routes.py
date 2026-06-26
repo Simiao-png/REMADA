@@ -1,40 +1,36 @@
-from flask import Blueprint
-from models.db import db
-from models.disciplina import Disciplina
+from flask import Blueprint, request
+
+from services.disciplina_service import (
+    listar_disciplinas,
+    buscar_disciplina,
+    criar_disciplina,
+    atualizar_disciplina,
+    deletar_disciplina
+)
 
 disciplina_bp = Blueprint("disciplina", __name__)
 
 
-@disciplina_bp.route("/disciplinas")
-def listar_disciplinas():
-    lista = Disciplina.query.all()
-
-    if not lista:
-        return "Nenhuma disciplina cadastrada."
-
-    resposta = "<h1>Disciplinas</h1>"
-
-    for disciplina in lista:
-        resposta += f"""
-        <p>
-            <strong>ID:</strong> {disciplina.id}<br>
-            <strong>Nome:</strong> {disciplina.nome}<br>
-            <strong>Ativo:</strong> {disciplina.ativo}
-        </p>
-        <hr>
-        """
-
-    return resposta
+@disciplina_bp.route("/disciplinas", methods=["GET"])
+def listar():
+    return listar_disciplinas()
 
 
-@disciplina_bp.route("/criar-disciplina")
-def criar_disciplina():
-    disciplina = Disciplina(
-        escola_id=1,
-        nome="Matemática"
-    )
+@disciplina_bp.route("/disciplinas/<int:id>", methods=["GET"])
+def buscar(id):
+    return buscar_disciplina(id)
 
-    db.session.add(disciplina)
-    db.session.commit()
 
-    return "Disciplina criada com sucesso!"
+@disciplina_bp.route("/disciplinas", methods=["POST"])
+def criar():
+    return criar_disciplina(request.get_json())
+
+
+@disciplina_bp.route("/disciplinas/<int:id>", methods=["PUT"])
+def atualizar(id):
+    return atualizar_disciplina(id, request.get_json())
+
+
+@disciplina_bp.route("/disciplinas/<int:id>", methods=["DELETE"])
+def deletar(id):
+    return deletar_disciplina(id)
