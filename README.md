@@ -94,7 +94,7 @@ O objetivo deste sistema é reduzir esse trabalho manual e ajudar a escola a ger
 * [x] Implementar validação de conflitos
 * [x] Implementar distribuição de aulas
 * [x] Implementar cálculo de penalidades
-* [ ] Implementar análise de inviabilidade
+* [x] Implementar análise de inviabilidade
 * [ ] Otimização da grade
 
 ---

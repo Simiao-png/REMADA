@@ -10,9 +10,10 @@ def diagnostico_motor():
     motor = gerar_grade(resultado)
 
     return {
-        "status": "ok",
+        "status": motor["status"],
         "grade": motor["grade"],
-        "nao_alocadas": motor["nao_alocadas"]
+        "nao_alocadas": motor["nao_alocadas"],
+        "problemas": motor.get("problemas", [])
     }
 
 
