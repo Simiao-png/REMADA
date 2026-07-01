@@ -27,7 +27,6 @@ def verificar_carga_horaria_vs_slots(dados):
     dias_semana = 5
 
     for turma in turmas:
-
         carga_total = sum(
             carga.quantidade_aulas_semana
             for carga in cargas
@@ -108,7 +107,6 @@ def verificar_professor_com_carga_excessiva(dados):
     professor_disciplina = dados.get("professor_disciplina", [])
 
     for relacao in professor_disciplina:
-
         carga_total = sum(
             carga.quantidade_aulas_semana
             for carga in cargas
