@@ -5,6 +5,7 @@ def analisar_inviabilidade(dados):
     problemas.extend(verificar_professor_sem_disponibilidade(dados))
     problemas.extend(verificar_disciplina_sem_professor(dados))
     problemas.extend(verificar_professor_com_carga_excessiva(dados))
+    problemas.extend(verificar_professor_disciplina_sem_turma(dados))
 
     return {
         "viavel": len(problemas) == 0,
@@ -139,6 +140,55 @@ def verificar_professor_com_carga_excessiva(dados):
                     f"O professor {relacao.professor_id} "
                     f"possui apenas {disponibilidade} horários "
                     f"para {carga_total} aulas."
+                )
+            })
+
+    return problemas
+
+def verificar_professor_disciplina_sem_turma(dados):
+    problemas = []
+
+    cargas = dados.get("cargas_horarias", [])
+    professor_disciplina = dados.get("professor_disciplina", [])
+    professor_turma = dados.get("professor_turma", [])
+    professores = dados.get("professores", [])
+
+    mapa_professores = {
+        professor.id: professor.nome
+        for professor in professores
+    }
+
+    for relacao in professor_disciplina:
+        turmas_que_precisam_da_disciplina = {
+            carga.turma_id
+            for carga in cargas
+            if carga.disciplina_id == relacao.disciplina_id
+        }
+
+        turmas_do_professor = {
+            rel_turma.turma_id
+            for rel_turma in professor_turma
+            if rel_turma.professor_id == relacao.professor_id
+        }
+
+        turmas_compativeis = turmas_que_precisam_da_disciplina.intersection(
+            turmas_do_professor
+        )
+
+        if turmas_que_precisam_da_disciplina and not turmas_compativeis:
+            nome_professor = mapa_professores.get(
+                relacao.professor_id,
+                f"Professor {relacao.professor_id}"
+            )
+
+            problemas.append({
+                "tipo": "PROFESSOR_DISCIPLINA_SEM_TURMA",
+                "professor_id": relacao.professor_id,
+                "disciplina_id": relacao.disciplina_id,
+                "mensagem": (
+                    f"O professor '{nome_professor}' está vinculado "
+                    f"à disciplina {relacao.disciplina_id}, mas não está "
+                    "vinculado a nenhuma turma que precisa dessa disciplina."
                 )
             })
 
