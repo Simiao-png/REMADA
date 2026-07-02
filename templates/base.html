@@ -1,41 +1,53 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Grade Horária{% endblock %}</title>
+<html lang="pt-BR">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}REMADA{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
+
 <body>
 
 <div class="layout">
 
-    <aside class="sidebar">
-        <h2>Grade Horária</h2>
-
-        <nav>
-            <a href="/">Dashboard</a>
-            <a href="/escolas/tela">Escolas</a>
-            <a href="/professores/tela">Professores</a>
-            <a href="/disciplinas/tela">Disciplinas</a>
-            <a href="/turmas/tela">Turmas</a>
-            <a href="/disponibilidades/tela">Disponibilidades</a>
-            <a href="/motor/tela">Gerar Grade</a>
-            <a href="/motor/diagnostico/tela">Conflitos</a>
-        </nav>
-    </aside>
+    {% include "components/sidebar.html" %}
 
     <section class="content">
-        <header class="topbar">
-            <strong>Sistema de Grade Horária</strong>
-        </header>
+
+        {% include "components/topbar.html" %}
 
         <main class="page">
-            {% block content %}{% endblock %}
+
+            {% block content %}
+            {% endblock %}
+
         </main>
+
     </section>
 
 </div>
 
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </body>
+
 </html>
