@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Grade Horária{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2>Grade Horária</h2>
+
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/escolas/tela">Escolas</a>
+            <a href="/professores/tela">Professores</a>
+            <a href="/disciplinas/tela">Disciplinas</a>
+            <a href="/turmas/tela">Turmas</a>
+            <a href="/disponibilidades/tela">Disponibilidades</a>
+            <a href="/motor/tela">Gerar Grade</a>
+            <a href="/motor/diagnostico/tela">Conflitos</a>
+        </nav>
+    </aside>
+
+    <section class="content">
+        <header class="topbar">
+            <strong>Sistema de Grade Horária</strong>
+        </header>
+
+        <main class="page">
+            {% block content %}{% endblock %}
+        </main>
+    </section>
+
+</div>
+
+</body>
+</html>

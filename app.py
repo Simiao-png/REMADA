@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from config import Config
 from models.db import db
 
@@ -15,6 +15,7 @@ from routes.configuracao_horaria_routes import configuracao_horaria_bp
 from routes.disponibilidade_professor_routes import disponibilidade_professor_bp
 from routes.carga_horaria_routes import carga_horaria_bp
 from routes.motor_grade_routes import motor_grade_bp
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -36,9 +37,8 @@ app.register_blueprint(motor_grade_bp)
 
 
 @app.route("/")
-def home():
-    return "Sistema de Grade Horária conectado ao PostgreSQL!"
-
+def dashboard():
+    return render_template("dashboard.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
