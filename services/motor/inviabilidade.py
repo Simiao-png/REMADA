@@ -54,14 +54,26 @@ def verificar_professor_sem_disponibilidade(dados):
 
     professores = dados.get("professores", [])
     disponibilidades = dados.get("disponibilidades", [])
+    professor_disciplina = dados.get("professor_disciplina", [])
+    professor_turma = dados.get("professor_turma", [])
 
     professores_com_disponibilidade = {
         disp.professor_id
         for disp in disponibilidades
     }
 
+    professores_utilizados = {
+        rel_disciplina.professor_id
+        for rel_disciplina in professor_disciplina
+        for rel_turma in professor_turma
+        if rel_disciplina.professor_id == rel_turma.professor_id
+    }
+
     for professor in professores:
-        if professor.id not in professores_com_disponibilidade:
+        if (
+            professor.id in professores_utilizados
+            and professor.id not in professores_com_disponibilidade
+        ):
             problemas.append({
                 "tipo": "PROFESSOR_SEM_DISPONIBILIDADE",
                 "professor": professor.nome,

@@ -74,7 +74,7 @@ def coletar_candidatos(
         turma_id
     )
 
-    if aulas_restantes >= 2:
+    if aula.get("permite_aula_dupla", False) and aulas_restantes >= 2:
         for dia in dias_ordenados:
             horarios = grade[turma_id][dia]
 
