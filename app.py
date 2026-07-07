@@ -36,9 +36,33 @@ app.register_blueprint(carga_horaria_bp)
 app.register_blueprint(motor_grade_bp)
 
 
+# --- IMPORTS DOS MODELS PARA A DASHBOARD ---
+# O Flask precisa conhecer a estrutura para contar as linhas no banco
+from models.professor import Professor  # Ajuste o nome do arquivo/classe se for diferente
+from models.turma import Turma          # Ex: se seu arquivo for turma.py e a classe Turma
+from models.disciplina import Disciplina
+
 @app.route("/")
 def dashboard():
-    return render_template("dashboard.html")
+    try:
+        # Faz a contagem diretamente no PostgreSQL usando o SQLAlchemy
+        total_professores = db.session.query(Professor).count()
+        total_turmas = db.session.query(Turma).count()
+        total_disciplinas = db.session.query(Disciplina).count()
+    except Exception as e:
+        # Se der erro de banco (ex: tabela ainda não criada ou import errado), 
+        # o sistema não cai, ele joga 0 na tela para você diagnosticar
+        print(f"Erro ao buscar dados da dashboard: {e}")
+        total_professores = 0
+        total_turmas = 0
+        total_disciplinas = 0
+
+    return render_template(
+        "dashboard.html",
+        professores=total_professores,
+        turmas=total_turmas,
+        disciplinas=total_disciplinas
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -71,3 +71,25 @@ body {
     padding: 24px;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
 }
+
+/* --- Ajustes complementares para a Dashboard --- */
+
+/* Garante que o texto de ajuda na topbar fique alinhado */
+.topbar small {
+    display: block;
+    line-height: 1.2;
+}
+
+/* Utilitário para fontes menores, caso o Bootstrap não aplique */
+.fs-7 {
+    font-size: 0.85rem;
+}
+
+/* Efeito sutil de hover nos cards de ação rápida */
+.card-remada a.btn {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-remada a.btn:hover {
+    transform: translateY(-1px);
+}
