@@ -1,6 +1,7 @@
 from flask import jsonify
 from models.db import db
 from models.professor import Professor
+from models.escola import Escola
 
 
 def professor_para_dict(professor):
@@ -17,12 +18,12 @@ def professor_para_dict(professor):
 
 
 def listar_professores():
-    professores = Professor.query.all()
+    professores = db.session.query(Professor).all()
     return jsonify([professor_para_dict(professor) for professor in professores])
 
 
 def buscar_professor(id):
-    professor = Professor.query.get(id)
+    professor = db.session.query(Professor).get(id)
 
     if not professor:
         return jsonify({"erro": "Professor não encontrado"}), 404
@@ -31,8 +32,13 @@ def buscar_professor(id):
 
 
 def criar_professor(dados):
+    escola = db.session.query(Escola).first()
+
+    if not escola:
+        return jsonify({"erro": "Nenhuma escola cadastrada."}), 400
+
     professor = Professor(
-        escola_id=dados["escola_id"],
+        escola_id=escola.id,
         nome=dados["nome"],
         email=dados.get("email"),
         telefone=dados.get("telefone"),
@@ -48,12 +54,11 @@ def criar_professor(dados):
 
 
 def atualizar_professor(id, dados):
-    professor = Professor.query.get(id)
+    professor = db.session.query(Professor).get(id)
 
     if not professor:
         return jsonify({"erro": "Professor não encontrado"}), 404
 
-    professor.escola_id = dados.get("escola_id", professor.escola_id)
     professor.nome = dados.get("nome", professor.nome)
     professor.email = dados.get("email", professor.email)
     professor.telefone = dados.get("telefone", professor.telefone)
@@ -70,7 +75,7 @@ def atualizar_professor(id, dados):
 
 
 def deletar_professor(id):
-    professor = Professor.query.get(id)
+    professor = db.session.query(Professor).get(id)
 
     if not professor:
         return jsonify({"erro": "Professor não encontrado"}), 404

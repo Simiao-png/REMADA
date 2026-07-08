@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Dados da Escola</h2>
+            <p class="text-muted mb-0">Configure as informações institucionais fundamentais para a geração da grade horária.</p>
+        </div>
+    </div>
+
+    <form id="formPerfilEscola">
+        <input type="hidden" id="escolaId" value="{{ escola.id if escola else '' }}">
+
+        <div class="row g-4">
+            <!-- Coluna da Esquerda: Dados de Identificação e Localização -->
+            <div class="col-12 col-lg-8">
+                <div class="card-remada mb-4">
+                    <h5 class="fw-bold mb-4 text-dark">Identificação e Localização</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="nomeEscola" class="form-label text-secondary fw-semibold">Nome Fantasia / Nome da Escola</label>
+                            <input type="text" class="form-control form-control-lg fs-6" id="nomeEscola" 
+                                   value="{{ escola.nome if escola else '' }}" placeholder="Ex: Colégio Integral" required style="border-radius: 10px;">
+                        </div>
+
+                        <div class="col-12 col-md-8">
+                            <label for="cidadeEscola" class="form-label text-secondary fw-semibold">Cidade</label>
+                            <input type="text" class="form-control form-control-lg fs-6" id="cidadeEscola" 
+                                   value="{{ escola.cidade if escola.cidade else '' }}" placeholder="Ex: São Paulo" required style="border-radius: 10px;">
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="estadoEscola" class="form-label text-secondary fw-semibold">Estado (UF)</label>
+                            <input type="text" class="form-control form-control-lg fs-6" id="estadoEscola" 
+                                   value="{{ escola.estado if escola.estado else '' }}" placeholder="Ex: SP" maxlength="2" required style="border-radius: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-lg px-5" style="border-radius: 10px; font-size: 1rem;">
+                        <i class="bi bi-check-lg me-2"></i> Salvar Alterações
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coluna da Direita: Segmentos de Atuação -->
+            <div class="col-12 col-lg-4">
+                <div class="card-remada">
+                    <h5 class="fw-bold mb-3 text-dark">Segmentos Atendidos</h5>
+                    <p class="text-muted small mb-4">Selecione os níveis de ensino desta unidade para liberar as configurações de turmas.</p>
+
+                    <div class="d-flex flex-column gap-3">
+                        <div class="form-check form-switch pb-2 border-bottom">
+                            <input class="form-switch form-check-input" type="checkbox" role="switch" id="segFund1">
+                            <label class="form-check-label fw-semibold text-dark ms-2" for="segFund1">Ensino Fundamental I</label>
+                            <span class="d-block text-muted small ms-2">1º ao 5º ano</span>
+                        </div>
+
+                        <div class="form-check form-switch pb-2 border-bottom">
+                            <input class="form-switch form-check-input" type="checkbox" role="switch" id="segFund2" checked>
+                            <label class="form-check-label fw-semibold text-dark ms-2" for="segFund2">Ensino Fundamental II</label>
+                            <span class="d-block text-muted small ms-2">6º ao 9º ano</span>
+                        </div>
+
+                        <div class="form-check form-switch pb-2 border-bottom">
+                            <input class="form-switch form-check-input" type="checkbox" role="switch" id="segMedio" checked>
+                            <label class="form-check-label fw-semibold text-dark ms-2" for="segMedio">Ensino Médio</label>
+                            <span class="d-block text-muted small ms-2">1º ao 3º ano</span>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input class="form-switch form-check-input" type="checkbox" role="switch" id="segPreVest">
+                            <label class="form-check-label fw-semibold text-dark ms-2" for="segPreVest">Cursinho / Pré-Vestibular</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid p-0">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Professores</h2>
+            <p class="text-muted mb-0">
+                Gerencie o corpo docente da instituição e acompanhe o status de alocação.
+            </p>
+        </div>
+
+        <button
+            class="btn btn-primary d-inline-flex align-items-center gap-2"
+            onclick="abrirModalCadastro()">
+            <i class="bi bi-person-plus"></i>
+            Novo Professor
+        </button>
+    </div>
+
+    <div class="card-remada">
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:80px;">ID</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Telefone</th>
+                        <th class="text-end" style="width:150px;">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% if professores %}
+
+                    {% for prof in professores %}
+
+                    <tr>
+                        <td class="fw-bold text-secondary">
+                            #{{ prof.id }}
+                        </td>
+
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div
+                                    class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center"
+                                    style="width:40px;height:40px;">
+                                    <i class="bi bi-person fs-5"></i>
+                                </div>
+
+                                <span class="fw-semibold">
+                                    {{ prof.nome }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>{{ prof.email or "-" }}</td>
+
+                        <td>{{ prof.telefone or "-" }}</td>
+
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+
+                                <button
+                                    class="btn btn-sm btn-outline-primary"
+                                    title="Editar"
+                                    data-id="{{ prof.id }}"
+                                    data-nome="{{ prof.nome }}"
+                                    data-email="{{ prof.email or '' }}"
+                                    data-telefone="{{ prof.telefone or '' }}"
+                                    data-escola="{{ prof.escola_id or 1 }}"
+                                    onclick="abrirModalEdicao(this)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Excluir"
+                                    onclick="deletarProfessor('{{ prof.id }}','{{ prof.nome }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
+
+                            <h5 class="mb-2">
+                                Nenhum professor cadastrado
+                            </h5>
+
+                            <p class="text-muted">
+                                Clique em <strong>Novo Professor</strong> para começar.
+                            </p>
+                        </td>
+                    </tr>
+
+                {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<div
+    class="modal fade"
+    id="modalNovoProfessor"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title"
+                    id="modalNovoProfessorLabel">
+                    Cadastrar Professor
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <form id="formNovoProfessor">
+
+                <input
+                    type="hidden"
+                    id="professorId">
+
+                <input
+                    type="hidden"
+                    id="escolaIdProf"
+                    value="1">
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Nome
+                        </label>
+
+                        <input
+                            type="text"
+                            id="nomeProfessor"
+                            class="form-control"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            E-mail
+                        </label>
+
+                        <input
+                            type="email"
+                            id="emailProfessor"
+                            class="form-control"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Telefone
+                        </label>
+
+                        <input
+                            type="text"
+                            id="telefoneProfessor"
+                            class="form-control"
+                            required>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+                        Salvar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
