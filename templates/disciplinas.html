@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid p-0">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">Disciplinas</h2>
+            <p class="text-muted mb-0">
+                Gerencie todas as disciplinas da instituição.
+            </p>
+        </div>
+
+        <button
+            class="btn btn-primary d-inline-flex align-items-center gap-2"
+            onclick="abrirModalCadastroDisciplina()">
+
+            <i class="bi bi-plus-circle"></i>
+            Nova Disciplina
+
+        </button>
+
+    </div>
+
+    <div class="card-remada">
+
+        <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>Disciplina</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% if disciplinas %}
+
+                {% for disciplina in disciplinas %}
+
+                <tr>
+
+                    <td class="fw-semibold">
+                        {{ disciplina.nome }}
+                    </td>
+
+                    <td>
+
+                        {% if disciplina.ativo %}
+
+                        <button
+                            class="btn btn-sm btn-success"
+                            onclick="alternarStatusDisciplina('{{ disciplina.id }}','{{ disciplina.nome }}')">
+
+                            <i class="bi bi-check-circle-fill"></i>
+                            Ativa
+
+                        </button>
+
+                        {% else %}
+
+                        <button
+                            class="btn btn-sm btn-secondary"
+                            onclick="alternarStatusDisciplina('{{ disciplina.id }}','{{ disciplina.nome }}')">
+
+                            <i class="bi bi-x-circle-fill"></i>
+                            Inativa
+
+                        </button>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        <button
+                            class="btn btn-sm btn-outline-primary"
+                            title="Editar"
+                            data-id="{{ disciplina.id }}"
+                            data-nome="{{ disciplina.nome }}"
+                            onclick="abrirModalEdicaoDisciplina(this)">
+
+                            <i class="bi bi-pencil"></i>
+
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-outline-danger"
+                            title="Excluir"
+                            onclick="deletarDisciplina('{{ disciplina.id }}','{{ disciplina.nome }}')">
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td colspan="3" class="text-center py-5">
+
+                        <i class="bi bi-book fs-1 text-secondary d-block mb-3"></i>
+
+                        <h5 class="mb-2">
+                            Nenhuma disciplina cadastrada
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Clique em <strong>Nova Disciplina</strong> para começar.
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div
+    class="modal fade"
+    id="modalDisciplina"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title"
+                    id="modalDisciplinaLabel">
+
+                    Cadastrar Disciplina
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <form id="formDisciplina">
+
+                <input
+                    type="hidden"
+                    id="disciplinaId">
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+
+                            Nome da Disciplina
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="nomeDisciplina"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Cancelar
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        Salvar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
