@@ -153,6 +153,58 @@ function deletarTurma(id, nome) {
     }
 }
 
+function salvarDisponibilidadeProfessor(professorId) {
+
+    const checkboxes = document.querySelectorAll(
+        `.disponibilidade-checkbox[data-professor-id="${professorId}"]`
+    );
+
+    const disponibilidades = [];
+
+    checkboxes.forEach(checkbox => {
+
+        if (checkbox.checked) {
+
+            disponibilidades.push({
+                dia_semana: checkbox.dataset.dia,
+                numero_aula: Number(checkbox.dataset.aula)
+            });
+
+        }
+
+    });
+
+    fetch(`/disponibilidades/professor/${professorId}`, {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            disponibilidades: disponibilidades
+        })
+
+    }).then(async response => {
+
+        if (response.ok) {
+
+            alert("Disponibilidade salva com sucesso!");
+
+        } else {
+
+            const erro = await response.text();
+
+            alert(`Erro (${response.status}): ${erro}`);
+
+        }
+
+    });
+
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const formPerfilEscola = document.getElementById("formPerfilEscola");

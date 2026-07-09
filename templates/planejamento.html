@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid p-0">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Planejamento</h2>
+        <p class="text-muted mb-0">
+            Configure as disponibilidades dos professores e as cargas horárias.
+        </p>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="planejamentoTabs" role="tablist">
+
+        <li class="nav-item" role="presentation">
+            <button
+                class="nav-link active"
+                id="disponibilidades-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#disponibilidades"
+                type="button"
+                role="tab">
+                Disponibilidades
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button
+                class="nav-link"
+                id="carga-horaria-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#carga-horaria"
+                type="button"
+                role="tab">
+                Carga Horária
+            </button>
+        </li>
+
+    </ul>
+
+    <div class="tab-content">
+
+        <div
+            class="tab-pane fade show active"
+            id="disponibilidades"
+            role="tabpanel">
+
+            <div class="card-remada">
+
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-1">
+                        Disponibilidade dos Professores
+                    </h4>
+
+                    <p class="text-muted mb-0">
+                        Selecione um professor e marque os horários disponíveis.
+                    </p>
+                </div>
+
+                {% if professores %}
+
+                    <div class="row mb-4">
+
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Professor
+                            </label>
+
+                            <select
+                                id="professorDisponibilidade"
+                                class="form-select">
+
+                                {% for professor in professores %}
+                                    <option value="{{ professor.id }}">
+                                        {{ professor.nome }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4">
+                        <h5
+                            class="fw-bold mb-2"
+                            id="nomeProfessorDisponibilidade">
+                        </h5>
+
+                        <div
+                            id="disciplinasProfessorDisponibilidade"
+                            class="mb-3">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered align-middle text-center mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+                                    <th style="width:120px;">Aula</th>
+
+                                    {% for dia in dias_semana %}
+                                        <th class="text-capitalize">
+                                            {{ dia.label }}
+                                        </th>
+                                    {% endfor %}
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="corpoTabelaDisponibilidade">
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+
+                        <div>
+                            <span class="badge bg-success me-2">
+                                Disponível
+                            </span>
+
+                            <span class="badge bg-secondary">
+                                Indisponível
+                            </span>
+                        </div>
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="salvarDisponibilidadeProfessorAtual()">
+                            Salvar Disponibilidade
+                        </button>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="text-center py-5">
+
+                        <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
+
+                        <h5 class="mb-2">
+                            Nenhum professor cadastrado
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Cadastre professores antes de configurar disponibilidades.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="carga-horaria"
+            role="tabpanel">
+
+            <div class="card-remada text-center py-5">
+
+                <i class="bi bi-clock-history fs-1 text-secondary d-block mb-3"></i>
+
+                <h5 class="mb-2">
+                    Carga Horária
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Esta etapa será configurada após as disponibilidades.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="application/json" id="dadosPlanejamento">
+{
+    "professores": {{ professores_json | tojson }},
+    "diasSemana": {{ dias_semana | tojson }},
+    "numerosAulas": {{ numeros_aulas | tojson }}
+}
+</script>
+
+{% endblock %}

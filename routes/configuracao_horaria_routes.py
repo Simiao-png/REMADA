@@ -5,6 +5,7 @@ from services.configuracao_horaria_service import (
     buscar_configuracao,
     criar_configuracao,
     atualizar_configuracao,
+    salvar_parametros,
     deletar_configuracao
 )
 
@@ -24,6 +25,11 @@ def buscar(id):
 @configuracao_horaria_bp.route("/configuracoes-horarias", methods=["POST"])
 def criar():
     return criar_configuracao(request.get_json())
+
+
+@configuracao_horaria_bp.route("/configuracoes-horarias/parametros", methods=["POST"])
+def salvar():
+    return salvar_parametros(request.get_json())
 
 
 @configuracao_horaria_bp.route("/configuracoes-horarias/<int:id>", methods=["PUT"])

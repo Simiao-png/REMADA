@@ -60,6 +60,28 @@ def atualizar_disponibilidade(id, dados):
     return jsonify({"mensagem": "Disponibilidade atualizada com sucesso!"})
 
 
+def salvar_disponibilidade_professor(professor_id, dados):
+    DisponibilidadeProfessor.query.filter_by(
+        professor_id=professor_id
+    ).delete()
+
+    disponibilidades = dados.get("disponibilidades", [])
+
+    for item in disponibilidades:
+        disponibilidade = DisponibilidadeProfessor(
+            professor_id=professor_id,
+            dia_semana=item["dia_semana"],
+            numero_aula=item["numero_aula"],
+            disponivel=True
+        )
+
+        db.session.add(disponibilidade)
+
+    db.session.commit()
+
+    return jsonify({"mensagem": "Disponibilidade do professor salva com sucesso!"})
+
+
 def deletar_disponibilidade(id):
     disponibilidade = DisponibilidadeProfessor.query.get(id)
 
