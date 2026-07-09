@@ -2,6 +2,8 @@ let modalProf = null;
 let modalDisciplina = null;
 let modalTurma = null;
 
+let dadosPlanejamento = null;
+
 function abrirModalCadastro() {
     document.getElementById("formNovoProfessor").reset();
     document.getElementById("professorId").value = "";
@@ -153,57 +155,167 @@ function deletarTurma(id, nome) {
     }
 }
 
-function salvarDisponibilidadeProfessor(professorId) {
+function carregarDadosPlanejamento() {
+    const elemento = document.getElementById("dadosPlanejamento");
 
-    const checkboxes = document.querySelectorAll(
-        `.disponibilidade-checkbox[data-professor-id="${professorId}"]`
+    if (!elemento) {
+        return;
+    }
+
+    dadosPlanejamento = JSON.parse(elemento.textContent);
+}
+
+function buscarProfessorPlanejamento(professorId) {
+    if (!dadosPlanejamento) {
+        return null;
+    }
+
+    return dadosPlanejamento.professores.find(
+        professor => String(professor.id) === String(professorId)
     );
+}
 
-    const disponibilidades = [];
+function carregarProfessorDisponibilidade() {
+    const selectProfessor = document.getElementById("professorDisponibilidade");
 
-    checkboxes.forEach(checkbox => {
+    if (!selectProfessor || !dadosPlanejamento) {
+        return;
+    }
 
-        if (checkbox.checked) {
+    const professorId = selectProfessor.value;
+    const professor = buscarProfessorPlanejamento(professorId);
 
-            disponibilidades.push({
-                dia_semana: checkbox.dataset.dia,
-                numero_aula: Number(checkbox.dataset.aula)
+    if (!professor) {
+        return;
+    }
+
+    const nomeProfessor = document.getElementById("nomeProfessorDisponibilidade");
+    const disciplinasProfessor = document.getElementById("disciplinasProfessorDisponibilidade");
+
+    if (nomeProfessor) {
+        nomeProfessor.innerText = professor.nome;
+    }
+
+    if (disciplinasProfessor) {
+        if (professor.disciplinas && professor.disciplinas.length > 0) {
+            disciplinasProfessor.innerHTML = professor.disciplinas
+                .map(disciplina => `<span class="badge bg-primary-subtle text-primary me-1">${disciplina}</span>`)
+                .join("");
+        } else {
+            disciplinasProfessor.innerHTML = `<span class="text-muted">Nenhuma disciplina vinculada</span>`;
+        }
+    }
+
+    montarTabelaDisponibilidade(professor);
+}
+
+function montarTabelaDisponibilidade(professor) {
+    const corpoTabela = document.getElementById("corpoTabelaDisponibilidade");
+
+    if (!corpoTabela || !dadosPlanejamento) {
+        return;
+    }
+
+    corpoTabela.innerHTML = "";
+
+    dadosPlanejamento.numerosAulas.forEach(numeroAula => {
+        const linha = document.createElement("tr");
+
+        const colunaAula = document.createElement("td");
+        colunaAula.className = "fw-semibold";
+        colunaAula.innerText = `${numeroAula}ª aula`;
+
+        linha.appendChild(colunaAula);
+
+        dadosPlanejamento.diasSemana.forEach(dia => {
+            const coluna = document.createElement("td");
+
+            const disponivel = professor.disponibilidades.some(item =>
+                item.dia_semana === dia.valor &&
+                Number(item.numero_aula) === Number(numeroAula)
+            );
+
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = disponivel
+                ? "btn btn-sm btn-success disponibilidade-botao"
+                : "btn btn-sm btn-outline-secondary disponibilidade-botao";
+
+            botao.dataset.dia = dia.valor;
+            botao.dataset.aula = numeroAula;
+            botao.dataset.disponivel = disponivel ? "true" : "false";
+            botao.innerText = disponivel ? "✓" : "—";
+
+            botao.addEventListener("click", function () {
+                alternarDisponibilidadeBotao(botao);
             });
 
-        }
+            coluna.appendChild(botao);
+            linha.appendChild(coluna);
+        });
 
+        corpoTabela.appendChild(linha);
+    });
+}
+
+function alternarDisponibilidadeBotao(botao) {
+    const disponivel = botao.dataset.disponivel === "true";
+
+    if (disponivel) {
+        botao.dataset.disponivel = "false";
+        botao.className = "btn btn-sm btn-outline-secondary disponibilidade-botao";
+        botao.innerText = "—";
+    } else {
+        botao.dataset.disponivel = "true";
+        botao.className = "btn btn-sm btn-success disponibilidade-botao";
+        botao.innerText = "✓";
+    }
+}
+
+function salvarDisponibilidadeProfessorAtual() {
+    const selectProfessor = document.getElementById("professorDisponibilidade");
+
+    if (!selectProfessor) {
+        return;
+    }
+
+    const professorId = selectProfessor.value;
+
+    const botoes = document.querySelectorAll(".disponibilidade-botao");
+    const disponibilidades = [];
+
+    botoes.forEach(botao => {
+        if (botao.dataset.disponivel === "true") {
+            disponibilidades.push({
+                dia_semana: botao.dataset.dia,
+                numero_aula: Number(botao.dataset.aula)
+            });
+        }
     });
 
     fetch(`/disponibilidades/professor/${professorId}`, {
-
         method: "POST",
-
         headers: {
             "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
             disponibilidades: disponibilidades
         })
-
     }).then(async response => {
-
         if (response.ok) {
+            const professor = buscarProfessorPlanejamento(professorId);
+
+            if (professor) {
+                professor.disponibilidades = disponibilidades;
+            }
 
             alert("Disponibilidade salva com sucesso!");
-
         } else {
-
             const erro = await response.text();
-
-            alert(`Erro (${response.status}): ${erro}`);
-
+            alert(`Erro no Backend (${response.status}): ${erro}`);
         }
-
     });
-
 }
-
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -232,7 +344,41 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
-    
+
+    const formParametros = document.getElementById("formParametros");
+
+    if (formParametros) {
+        formParametros.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const payload = {
+                aulas_por_dia: Number(document.getElementById("aulasPorDia").value),
+                duracao_aula_minutos: Number(document.getElementById("duracaoAula").value),
+                duracao_intervalo_minutos: Number(document.getElementById("duracaoIntervalo").value),
+                tem_aula_segunda: document.getElementById("temAulaSegunda").checked,
+                tem_aula_terca: document.getElementById("temAulaTerca").checked,
+                tem_aula_quarta: document.getElementById("temAulaQuarta").checked,
+                tem_aula_quinta: document.getElementById("temAulaQuinta").checked,
+                tem_aula_sexta: document.getElementById("temAulaSexta").checked,
+                tem_aula_sabado: document.getElementById("temAulaSabado").checked
+            };
+
+            fetch("/configuracoes-horarias/parametros", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(async response => {
+                if (response.ok) {
+                    alert("Parâmetros salvos com sucesso!");
+                    window.location.reload();
+                } else {
+                    const erro = await response.text();
+                    alert(`Erro no Backend (${response.status}): ${erro}`);
+                }
+            });
+        });
+    }
+
     const formNovoProfessor = document.getElementById("formNovoProfessor");
 
     if (formNovoProfessor) {
@@ -334,19 +480,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const abaSalva = localStorage.getItem("abaCadastroAtiva");
 
     if (abaSalva) {
-    const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
+        const botaoAba = document.querySelector(`[data-bs-target="${abaSalva}"]`);
 
-    if (botaoAba) {
-        const tab = new bootstrap.Tab(botaoAba);
-        tab.show();
-    }
+        if (botaoAba) {
+            const tab = new bootstrap.Tab(botaoAba);
+            tab.show();
+        }
     }
 
     document.querySelectorAll('#cadastrosTabs button[data-bs-toggle="tab"]').forEach(botao => {
-    botao.addEventListener("shown.bs.tab", function (e) {
-        localStorage.setItem("abaCadastroAtiva", e.target.dataset.bsTarget);
-    });
+        botao.addEventListener("shown.bs.tab", function (e) {
+            localStorage.setItem("abaCadastroAtiva", e.target.dataset.bsTarget);
+        });
     });
 
+    carregarDadosPlanejamento();
+
+    const selectProfessorDisponibilidade = document.getElementById("professorDisponibilidade");
+
+    if (selectProfessorDisponibilidade) {
+        carregarProfessorDisponibilidade();
+
+        selectProfessorDisponibilidade.addEventListener("change", function () {
+            carregarProfessorDisponibilidade();
+        });
+    }
 
 });
