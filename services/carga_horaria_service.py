@@ -1,3 +1,10 @@
+def salvar_parametros(dados):
+
+    print("\n==============================")
+    print("JSON RECEBIDO:")
+    print(dados)
+    print("==============================\n")
+
 from flask import jsonify
 from models.db import db
 from models.carga_horaria import CargaHoraria

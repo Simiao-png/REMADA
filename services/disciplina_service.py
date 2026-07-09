@@ -9,12 +9,13 @@ def disciplina_para_dict(disciplina):
         "id": disciplina.id,
         "escola_id": disciplina.escola_id,
         "nome": disciplina.nome,
+        "cor": disciplina.cor or "#2563EB",
         "ativo": disciplina.ativo
     }
 
 
 def listar_disciplinas():
-    disciplinas = db.session.query(Disciplina).all()
+    disciplinas = db.session.query(Disciplina).order_by(Disciplina.nome).all()
 
     return jsonify([
         disciplina_para_dict(d)
@@ -32,7 +33,6 @@ def buscar_disciplina(id):
 
 
 def criar_disciplina(dados):
-
     escola = db.session.query(Escola).first()
 
     if escola is None:
@@ -43,6 +43,7 @@ def criar_disciplina(dados):
     disciplina = Disciplina(
         escola_id=escola.id,
         nome=dados["nome"],
+        cor=dados.get("cor", "#2563EB"),
         ativo=dados.get("ativo", True)
     )
 
@@ -55,13 +56,13 @@ def criar_disciplina(dados):
 
 
 def atualizar_disciplina(id, dados):
-
     disciplina = db.session.get(Disciplina, id)
 
     if not disciplina:
         return jsonify({"erro": "Disciplina não encontrada"}), 404
 
     disciplina.nome = dados.get("nome", disciplina.nome)
+    disciplina.cor = dados.get("cor", disciplina.cor)
     disciplina.ativo = dados.get("ativo", disciplina.ativo)
 
     db.session.commit()
@@ -72,7 +73,6 @@ def atualizar_disciplina(id, dados):
 
 
 def deletar_disciplina(id):
-
     disciplina = db.session.get(Disciplina, id)
 
     if not disciplina:
@@ -84,6 +84,7 @@ def deletar_disciplina(id):
     return jsonify({
         "mensagem": "Disciplina deletada com sucesso!"
     })
+
 
 def alternar_status_disciplina(id):
     disciplina = db.session.get(Disciplina, id)

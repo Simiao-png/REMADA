@@ -8,6 +8,12 @@ class ConfiguracaoHoraria(db.Model):
 
     escola_id = db.Column(db.Integer, nullable=False)
 
+    segmento = db.Column(
+    db.String(50),
+    nullable=False,
+    default="geral"
+)
+
     nome = db.Column(db.String(100), nullable=False)
     aulas_por_dia = db.Column(db.Integer, nullable=False)
     duracao_aula_minutos = db.Column(db.Integer, nullable=False)

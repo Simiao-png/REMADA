@@ -72,13 +72,24 @@ function abrirModalCadastroDisciplina() {
     }
 
     modalDisciplina.show();
+}    
+
+const cor = document.getElementById("corDisciplina");
+    if (cor) {
+    cor.value = "#2563EB";
 }
+
 
 function abrirModalEdicaoDisciplina(botao) {
     document.getElementById("disciplinaId").value = botao.dataset.id;
     document.getElementById("nomeDisciplina").value = botao.dataset.nome;
     document.getElementById("modalDisciplinaLabel").innerText = "Editar Disciplina";
 
+     const cor = document.getElementById("corDisciplina");
+    if (cor) {
+        cor.value = "#2563EB";
+    }
+    
     if (!modalDisciplina) {
         modalDisciplina = new bootstrap.Modal(document.getElementById("modalDisciplina"));
     }
@@ -317,6 +328,34 @@ function salvarDisponibilidadeProfessorAtual() {
     });
 }
 
+function montarPayloadParametrosSegmentos() {
+    if (typeof salvarFormularioSegmentoAtual === "function") {
+        salvarFormularioSegmentoAtual();
+    }
+
+    if (typeof atualizarJsonSegmentosParametros === "function") {
+        atualizarJsonSegmentosParametros();
+    }
+
+    if (typeof parametrosPorSegmento !== "undefined") {
+        return {
+            segmentos: parametrosPorSegmento
+        };
+    }
+
+    const campoJson = document.getElementById("segmentosParametrosJson");
+
+    if (campoJson && campoJson.value) {
+        return {
+            segmentos: JSON.parse(campoJson.value)
+        };
+    }
+
+    return {
+        segmentos: {}
+    };
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const formPerfilEscola = document.getElementById("formPerfilEscola");
@@ -348,34 +387,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const formParametros = document.getElementById("formParametros");
 
     if (formParametros) {
-        formParametros.addEventListener("submit", function (e) {
+        formParametros.addEventListener("submit", async function (e) {
             e.preventDefault();
 
-            const payload = {
-                aulas_por_dia: Number(document.getElementById("aulasPorDia").value),
-                duracao_aula_minutos: Number(document.getElementById("duracaoAula").value),
-                duracao_intervalo_minutos: Number(document.getElementById("duracaoIntervalo").value),
-                tem_aula_segunda: document.getElementById("temAulaSegunda").checked,
-                tem_aula_terca: document.getElementById("temAulaTerca").checked,
-                tem_aula_quarta: document.getElementById("temAulaQuarta").checked,
-                tem_aula_quinta: document.getElementById("temAulaQuinta").checked,
-                tem_aula_sexta: document.getElementById("temAulaSexta").checked,
-                tem_aula_sabado: document.getElementById("temAulaSabado").checked
-            };
+            const payload = montarPayloadParametrosSegmentos();
 
-            fetch("/configuracoes-horarias/parametros", {
+            const response = await fetch("/configuracoes-horarias/parametros", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
-            }).then(async response => {
-                if (response.ok) {
-                    alert("Parâmetros salvos com sucesso!");
-                    window.location.reload();
-                } else {
-                    const erro = await response.text();
-                    alert(`Erro no Backend (${response.status}): ${erro}`);
-                }
             });
+
+            if (response.ok) {
+                alert("Parâmetros salvos com sucesso!");
+                window.location.reload();
+            } else {
+                const erro = await response.text();
+                alert(`Erro no Backend (${response.status}): ${erro}`);
+            }
         });
     }
 
@@ -428,7 +457,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const metodo = id ? "PUT" : "POST";
 
             const payload = {
-                nome: document.getElementById("nomeDisciplina").value
+                nome: document.getElementById("nomeDisciplina").value,
+                cor: document.getElementById("corDisciplina").value
             };
 
             fetch(url, {
@@ -506,4 +536,17 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+});
+
+document.querySelectorAll(".disciplina-cor-bolinha").forEach(el => {
+    const cor = el.dataset.cor || "#2563EB";
+    el.style.backgroundColor = cor;
+});
+
+document.querySelectorAll(".badge-disciplina-colorida").forEach(el => {
+    const cor = el.dataset.cor || "#2563EB";
+
+    el.style.backgroundColor = cor + "22";
+    el.style.color = cor;
+    el.style.border = "1px solid " + cor + "55";
 });

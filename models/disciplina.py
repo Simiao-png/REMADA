@@ -8,6 +8,7 @@ class Disciplina(db.Model):
     escola_id = db.Column(db.Integer, nullable=False)
 
     nome = db.Column(db.String(100), nullable=False)
+    cor = db.Column(db.String(7), default="#2563EB")
     ativo = db.Column(db.Boolean, default=True)
 
     criado_em = db.Column(
