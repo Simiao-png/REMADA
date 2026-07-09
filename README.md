@@ -2,29 +2,34 @@
 
 Sistema inteligente para geração automática de grades horárias escolares.
 
-O REMADA automatiza a criação de grades horárias, respeitando disponibilidade dos professores, carga horária das disciplinas, turmas, turnos e regras pedagógicas, reduzindo conflitos e o tempo gasto na montagem manual dos horários.
+O REMADA automatiza um dos processos mais complexos da gestão escolar: a construção da grade horária. A plataforma organiza o fluxo de configuração da escola, valida inconsistências antes da geração da grade e distribui as aulas de forma inteligente, reduzindo conflitos e o tempo gasto na montagem manual.
 
 ---
 
-## Objetivo
+# Objetivo
 
-Desenvolver uma plataforma web capaz de gerar grades horárias escolares de forma inteligente, utilizando algoritmos de validação, heurísticas e otimização para produzir uma distribuição eficiente das aulas.
+Desenvolver uma plataforma web moderna capaz de gerar grades horárias escolares de forma automática, utilizando algoritmos de validação, heurísticas e otimização para produzir distribuições eficientes, equilibradas e viáveis.
 
-O projeto foi idealizado para atender escolas de pequeno, médio e grande porte, oferecendo uma solução moderna para um dos processos mais complexos da gestão escolar.
-
----
-
-## Problema que o REMADA resolve
-
-Apesar da evolução dos sistemas de gestão escolar, a construção da grade horária ainda é, em muitos casos, realizada manualmente.
-
-Esse processo costuma consumir muitas horas de trabalho, gerar conflitos entre professores, turmas e disciplinas e exigir diversos ajustes até que uma grade viável seja encontrada.
-
-O REMADA automatiza esse processo, detectando inconsistências antes da geração da grade e distribuindo as aulas de forma inteligente.
+O REMADA foi concebido para atender escolas de pequeno, médio e grande porte, oferecendo uma experiência simples para o usuário e um motor robusto de geração de horários.
 
 ---
 
-## Tecnologias
+# Problema que o REMADA resolve
+
+Mesmo com a evolução dos sistemas de gestão escolar, a montagem da grade horária continua sendo um processo manual em muitas instituições.
+
+Esse trabalho costuma envolver:
+
+- diversas planilhas;
+- inúmeros testes até encontrar uma solução viável;
+- conflitos entre professores, disciplinas e turmas;
+- retrabalho constante.
+
+O REMADA automatiza esse processo, detectando problemas antes da geração da grade e construindo automaticamente uma distribuição inteligente das aulas.
+
+---
+
+# Tecnologias
 
 - Python
 - Flask
@@ -34,37 +39,37 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 - CSS3
 - JavaScript
 - Bootstrap 5
-- Git / GitHub
+- Git
+- GitHub
 
 ---
 
-## Funcionalidades implementadas
+# Funcionalidades Implementadas
 
-### Cadastros
+## Configuração da Escola
 
-- ✅ Escolas
-- ✅ Professores
-- ✅ Disciplinas
-- ✅ Turmas
-- ✅ Disponibilidade dos Professores
-- ✅ Carga Horária
+- ✅ Cadastro de Professores
+- ✅ Cadastro de Disciplinas
+- ✅ Cadastro de Turmas
+- ✅ Cadastro de Disponibilidade dos Professores
+- ✅ Cadastro de Carga Horária
 
-### Relacionamentos
+## Relacionamentos
 
 - ✅ Professor × Disciplina
 - ✅ Professor × Turma
 - ✅ Turma × Disciplina
 
-### Motor de Geração
+## Motor Inteligente
 
-- ✅ Geração automática de grades
+- ✅ Geração automática da grade
 - ✅ Sistema de penalidades
 - ✅ Heurísticas de alocação
-- ✅ Análise automática de inviabilidade
+- ✅ Diagnóstico de inviabilidade
 
-### Validações implementadas
+## Validações
 
-- ✅ Carga horária superior à capacidade da turma
+- ✅ Carga horária maior que a capacidade da turma
 - ✅ Professor sem disponibilidade
 - ✅ Disciplina sem professor
 - ✅ Professor com carga horária incompatível
@@ -72,34 +77,45 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 
 ---
 
+# Interface Web
+
+O REMADA passou a ser desenvolvido com foco em experiência do usuário.
+
+A configuração da escola foi reorganizada em um fluxo único, reduzindo a quantidade de telas e simplificando o processo de cadastro.
+
+Atualmente a interface possui:
+
+- ✅ Dashboard
+- ✅ Central de Cadastros
+    - Professores
+    - Disciplinas
+    - Turmas
+- ✅ Modais de cadastro e edição
+- ✅ Navegação por abas
+- ✅ Persistência da aba ativa
+- 🚧 Planejamento
+- 🚧 Motor
+- 🚧 Diagnóstico
+
+---
+
 # Roadmap
 
-## Fase 0 — Estrutura do Projeto
+## Fase 1 — Estrutura
 
 - [x] Estrutura inicial
-- [x] Ambiente virtual
 - [x] Flask
 - [x] Git
 - [x] GitHub
 
 ---
 
-## Fase 1 — Modelagem
+## Fase 2 — Modelagem
 
 - [x] Definição das entidades
+- [x] Modelagem do banco
 - [x] Regras de negócio
-- [x] Restrições obrigatórias
-- [x] Restrições opcionais
 - [x] Arquitetura do motor
-
----
-
-## Fase 2 — Banco de Dados
-
-- [x] PostgreSQL
-- [x] Modelagem
-- [x] Schema SQL
-- [x] SQLAlchemy
 
 ---
 
@@ -107,11 +123,10 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 
 ### CRUDs
 
-- [x] Escolas
 - [x] Professores
 - [x] Disciplinas
 - [x] Turmas
-- [x] Disponibilidade
+- [x] Disponibilidades
 - [x] Carga Horária
 - [x] Professor × Disciplina
 - [x] Professor × Turma
@@ -123,44 +138,45 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 
 - [x] Estrutura da grade
 - [x] Geração automática
-- [x] Sistema de penalidades
-- [x] Heurísticas de alocação
-- [x] Análise de inviabilidade
+- [x] Heurísticas
+- [x] Penalidades
+- [x] Diagnóstico de inviabilidade
 - [ ] Otimização da grade
 
 ---
 
-## Fase 5 — Interface Web
+## Fase 5 — Interface
 
-- [x] Estrutura base
-- [x] Dashboard inicial
-- [ ] Layout definitivo
-- [ ] Tela de Escolas
-- [ ] Tela de Professores
-- [ ] Tela de Disciplinas
-- [ ] Tela de Turmas
-- [ ] Tela de Disponibilidade
-- [ ] Tela de Geração
-- [ ] Tela de Diagnóstico
-- [ ] Visualização da Grade
+- [x] Dashboard
+- [x] Central de Cadastros
+- [x] Professores
+- [x] Disciplinas
+- [x] Turmas
+- [ ] Planejamento
+- [ ] Disponibilidades
+- [ ] Carga Horária
+- [ ] Motor
+- [ ] Diagnóstico
+- [ ] Visualização da grade
 
 ---
 
 ## Fase 6 — Relatórios
 
-- [ ] Exportação em PDF
-- [ ] Exportação em Excel
-- [ ] Impressão da grade
+- [ ] PDF
+- [ ] Excel
+- [ ] Impressão da Grade
 - [ ] Relatórios de conflitos
 
 ---
 
-## Fase 7 — Deploy
+## Fase 7 — Plataforma
 
-- [ ] Deploy em produção
-- [ ] Domínio próprio
 - [ ] Autenticação
-- [ ] Documentação da API
+- [ ] Multi-escolas (SaaS)
+- [ ] Painel Administrativo
+- [ ] Deploy
+- [ ] API Pública
 
 ---
 
@@ -168,15 +184,16 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 
 🟡 Em desenvolvimento
 
-## Progresso Atual
+## Progresso
 
 - ✅ Modelagem concluída
 - ✅ Banco de dados concluído
-- ✅ CRUDs implementados
+- ✅ CRUDs concluídos
 - ✅ Motor funcional
-- ✅ Sistema de penalidades
-- ✅ Análise de inviabilidade
-- 🚧 Desenvolvimento da interface web
+- ✅ Diagnóstico de inviabilidade
+- ✅ Interface Web iniciada
+- 🚧 Planejamento
+- 🚧 Otimização do Motor
 
 ---
 
@@ -185,25 +202,19 @@ O REMADA automatiza esse processo, detectando inconsistências antes da geraçã
 ```
 REMADA/
 
-├── database/
-├── docs/
 ├── models/
 ├── routes/
 ├── services/
 │   └── motor/
-│       ├── alocador.py
-│       ├── aulas.py
-│       ├── estrutura.py
-│       ├── gerador.py
-│       ├── heuristicas.py
-│       ├── inviabilidade.py
-│       ├── penalidades.py
-│       └── validacoes.py
 ├── static/
 │   ├── css/
 │   ├── js/
 │   └── img/
 ├── templates/
+│   ├── components/
+│   ├── dashboard.html
+│   ├── cadastros.html
+│   └── base.html
 ├── app.py
 ├── config.py
 └── README.md
@@ -211,6 +222,8 @@ REMADA/
 
 ---
 
-# Visão de Longo Prazo
+# Visão de Produto
 
-O objetivo é transformar o REMADA em uma plataforma completa para geração inteligente de grades horárias escolares, oferecendo uma experiência moderna, intuitiva e eficiente para coordenadores pedagógicos e instituições de ensino.
+O REMADA está sendo desenvolvido como uma plataforma SaaS especializada em geração inteligente de grades horárias escolares.
+
+A proposta é oferecer uma experiência guiada, intuitiva e eficiente, conduzindo o usuário desde a configuração inicial da escola até a geração automática da grade, reduzindo a complexidade do processo e permitindo que coordenadores pedagógicos foquem na gestão acadêmica em vez da montagem manual dos horários.

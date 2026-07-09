@@ -21,5 +21,11 @@ class Professor(db.Model):
         server_default=db.func.current_timestamp()
     )
 
+    disciplinas = db.relationship(
+        "Disciplina",
+        secondary="professor_disciplina",
+        lazy="joined"
+    )
+
     def __repr__(self):
         return f"<Professor {self.nome}>"

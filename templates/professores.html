@@ -27,10 +27,10 @@
 
                 <thead class="table-light">
                     <tr>
-                        <th style="width:80px;">ID</th>
                         <th>Nome</th>
                         <th>E-mail</th>
                         <th>Telefone</th>
+                        <th>Disciplinas</th>
                         <th class="text-end" style="width:150px;">Ações</th>
                     </tr>
                 </thead>
@@ -42,10 +42,6 @@
                     {% for prof in professores %}
 
                     <tr>
-                        <td class="fw-bold text-secondary">
-                            #{{ prof.id }}
-                        </td>
-
                         <td>
                             <div class="d-flex align-items-center gap-3">
                                 <div
@@ -64,6 +60,18 @@
 
                         <td>{{ prof.telefone or "-" }}</td>
 
+                        <td>
+                            {% if prof.disciplinas %}
+                                {% for disciplina in prof.disciplinas %}
+                                    <span class="badge bg-primary-subtle text-primary me-1">
+                                        {{ disciplina.nome }}
+                                    </span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
 
@@ -75,6 +83,7 @@
                                     data-email="{{ prof.email or '' }}"
                                     data-telefone="{{ prof.telefone or '' }}"
                                     data-escola="{{ prof.escola_id or 1 }}"
+                                    data-disciplinas="{% for disciplina in prof.disciplinas %}{{ disciplina.id }}{% if not loop.last %},{% endif %}{% endfor %}"
                                     onclick="abrirModalEdicao(this)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -192,6 +201,29 @@
                             id="telefoneProfessor"
                             class="form-control"
                             required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Disciplinas
+                        </label>
+
+                        <select
+                            id="disciplinasProfessor"
+                            class="form-select"
+                            multiple>
+
+                            {% for disciplina in disciplinas %}
+                                <option value="{{ disciplina.id }}">
+                                    {{ disciplina.nome }}
+                                </option>
+                            {% endfor %}
+
+                        </select>
+
+                        <div class="form-text">
+                            Segure Ctrl para selecionar mais de uma disciplina.
+                        </div>
                     </div>
 
                 </div>

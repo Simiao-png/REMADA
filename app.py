@@ -15,6 +15,7 @@ from routes.configuracao_horaria_routes import configuracao_horaria_bp
 from routes.disponibilidade_professor_routes import disponibilidade_professor_bp
 from routes.carga_horaria_routes import carga_horaria_bp
 from routes.motor_grade_routes import motor_grade_bp
+from routes.cadastro_routes import cadastro_bp
 
 
 app = Flask(__name__)
@@ -34,6 +35,7 @@ app.register_blueprint(configuracao_horaria_bp)
 app.register_blueprint(disponibilidade_professor_bp)
 app.register_blueprint(carga_horaria_bp)
 app.register_blueprint(motor_grade_bp)
+app.register_blueprint(cadastro_bp)
 
 
 # --- IMPORTS DOS MODELS PARA A DASHBOARD ---

@@ -2,6 +2,7 @@ from flask import jsonify
 from models.db import db
 from models.professor import Professor
 from models.escola import Escola
+from models.professor_disciplina import ProfessorDisciplina
 
 
 def professor_para_dict(professor):
@@ -48,6 +49,17 @@ def criar_professor(dados):
     )
 
     db.session.add(professor)
+    db.session.flush()
+
+    disciplinas = dados.get("disciplinas_ids", [])
+
+    for disciplina_id in disciplinas:
+        vinculo = ProfessorDisciplina(
+            professor_id=professor.id,
+            disciplina_id=disciplina_id
+        )
+        db.session.add(vinculo)
+
     db.session.commit()
 
     return jsonify({"mensagem": "Professor criado com sucesso!"}), 201
@@ -69,6 +81,19 @@ def atualizar_professor(id, dados):
     )
     professor.observacoes = dados.get("observacoes", professor.observacoes)
 
+    ProfessorDisciplina.query.filter_by(
+        professor_id=professor.id
+    ).delete()
+
+    disciplinas = dados.get("disciplinas_ids", [])
+
+    for disciplina_id in disciplinas:
+        vinculo = ProfessorDisciplina(
+            professor_id=professor.id,
+            disciplina_id=disciplina_id
+        )
+        db.session.add(vinculo)
+
     db.session.commit()
 
     return jsonify({"mensagem": "Professor atualizado com sucesso!"})
@@ -79,6 +104,10 @@ def deletar_professor(id):
 
     if not professor:
         return jsonify({"erro": "Professor não encontrado"}), 404
+
+    ProfessorDisciplina.query.filter_by(
+        professor_id=professor.id
+    ).delete()
 
     db.session.delete(professor)
     db.session.commit()
