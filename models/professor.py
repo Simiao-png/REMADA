@@ -8,11 +8,18 @@ class Professor(db.Model):
     escola_id = db.Column(db.Integer, nullable=False)
 
     nome = db.Column(db.String(150), nullable=False)
-    email = db.Column(db.String(150))
-    telefone = db.Column(db.String(30))
 
-    ativo = db.Column(db.Boolean, default=True)
-    trabalha_outra_escola = db.Column(db.Boolean, default=False)
+    ativo = db.Column(
+        db.Boolean,
+        default=True,
+        nullable=False
+    )
+
+    trabalha_outra_escola = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
 
     observacoes = db.Column(db.Text)
 
@@ -24,6 +31,12 @@ class Professor(db.Model):
     disciplinas = db.relationship(
         "Disciplina",
         secondary="professor_disciplina",
+        lazy="joined"
+    )
+
+    segmentos = db.relationship(
+        "ProfessorSegmento",
+        cascade="all, delete-orphan",
         lazy="joined"
     )
 

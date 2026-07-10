@@ -11,6 +11,7 @@ from routes.professor_turma_routes import professor_turma_bp
 from models.professor_turma import ProfessorTurma
 from routes.turma_disciplina_routes import turma_disciplina_bp
 from models.turma_disciplina import TurmaDisciplina
+from models.professor_segmento import ProfessorSegmento
 from routes.configuracao_horaria_routes import configuracao_horaria_bp
 from routes.disponibilidade_professor_routes import disponibilidade_professor_bp
 from routes.carga_horaria_routes import carga_horaria_bp

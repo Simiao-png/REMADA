@@ -3,6 +3,7 @@ from models.professor import Professor
 from models.disciplina import Disciplina
 from models.turma import Turma
 
+
 cadastro_bp = Blueprint("cadastro", __name__)
 
 
