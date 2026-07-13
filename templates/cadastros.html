@@ -537,7 +537,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" class="text-center py-5">
+                                <td colspan="6" class="text-center py-5">
                                     <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
                                     <h5 class="mb-2">Nenhum professor cadastrado</h5>
                                     <p class="text-muted">
@@ -582,6 +582,7 @@
                             <tr>
                                 <th>Turma</th>
                                 <th>Série</th>
+                                <th>Segmento</th>
                                 <th>Turno</th>
                                 <th>Status</th>
                                 <th class="text-end">Ações</th>
@@ -601,6 +602,20 @@
 
                                 <td>
                                     {{ turma.serie }}
+                                </td>
+
+                                <td>
+                                    {% if turma.segmento == "fundamental_i" %}
+                                        <span class="segmento-badge badge-fundamental-1 px-2 py-1">Fundamental I</span>
+                                    {% elif turma.segmento == "fundamental_ii" %}
+                                        <span class="segmento-badge badge-fundamental-2 px-2 py-1">Fundamental II</span>
+                                    {% elif turma.segmento == "ensino_medio" %}
+                                        <span class="segmento-badge badge-ensino-medio px-2 py-1">Ensino Médio</span>
+                                    {% elif turma.segmento == "cursinho" %}
+                                        <span class="segmento-badge badge-cursinho px-2 py-1">Cursinho</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
                                 </td>
 
                                 <td>
@@ -627,6 +642,7 @@
                                         data-id="{{ turma.id }}"
                                         data-nome="{{ turma.nome }}"
                                         data-serie="{{ turma.serie }}"
+                                        data-segmento="{{ turma.segmento }}"
                                         data-turno="{{ turma.turno }}"
                                         onclick="abrirModalEdicaoTurma(this)">
                                         <i class="bi bi-pencil"></i>
@@ -975,6 +991,25 @@
                             class="form-control"
                             placeholder="Ex.: 6º ano"
                             required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Segmento
+                        </label>
+
+                        <select
+                            id="segmentoTurma"
+                            class="form-select"
+                            required>
+
+                            <option value="">Selecione</option>
+                            <option value="fundamental_i">Fundamental I</option>
+                            <option value="fundamental_ii">Fundamental II</option>
+                            <option value="ensino_medio">Ensino Médio</option>
+                            <option value="cursinho">Cursinho</option>
+
+                        </select>
                     </div>
 
                     <div class="mb-3">

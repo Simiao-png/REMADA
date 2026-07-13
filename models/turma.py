@@ -11,6 +11,7 @@ class Turma(db.Model):
 
     nome = db.Column(db.String(50), nullable=False)
     serie = db.Column(db.String(50), nullable=False)
+    segmento = db.Column(db.String(30), nullable=False)
     turno = db.Column(db.String(30), nullable=False)
 
     ativo = db.Column(db.Boolean, default=True)

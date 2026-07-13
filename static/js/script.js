@@ -248,6 +248,9 @@ function abrirModalEdicaoTurma(botao) {
 
     document.getElementById("nomeTurma").value =
         botao.dataset.nome;
+    
+        document.getElementById("segmentoTurma").value =
+        botao.dataset.segmento;
 
     document.getElementById("serieTurma").value =
         botao.dataset.serie;
@@ -888,6 +891,11 @@ document.addEventListener(
                             document.getElementById(
                                 "serieTurma"
                             ).value,
+                        
+                        segmento:
+                            document.getElementById(
+                                "segmentoTurma"
+                            ).value,    
 
                         turno:
                             document.getElementById(
