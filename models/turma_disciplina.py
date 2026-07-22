@@ -16,5 +16,15 @@ class TurmaDisciplina(db.Model):
         primary_key=True
     )
 
+    aulas_por_semana = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
     def __repr__(self):
-        return f"<TurmaDisciplina {self.turma_id} -> {self.disciplina_id}>"
+        return (
+            f"<TurmaDisciplina "
+            f"{self.turma_id} -> {self.disciplina_id} "
+            f"({self.aulas_por_semana} aulas)>"
+        )
