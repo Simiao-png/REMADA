@@ -377,8 +377,10 @@ function carregarProfessorDisponibilidade() {
                 professor.disciplinas
                     .map(
                         disciplina =>
-                            `<span class="badge bg-primary-subtle text-primary me-1">${disciplina}</span>`
-                    )
+                        `<span class="badge bg-primary-subtle text-primary me-1">
+                            ${disciplina.nome}
+                        </span>`
+                        )
                     .join("");
         } else {
             disciplinasProfessor.innerHTML =
@@ -489,6 +491,13 @@ function salvarDisponibilidadeProfessorAtual() {
 
     const professorId = selectProfessor.value;
 
+    const professor =
+        buscarProfessorPlanejamento(professorId);
+
+    if (!professor) {
+        return;
+    }
+
     const botoes =
         document.querySelectorAll(
             ".disponibilidade-botao"
@@ -506,6 +515,28 @@ function salvarDisponibilidadeProfessorAtual() {
         }
     });
 
+    const cargaHorariaSemanal =
+        Number(
+            professor.carga_horaria_semanal || 0
+        );
+
+    const quantidadeMarcada =
+        disponibilidades.length;
+
+    if (
+        cargaHorariaSemanal > 0 &&
+        quantidadeMarcada < cargaHorariaSemanal
+    ) {
+        const quantidadeFaltante =
+            cargaHorariaSemanal - quantidadeMarcada;
+
+        alert(
+            `Faltam ${quantidadeFaltante} horários para atingir a carga semanal.`
+        );
+
+        return;
+    }
+
     fetch(
         `/disponibilidades/professor/${professorId}`,
         {
@@ -521,13 +552,8 @@ function salvarDisponibilidadeProfessorAtual() {
         }
     ).then(async response => {
         if (response.ok) {
-            const professor =
-                buscarProfessorPlanejamento(professorId);
-
-            if (professor) {
-                professor.disponibilidades =
-                    disponibilidades;
-            }
+            professor.disponibilidades =
+                disponibilidades;
 
             alert(
                 "Disponibilidade salva com sucesso!"
