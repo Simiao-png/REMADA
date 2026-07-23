@@ -16,5 +16,21 @@ class ProfessorTurma(db.Model):
         primary_key=True
     )
 
+    disciplina_id = db.Column(
+        db.Integer,
+        db.ForeignKey("disciplinas.id"),
+        primary_key=True
+    )
+
+    criado_em = db.Column(
+        db.DateTime,
+        server_default=db.func.current_timestamp()
+    )
+
     def __repr__(self):
-        return f"<ProfessorTurma {self.professor_id} -> {self.turma_id}>"
+        return (
+            f"<ProfessorTurma "
+            f"{self.professor_id} -> "
+            f"{self.turma_id} -> "
+            f"{self.disciplina_id}>"
+        )

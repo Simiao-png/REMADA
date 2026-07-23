@@ -6,8 +6,9 @@
 
     <div class="mb-4">
         <h2 class="fw-bold mb-1">Planejamento</h2>
+
         <p class="text-muted mb-0">
-            Configure as disponibilidades dos professores e as cargas horárias.
+            Configure as disponibilidades e distribua as aulas entre os professores.
         </p>
     </div>
 
@@ -21,6 +22,7 @@
                 data-bs-target="#disponibilidades"
                 type="button"
                 role="tab">
+
                 Disponibilidades
             </button>
         </li>
@@ -33,6 +35,7 @@
                 data-bs-target="#carga-horaria"
                 type="button"
                 role="tab">
+
                 Carga Horária
             </button>
         </li>
@@ -41,6 +44,7 @@
 
     <div class="tab-content">
 
+        <!-- DISPONIBILIDADES -->
         <div
             class="tab-pane fade show active"
             id="disponibilidades"
@@ -63,7 +67,10 @@
                     <div class="row mb-4">
 
                         <div class="col-md-6">
-                            <label class="form-label">
+                            <label
+                                for="professorDisponibilidade"
+                                class="form-label">
+
                                 Professor
                             </label>
 
@@ -83,6 +90,7 @@
                     </div>
 
                     <div class="mb-4">
+
                         <h5
                             class="fw-bold mb-2"
                             id="nomeProfessorDisponibilidade">
@@ -92,16 +100,20 @@
                             id="disciplinasProfessorDisponibilidade"
                             class="mb-3">
                         </div>
+
                     </div>
 
                     <div class="table-responsive">
 
-                        <table class="table table-bordered align-middle text-center mb-0">
+                        <table
+                            class="table table-bordered align-middle text-center mb-0">
 
                             <thead class="table-light">
 
                                 <tr>
-                                    <th style="width:120px;">Aula</th>
+                                    <th style="width: 120px;">
+                                        Aula
+                                    </th>
 
                                     {% for dia in dias_semana %}
                                         <th class="text-capitalize">
@@ -113,14 +125,14 @@
                             </thead>
 
                             <tbody id="corpoTabelaDisponibilidade">
-
                             </tbody>
 
                         </table>
 
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div
+                        class="d-flex justify-content-between align-items-center mt-4">
 
                         <div>
                             <span class="badge bg-success me-2">
@@ -134,7 +146,9 @@
 
                         <button
                             class="btn btn-primary"
+                            type="button"
                             onclick="salvarDisponibilidadeProfessorAtual()">
+
                             Salvar Disponibilidade
                         </button>
 
@@ -144,7 +158,9 @@
 
                     <div class="text-center py-5">
 
-                        <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
+                        <i
+                            class="bi bi-person-workspace fs-1 text-secondary d-block mb-3">
+                        </i>
 
                         <h5 class="mb-2">
                             Nenhum professor cadastrado
@@ -162,22 +178,83 @@
 
         </div>
 
+        <!-- CARGA HORÁRIA -->
         <div
             class="tab-pane fade"
             id="carga-horaria"
             role="tabpanel">
 
-            <div class="card-remada text-center py-5">
+            <div class="card-remada">
 
-                <i class="bi bi-clock-history fs-1 text-secondary d-block mb-3"></i>
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1">
+                            Carga Horária dos Professores
+                        </h4>
 
-                <h5 class="mb-2">
-                    Carga Horária
-                </h5>
+                        <p class="text-muted mb-0">
+                            Confira as disciplinas, turmas, carga atribuída e situação de todos os professores.
+                        </p>
+                    </div>
+                </div>
 
-                <p class="text-muted mb-0">
-                    Esta etapa será configurada após as disponibilidades.
-                </p>
+                {% if professores %}
+
+                    <div
+                        id="alertaCargaHoraria"
+                        class="alert d-none"
+                        role="alert">
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Professor</th>
+                                    <th>Disciplinas</th>
+                                    <th>Turmas</th>
+                                    <th style="width: 150px;">
+                                        Carga Horária
+                                    </th>
+                                    <th style="width: 190px;">
+                                        Situação
+                                    </th>
+                                    <th
+                                        class="text-end"
+                                        style="width: 100px;">
+                                        Ações
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="corpoResumoCargaHoraria">
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="text-center py-5">
+
+                        <i
+                            class="bi bi-person-workspace fs-1 text-secondary d-block mb-3">
+                        </i>
+
+                        <h5 class="mb-2">
+                            Nenhum professor cadastrado
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Cadastre professores antes de distribuir as aulas.
+                        </p>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 
@@ -190,9 +267,845 @@
 <script type="application/json" id="dadosPlanejamento">
 {
     "professores": {{ professores_json | tojson }},
+    "turmas": {{ turmas_json | tojson }},
+    "atribuicoes": {{ atribuicoes_json | tojson }},
     "diasSemana": {{ dias_semana | tojson }},
     "numerosAulas": {{ numeros_aulas | tojson }}
 }
+</script>
+
+<div
+    class="modal fade"
+    id="modalCargaHoraria"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+                    <h5
+                        class="modal-title fw-bold"
+                        id="tituloModalCargaHoraria">
+                        Editar carga horária
+                    </h5>
+
+                    <div
+                        class="text-muted small"
+                        id="subtituloModalCargaHoraria">
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div
+                    id="alertaEdicaoCargaHoraria"
+                    class="alert d-none"
+                    role="alert">
+                </div>
+
+                <div id="conteudoEdicaoCargaHoraria">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="botaoSalvarCargaHoraria">
+                    Salvar Atribuições
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const elementoDados = document.getElementById(
+        "dadosPlanejamento"
+    );
+
+    if (!elementoDados) {
+        return;
+    }
+
+    const dados = JSON.parse(elementoDados.textContent);
+
+    const professores = dados.professores || [];
+    const turmas = dados.turmas || [];
+
+    let atribuicoes = dados.atribuicoes || [];
+    let professorEmEdicao = null;
+
+    const corpoResumo = document.getElementById(
+        "corpoResumoCargaHoraria"
+    );
+
+    const conteudoEdicao = document.getElementById(
+        "conteudoEdicaoCargaHoraria"
+    );
+
+    const botaoSalvar = document.getElementById(
+        "botaoSalvarCargaHoraria"
+    );
+
+    const tituloModal = document.getElementById(
+        "tituloModalCargaHoraria"
+    );
+
+    const subtituloModal = document.getElementById(
+        "subtituloModalCargaHoraria"
+    );
+
+    const alertaResumo = document.getElementById(
+        "alertaCargaHoraria"
+    );
+
+    const alertaEdicao = document.getElementById(
+        "alertaEdicaoCargaHoraria"
+    );
+
+
+    function normalizarTexto(valor) {
+
+        return String(valor || "")
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+
+    function professorAtuaNoSegmento(
+        professor,
+        segmentoTurma
+    ) {
+
+        const segmentosProfessor =
+            professor.segmentos || [];
+
+        if (segmentosProfessor.length === 0) {
+            return true;
+        }
+
+        const segmentoNormalizado =
+            normalizarTexto(segmentoTurma);
+
+        return segmentosProfessor.some(segmento => {
+
+            const valor =
+                typeof segmento === "object"
+                    ? (
+                        segmento.nome ||
+                        segmento.segmento ||
+                        segmento.valor ||
+                        ""
+                    )
+                    : segmento;
+
+            return normalizarTexto(valor) ===
+                segmentoNormalizado;
+        });
+    }
+
+
+    function professorPodeLecionarDisciplina(
+        professor,
+        disciplinaId
+    ) {
+
+        return (professor.disciplinas || []).some(
+            disciplina =>
+                Number(disciplina.id) ===
+                Number(disciplinaId)
+        );
+    }
+
+
+    function buscarAtribuicao(
+        turmaId,
+        disciplinaId
+    ) {
+
+        return atribuicoes.find(
+            atribuicao =>
+                Number(atribuicao.turma_id) ===
+                    Number(turmaId) &&
+                Number(atribuicao.disciplina_id) ===
+                    Number(disciplinaId)
+        ) || null;
+    }
+
+
+    function obterAtribuicoesProfessor(professorId) {
+
+        return atribuicoes.filter(
+            atribuicao =>
+                Number(atribuicao.professor_id) ===
+                Number(professorId)
+        );
+    }
+
+
+    function obterDetalhesAtribuicao(atribuicao) {
+
+        const turma = turmas.find(
+            item =>
+                Number(item.id) ===
+                Number(atribuicao.turma_id)
+        );
+
+        if (!turma) {
+            return null;
+        }
+
+        const disciplina = (
+            turma.disciplinas || []
+        ).find(
+            item =>
+                Number(item.disciplina_id) ===
+                Number(atribuicao.disciplina_id)
+        );
+
+        if (!disciplina) {
+            return null;
+        }
+
+        return {
+            turma: turma,
+            disciplina: disciplina
+        };
+    }
+
+
+    function calcularResumoProfessor(professor) {
+
+        const atribuicoesProfessor =
+            obterAtribuicoesProfessor(professor.id);
+
+        let cargaAtribuida = 0;
+        const nomesTurmas = new Set();
+
+        atribuicoesProfessor.forEach(atribuicao => {
+
+            const detalhes =
+                obterDetalhesAtribuicao(atribuicao);
+
+            if (!detalhes) {
+                return;
+            }
+
+            cargaAtribuida += Number(
+                detalhes.disciplina.aulas_por_semana || 0
+            );
+
+            nomesTurmas.add(detalhes.turma.nome);
+        });
+
+        const cargaEsperada = Number(
+            professor.carga_horaria_semanal || 0
+        );
+
+        let textoSituacao = "Sem atribuições";
+        let classeSituacao = "bg-secondary";
+
+        if (cargaAtribuida > 0 && cargaEsperada <= 0) {
+            textoSituacao = "Carga não definida";
+            classeSituacao = "bg-warning text-dark";
+        } else if (cargaAtribuida === 0) {
+            textoSituacao = "Sem atribuições";
+            classeSituacao = "bg-secondary";
+        } else if (cargaAtribuida === cargaEsperada) {
+            textoSituacao = "Completa";
+            classeSituacao = "bg-success";
+        } else if (cargaAtribuida < cargaEsperada) {
+            textoSituacao =
+                `Faltam ${cargaEsperada - cargaAtribuida}`;
+            classeSituacao = "bg-warning text-dark";
+        } else {
+            textoSituacao =
+                `Excedeu ${cargaAtribuida - cargaEsperada}`;
+            classeSituacao = "bg-danger";
+        }
+
+        return {
+            cargaAtribuida: cargaAtribuida,
+            cargaEsperada: cargaEsperada,
+            turmas: Array.from(nomesTurmas).sort(),
+            textoSituacao: textoSituacao,
+            classeSituacao: classeSituacao
+        };
+    }
+
+
+    function criarBadgesDisciplinas(professor) {
+
+        const disciplinas =
+            professor.disciplinas || [];
+
+        if (disciplinas.length === 0) {
+            return '<span class="text-muted">-</span>';
+        }
+
+        return disciplinas
+            .map(
+                disciplina =>
+                    `<span class="badge bg-light text-dark border me-1 mb-1">` +
+                    `${disciplina.nome}</span>`
+            )
+            .join("");
+    }
+
+
+    function criarTextoTurmas(turmasProfessor) {
+
+        if (turmasProfessor.length === 0) {
+            return '<span class="text-muted">-</span>';
+        }
+
+        return turmasProfessor
+            .map(
+                turma =>
+                    `<span class="badge bg-light text-dark border me-1 mb-1">` +
+                    `${turma}</span>`
+            )
+            .join("");
+    }
+
+
+    function renderizarResumoCargaHoraria() {
+
+        if (!corpoResumo) {
+            return;
+        }
+
+        corpoResumo.innerHTML = "";
+
+        professores.forEach(professor => {
+
+            const resumo =
+                calcularResumoProfessor(professor);
+
+            const linha = document.createElement("tr");
+
+            const cargaTexto =
+                resumo.cargaEsperada > 0
+                    ? `${resumo.cargaAtribuida} / ${resumo.cargaEsperada}`
+                    : `${resumo.cargaAtribuida}`;
+
+            linha.innerHTML = `
+                <td class="fw-semibold">
+                    ${professor.nome}
+                </td>
+
+                <td>
+                    ${criarBadgesDisciplinas(professor)}
+                </td>
+
+                <td>
+                    ${criarTextoTurmas(resumo.turmas)}
+                </td>
+
+                <td>
+                    <span class="fw-bold">
+                        ${cargaTexto}
+                    </span>
+
+                    <span class="text-muted small">
+                        ${resumo.cargaAtribuida === 1
+                            ? " aula"
+                            : " aulas"}
+                    </span>
+                </td>
+
+                <td>
+                    <span class="badge ${resumo.classeSituacao}">
+                        ${resumo.textoSituacao}
+                    </span>
+                </td>
+
+                <td class="text-end">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Editar carga horária"
+                        data-professor-id="${professor.id}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            `;
+
+            linha
+                .querySelector("button")
+                .addEventListener(
+                    "click",
+                    function () {
+                        abrirEdicaoCargaHoraria(
+                            Number(this.dataset.professorId)
+                        );
+                    }
+                );
+
+            corpoResumo.appendChild(linha);
+        });
+    }
+
+
+    function criarLinhaEdicao(
+        professor,
+        turma,
+        disciplina
+    ) {
+
+        const atribuicao = buscarAtribuicao(
+            turma.id,
+            disciplina.disciplina_id
+        );
+
+        const atribuidaAoProfessorAtual =
+            atribuicao &&
+            Number(atribuicao.professor_id) ===
+                Number(professor.id);
+
+        const atribuidaOutroProfessor =
+            atribuicao &&
+            Number(atribuicao.professor_id) !==
+                Number(professor.id);
+
+        const linha = document.createElement("tr");
+
+        linha.innerHTML = `
+            <td class="text-center" style="width: 80px;">
+                <input
+                    type="checkbox"
+                    class="form-check-input checkbox-atribuicao"
+                    data-turma-id="${turma.id}"
+                    data-disciplina-id="${disciplina.disciplina_id}"
+                    data-aulas="${disciplina.aulas_por_semana}"
+                    ${atribuidaAoProfessorAtual ? "checked" : ""}
+                    ${atribuidaOutroProfessor ? "disabled" : ""}>
+            </td>
+
+            <td class="fw-semibold">
+                ${turma.nome}
+            </td>
+
+            <td>
+                ${disciplina.disciplina_nome}
+            </td>
+
+            <td class="text-center">
+                ${disciplina.aulas_por_semana}
+            </td>
+
+            <td>
+                ${
+                    atribuidaAoProfessorAtual
+                        ? '<span class="badge bg-success">Atribuída</span>'
+                        : (
+                            atribuidaOutroProfessor
+                                ? '<span class="badge bg-secondary">Outro professor</span>'
+                                : '<span class="badge bg-warning text-dark">Sem professor</span>'
+                        )
+                }
+            </td>
+        `;
+
+        return linha;
+    }
+
+
+    function renderizarEdicaoCargaHoraria(professor) {
+
+        if (!conteudoEdicao) {
+            return;
+        }
+
+        conteudoEdicao.innerHTML = "";
+
+        const tabelaResponsiva =
+            document.createElement("div");
+
+        tabelaResponsiva.className =
+            "table-responsive";
+
+        const tabela = document.createElement("table");
+
+        tabela.className =
+            "table table-hover align-middle mb-0";
+
+        tabela.innerHTML = `
+            <thead class="table-light">
+                <tr>
+                    <th
+                        class="text-center"
+                        style="width: 80px;">
+                        Atribuir
+                    </th>
+
+                    <th>Turma</th>
+                    <th>Disciplina</th>
+
+                    <th
+                        class="text-center"
+                        style="width: 140px;">
+                        Aulas semanais
+                    </th>
+
+                    <th style="width: 180px;">
+                        Situação
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+        `;
+
+        const corpo = tabela.querySelector("tbody");
+        let quantidadeLinhas = 0;
+
+        turmas.forEach(turma => {
+
+            if (
+                !professorAtuaNoSegmento(
+                    professor,
+                    turma.segmento
+                )
+            ) {
+                return;
+            }
+
+            (turma.disciplinas || []).forEach(
+                disciplina => {
+
+                    if (
+                        !professorPodeLecionarDisciplina(
+                            professor,
+                            disciplina.disciplina_id
+                        )
+                    ) {
+                        return;
+                    }
+
+                    corpo.appendChild(
+                        criarLinhaEdicao(
+                            professor,
+                            turma,
+                            disciplina
+                        )
+                    );
+
+                    quantidadeLinhas++;
+                }
+            );
+        });
+
+        if (quantidadeLinhas === 0) {
+
+            conteudoEdicao.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-exclamation-circle fs-1 text-secondary d-block mb-3"></i>
+
+                    <h5 class="mb-2">
+                        Nenhuma atribuição disponível
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Verifique os segmentos, disciplinas e matrizes curriculares deste professor.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+        tabelaResponsiva.appendChild(tabela);
+        conteudoEdicao.appendChild(tabelaResponsiva);
+    }
+
+
+    function abrirEdicaoCargaHoraria(professorId) {
+
+        professorEmEdicao = professores.find(
+            professor =>
+                Number(professor.id) ===
+                Number(professorId)
+        ) || null;
+
+        if (!professorEmEdicao) {
+            return;
+        }
+
+        tituloModal.textContent =
+            professorEmEdicao.nome;
+
+        const resumo =
+            calcularResumoProfessor(professorEmEdicao);
+
+        subtituloModal.textContent =
+            `Carga atual: ${resumo.cargaAtribuida}` +
+            (
+                resumo.cargaEsperada > 0
+                    ? ` de ${resumo.cargaEsperada} aulas`
+                    : " aulas"
+            );
+
+        alertaEdicao.classList.add("d-none");
+        alertaEdicao.textContent = "";
+
+        renderizarEdicaoCargaHoraria(
+            professorEmEdicao
+        );
+
+        bootstrap.Modal
+            .getOrCreateInstance(
+                document.getElementById(
+                    "modalCargaHoraria"
+                )
+            )
+            .show();
+    }
+
+
+    async function salvarAtribuicoes() {
+
+        if (!professorEmEdicao) {
+            return;
+        }
+
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Salvando...";
+
+        alertaEdicao.classList.add("d-none");
+        alertaEdicao.textContent = "";
+
+        const selecionadas = Array.from(
+            document.querySelectorAll(
+                "#conteudoEdicaoCargaHoraria " +
+                ".checkbox-atribuicao:checked"
+            )
+        ).map(checkbox => ({
+            professor_id: professorEmEdicao.id,
+            turma_id: Number(
+                checkbox.dataset.turmaId
+            ),
+            disciplina_id: Number(
+                checkbox.dataset.disciplinaId
+            )
+        }));
+
+        const atuais =
+            obterAtribuicoesProfessor(
+                professorEmEdicao.id
+            );
+
+        const chavesSelecionadas = new Set(
+            selecionadas.map(
+                item =>
+                    `${item.turma_id}-${item.disciplina_id}`
+            )
+        );
+
+        const chavesAtuais = new Set(
+            atuais.map(
+                item =>
+                    `${item.turma_id}-${item.disciplina_id}`
+            )
+        );
+
+        const paraExcluir = atuais.filter(
+            item =>
+                !chavesSelecionadas.has(
+                    `${item.turma_id}-${item.disciplina_id}`
+                )
+        );
+
+        const paraCriar = selecionadas.filter(
+            item =>
+                !chavesAtuais.has(
+                    `${item.turma_id}-${item.disciplina_id}`
+                )
+        );
+
+        try {
+
+            for (const item of paraExcluir) {
+
+                const resposta = await fetch(
+                    `/professor-turmas/` +
+                    `${item.professor_id}/` +
+                    `${item.turma_id}/` +
+                    `${item.disciplina_id}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+                const resultado =
+                    await resposta.json().catch(
+                        function () {
+                            return {};
+                        }
+                    );
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível remover a atribuição."
+                    );
+                }
+            }
+
+            for (const item of paraCriar) {
+
+                const resposta = await fetch(
+                    "/professor-turmas",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify(item)
+                    }
+                );
+
+                const resultado =
+                    await resposta.json().catch(
+                        function () {
+                            return {};
+                        }
+                    );
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível criar a atribuição."
+                    );
+                }
+            }
+
+            atribuicoes = atribuicoes.filter(
+                item =>
+                    Number(item.professor_id) !==
+                    Number(professorEmEdicao.id)
+            );
+
+            atribuicoes.push(...selecionadas);
+
+            renderizarResumoCargaHoraria();
+
+            bootstrap.Modal
+                .getInstance(
+                    document.getElementById(
+                        "modalCargaHoraria"
+                    )
+                )
+                .hide();
+
+            alertaResumo.className =
+                "alert alert-success";
+
+            alertaResumo.textContent =
+                "Carga horária atualizada com sucesso.";
+
+            alertaResumo.classList.remove("d-none");
+
+        } catch (erro) {
+
+            alertaEdicao.className =
+                "alert alert-danger";
+
+            alertaEdicao.textContent =
+                erro.message ||
+                "Ocorreu um erro ao salvar.";
+
+            alertaEdicao.classList.remove("d-none");
+
+        } finally {
+
+            botaoSalvar.disabled = false;
+            botaoSalvar.textContent =
+                "Salvar Atribuições";
+        }
+    }
+
+
+    if (botaoSalvar) {
+        botaoSalvar.addEventListener(
+            "click",
+            salvarAtribuicoes
+        );
+    }
+
+
+    const botoesAbas = document.querySelectorAll(
+        '#planejamentoTabs button[data-bs-toggle="tab"]'
+    );
+
+    botoesAbas.forEach(botao => {
+
+        botao.addEventListener(
+            "shown.bs.tab",
+            function (evento) {
+
+                localStorage.setItem(
+                    "abaPlanejamentoAtiva",
+                    evento.target.id
+                );
+            }
+        );
+    });
+
+
+    const abaSalva = localStorage.getItem(
+        "abaPlanejamentoAtiva"
+    );
+
+    if (abaSalva) {
+
+        const botaoAbaSalva =
+            document.getElementById(abaSalva);
+
+        if (
+            botaoAbaSalva &&
+            typeof bootstrap !== "undefined"
+        ) {
+            bootstrap.Tab
+                .getOrCreateInstance(botaoAbaSalva)
+                .show();
+        }
+    }
+
+
+    renderizarResumoCargaHoraria();
+});
 </script>
 
 {% endblock %}

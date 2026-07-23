@@ -9,6 +9,12 @@ class Professor(db.Model):
 
     nome = db.Column(db.String(150), nullable=False)
 
+    carga_horaria_semanal = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
     ativo = db.Column(
         db.Boolean,
         default=True,

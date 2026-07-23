@@ -11,6 +11,15 @@ function abrirModalCadastro() {
     document.getElementById("modalNovoProfessorLabel").innerText =
         "Cadastrar Novo Professor";
 
+    const cargaHorariaSemanal =
+        document.getElementById(
+            "cargaHorariaSemanalProfessor"
+        );
+
+    if (cargaHorariaSemanal) {
+        cargaHorariaSemanal.value = 0;
+    }
+
     const selectDisciplinas =
         document.getElementById("disciplinasProfessor");
 
@@ -54,6 +63,16 @@ function abrirModalEdicao(botao) {
 
     document.getElementById("nomeProfessor").value =
         botao.dataset.nome;
+
+    const cargaHorariaSemanal =
+        document.getElementById(
+            "cargaHorariaSemanalProfessor"
+        );
+
+    if (cargaHorariaSemanal) {
+        cargaHorariaSemanal.value =
+            Number(botao.dataset.cargaHoraria || 0);
+    }
 
     const segmentosSelecionados = botao.dataset.segmentos
         ? botao.dataset.segmentos.split(",").filter(Boolean)
@@ -248,8 +267,8 @@ function abrirModalEdicaoTurma(botao) {
 
     document.getElementById("nomeTurma").value =
         botao.dataset.nome;
-    
-        document.getElementById("segmentoTurma").value =
+
+    document.getElementById("segmentoTurma").value =
         botao.dataset.segmento;
 
     document.getElementById("serieTurma").value =
@@ -491,9 +510,11 @@ function salvarDisponibilidadeProfessorAtual() {
         `/disponibilidades/professor/${professorId}`,
         {
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
             body: JSON.stringify({
                 disponibilidades: disponibilidades
             })
@@ -744,11 +765,23 @@ document.addEventListener(
                             "observacoesProfessor"
                         );
 
+                    const cargaHorariaSemanal =
+                        document.getElementById(
+                            "cargaHorariaSemanalProfessor"
+                        );
+
                     const payload = {
                         nome:
                             document.getElementById(
                                 "nomeProfessor"
                             ).value,
+
+                        carga_horaria_semanal:
+                            cargaHorariaSemanal
+                                ? Number(
+                                    cargaHorariaSemanal.value
+                                ) || 0
+                                : 0,
 
                         segmentos:
                             segmentosSelecionados,
@@ -891,11 +924,11 @@ document.addEventListener(
                             document.getElementById(
                                 "serieTurma"
                             ).value,
-                        
+
                         segmento:
                             document.getElementById(
                                 "segmentoTurma"
-                            ).value,    
+                            ).value,
 
                         turno:
                             document.getElementById(

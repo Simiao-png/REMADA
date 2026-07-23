@@ -1,4 +1,5 @@
 from flask import jsonify
+
 from models.db import db
 from models.professor import Professor
 from models.escola import Escola
@@ -35,13 +36,30 @@ def normalizar_segmentos(segmentos):
     return segmentos_normalizados
 
 
+def normalizar_carga_horaria(valor):
+    try:
+        carga_horaria = int(valor)
+    except (TypeError, ValueError):
+        carga_horaria = 0
+
+    if carga_horaria < 0:
+        carga_horaria = 0
+
+    return carga_horaria
+
+
 def professor_para_dict(professor):
     return {
         "id": professor.id,
         "escola_id": professor.escola_id,
         "nome": professor.nome,
         "ativo": professor.ativo,
-        "trabalha_outra_escola": professor.trabalha_outra_escola,
+        "carga_horaria_semanal": (
+            professor.carga_horaria_semanal or 0
+        ),
+        "trabalha_outra_escola": (
+            professor.trabalha_outra_escola
+        ),
         "observacoes": professor.observacoes,
         "disciplinas_ids": [
             disciplina.id
@@ -75,7 +93,9 @@ def buscar_professor(id):
             "erro": "Professor não encontrado"
         }), 404
 
-    return jsonify(professor_para_dict(professor))
+    return jsonify(
+        professor_para_dict(professor)
+    )
 
 
 def criar_professor(dados):
@@ -86,7 +106,9 @@ def criar_professor(dados):
             "erro": "Nenhuma escola cadastrada."
         }), 400
 
-    nome = str(dados.get("nome", "")).strip()
+    nome = str(
+        dados.get("nome", "")
+    ).strip()
 
     if not nome:
         return jsonify({
@@ -99,13 +121,21 @@ def criar_professor(dados):
 
     if not segmentos:
         return jsonify({
-            "erro": "Selecione pelo menos um segmento de atuação."
+            "erro": (
+                "Selecione pelo menos um segmento "
+                "de atuação."
+            )
         }), 400
+
+    carga_horaria_semanal = normalizar_carga_horaria(
+        dados.get("carga_horaria_semanal", 0)
+    )
 
     professor = Professor(
         escola_id=escola.id,
         nome=nome,
         ativo=dados.get("ativo", True),
+        carga_horaria_semanal=carga_horaria_semanal,
         trabalha_outra_escola=dados.get(
             "trabalha_outra_escola",
             False
@@ -117,13 +147,17 @@ def criar_professor(dados):
         db.session.add(professor)
         db.session.flush()
 
-        disciplinas = dados.get("disciplinas_ids", [])
+        disciplinas = dados.get(
+            "disciplinas_ids",
+            []
+        )
 
         for disciplina_id in disciplinas:
             vinculo = ProfessorDisciplina(
                 professor_id=professor.id,
                 disciplina_id=disciplina_id
             )
+
             db.session.add(vinculo)
 
         for segmento in segmentos:
@@ -131,25 +165,36 @@ def criar_professor(dados):
                 professor_id=professor.id,
                 segmento=segmento
             )
+
             db.session.add(vinculo_segmento)
 
         db.session.commit()
 
         return jsonify({
-            "mensagem": "Professor criado com sucesso!",
-            "professor": professor_para_dict(professor)
+            "mensagem": (
+                "Professor criado com sucesso!"
+            ),
+            "professor": professor_para_dict(
+                professor
+            )
         }), 201
 
     except Exception:
         db.session.rollback()
 
         return jsonify({
-            "erro": "Não foi possível cadastrar o professor."
+            "erro": (
+                "Não foi possível cadastrar "
+                "o professor."
+            )
         }), 500
 
 
 def atualizar_professor(id, dados):
-    professor = db.session.get(Professor, id)
+    professor = db.session.get(
+        Professor,
+        id
+    )
 
     if not professor:
         return jsonify({
@@ -157,12 +202,17 @@ def atualizar_professor(id, dados):
         }), 404
 
     nome = str(
-        dados.get("nome", professor.nome)
+        dados.get(
+            "nome",
+            professor.nome
+        )
     ).strip()
 
     if not nome:
         return jsonify({
-            "erro": "O nome do professor é obrigatório."
+            "erro": (
+                "O nome do professor é obrigatório."
+            )
         }), 400
 
     segmentos = normalizar_segmentos(
@@ -177,18 +227,39 @@ def atualizar_professor(id, dados):
 
     if not segmentos:
         return jsonify({
-            "erro": "Selecione pelo menos um segmento de atuação."
+            "erro": (
+                "Selecione pelo menos um segmento "
+                "de atuação."
+            )
         }), 400
 
+    carga_horaria_semanal = (
+        normalizar_carga_horaria(
+            dados.get(
+                "carga_horaria_semanal",
+                professor.carga_horaria_semanal
+            )
+        )
+    )
+
     professor.nome = nome
+
     professor.ativo = dados.get(
         "ativo",
         professor.ativo
     )
-    professor.trabalha_outra_escola = dados.get(
-        "trabalha_outra_escola",
-        professor.trabalha_outra_escola
+
+    professor.carga_horaria_semanal = (
+        carga_horaria_semanal
     )
+
+    professor.trabalha_outra_escola = (
+        dados.get(
+            "trabalha_outra_escola",
+            professor.trabalha_outra_escola
+        )
+    )
+
     professor.observacoes = dados.get(
         "observacoes",
         professor.observacoes
@@ -197,47 +268,69 @@ def atualizar_professor(id, dados):
     try:
         ProfessorDisciplina.query.filter_by(
             professor_id=professor.id
-        ).delete(synchronize_session=False)
+        ).delete(
+            synchronize_session=False
+        )
 
-        disciplinas = dados.get("disciplinas_ids", [])
+        disciplinas = dados.get(
+            "disciplinas_ids",
+            []
+        )
 
         for disciplina_id in disciplinas:
             vinculo = ProfessorDisciplina(
                 professor_id=professor.id,
                 disciplina_id=disciplina_id
             )
+
             db.session.add(vinculo)
 
         ProfessorSegmento.query.filter_by(
             professor_id=professor.id
-        ).delete(synchronize_session=False)
+        ).delete(
+            synchronize_session=False
+        )
 
         for segmento in segmentos:
             vinculo_segmento = ProfessorSegmento(
                 professor_id=professor.id,
                 segmento=segmento
             )
+
             db.session.add(vinculo_segmento)
 
         db.session.commit()
 
-        professor = db.session.get(Professor, id)
+        professor = db.session.get(
+            Professor,
+            id
+        )
 
         return jsonify({
-            "mensagem": "Professor atualizado com sucesso!",
-            "professor": professor_para_dict(professor)
+            "mensagem": (
+                "Professor atualizado com sucesso!"
+            ),
+            "professor": professor_para_dict(
+                professor
+            )
         })
 
     except Exception:
         db.session.rollback()
 
         return jsonify({
-            "erro": "Não foi possível atualizar o professor."
+            "erro": (
+                "Não foi possível atualizar "
+                "o professor."
+            )
         }), 500
 
 
 def deletar_professor(id):
-    professor = db.session.get(Professor, id)
+    professor = db.session.get(
+        Professor,
+        id
+    )
 
     if not professor:
         return jsonify({
@@ -247,22 +340,31 @@ def deletar_professor(id):
     try:
         ProfessorDisciplina.query.filter_by(
             professor_id=professor.id
-        ).delete(synchronize_session=False)
+        ).delete(
+            synchronize_session=False
+        )
 
         ProfessorSegmento.query.filter_by(
             professor_id=professor.id
-        ).delete(synchronize_session=False)
+        ).delete(
+            synchronize_session=False
+        )
 
         db.session.delete(professor)
         db.session.commit()
 
         return jsonify({
-            "mensagem": "Professor deletado com sucesso!"
+            "mensagem": (
+                "Professor deletado com sucesso!"
+            )
         })
 
     except Exception:
         db.session.rollback()
 
         return jsonify({
-            "erro": "Não foi possível deletar o professor."
+            "erro": (
+                "Não foi possível deletar "
+                "o professor."
+            )
         }), 500
