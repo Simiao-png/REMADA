@@ -1,3 +1,5 @@
+import random
+
 from services.motor.guloso.validacoes import (
     validar_alocacao_aula,
     validar_alocacao_dupla
@@ -18,7 +20,6 @@ from services.motor.guloso.debug_penalidades import (
 from services.motor.guloso.estado import (
     registrar_aula
 )
-
 
 DESCRICOES_MOTIVOS = {
     "turma_ocupada": (
