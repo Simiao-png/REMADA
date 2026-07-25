@@ -2,11 +2,11 @@ from services.motor.estrutura import (
     criar_grade_vazia
 )
 
-from services.motor.aulas import (
+from services.motor.guloso.aulas import (
     criar_fila_aulas
 )
 
-from services.motor.alocador import (
+from services.motor.guloso.alocador import (
     alocar_melhor_posicao
 )
 
@@ -14,7 +14,7 @@ from services.motor.inviabilidade import (
     analisar_inviabilidade
 )
 
-from services.motor.estado import (
+from services.motor.guloso.estado import (
     criar_estado
 )
 
@@ -36,7 +36,10 @@ def contar_aulas_iguais_restantes(
     aula_atual = fila[indice]
     quantidade = 0
 
-    for posicao in range(indice, len(fila)):
+    for posicao in range(
+        indice,
+        len(fila)
+    ):
         if not mesma_aula(
             aula_atual,
             fila[posicao]
@@ -51,7 +54,9 @@ def contar_aulas_iguais_restantes(
 def gerar_grade(resultado):
     dados = resultado["dados"]
 
-    analise = analisar_inviabilidade(dados)
+    analise = analisar_inviabilidade(
+        dados
+    )
 
     if not analise["viavel"]:
         return {
@@ -72,12 +77,19 @@ def gerar_grade(resultado):
         {}
     )
 
+    disponibilidades = dados.get(
+        "disponibilidades",
+        []
+    )
+
     grade = criar_grade_vazia(
         configuracoes,
         turmas
     )
 
-    estado = criar_estado(grade)
+    estado = criar_estado(
+        grade
+    )
 
     fila = criar_fila_aulas(
         dados.get(
@@ -87,12 +99,8 @@ def gerar_grade(resultado):
         dados.get(
             "professor_turma",
             []
-        )
-    )
-
-    disponibilidades = dados.get(
-        "disponibilidades",
-        []
+        ),
+        disponibilidades
     )
 
     nao_alocadas = []

@@ -1,21 +1,21 @@
-from services.motor.validacoes import (
+from services.motor.guloso.validacoes import (
     validar_alocacao_aula,
     validar_alocacao_dupla
 )
 
-from services.motor.heuristicas import (
+from services.motor.guloso.heuristicas import (
     ordenar_dias_por_menor_ocupacao
 )
 
-from services.motor.penalidades import (
+from services.motor.guloso.penalidades import (
     calcular_penalidade
 )
 
-from services.motor.debug_penalidades import (
+from services.motor.guloso.debug_penalidades import (
     imprimir_candidato
 )
 
-from services.motor.estado import (
+from services.motor.guloso.estado import (
     registrar_aula
 )
 
@@ -351,10 +351,17 @@ def montar_diagnostico(rejeicoes):
 
 
 def escolher_melhor_candidato(candidatos):
-    return min(
-        candidatos,
-        key=lambda candidato: (
-            candidato["penalidade"],
-            candidato["indice"]
-        )
+    menor_penalidade = min(
+        candidato["penalidade"]
+        for candidato in candidatos
+    )
+
+    melhores_candidatos = [
+        candidato
+        for candidato in candidatos
+        if candidato["penalidade"] == menor_penalidade
+    ]
+
+    return random.choice(
+        melhores_candidatos
     )

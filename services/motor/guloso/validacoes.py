@@ -1,4 +1,4 @@
-from services.motor.estado import (
+from services.motor.guloso.estado import (
     professor_livre
 )
 

@@ -2,8 +2,8 @@ from services.motor.carregador import (
     carregar_dados_motor
 )
 
-from services.motor.gerador import (
-    gerar_grade
+from services.motor.cp_sat.solver import (
+    resolver_cp_sat
 )
 
 from services.motor.seed import (
@@ -15,7 +15,7 @@ from services.motor.seed import (
 def executar_motor():
     resultado = carregar_dados_motor()
 
-    motor = gerar_grade(
+    motor = executar_cp_sat(
         resultado
     )
 
@@ -25,6 +25,23 @@ def executar_motor():
     )
 
     return motor
+
+
+def executar_cp_sat(resultado):
+    dados = resultado.get(
+        "dados",
+        {}
+    )
+
+    turmas = resultado.get(
+        "turmas",
+        {}
+    )
+
+    return resolver_cp_sat(
+        dados,
+        turmas
+    )
 
 
 def enriquecer_grade(
@@ -319,6 +336,9 @@ def montar_resposta_motor(motor):
             "status",
             "erro"
         ),
+        "status_solver": motor.get(
+            "status_solver"
+        ),
         "grade": motor.get(
             "grade"
         ),
@@ -333,6 +353,12 @@ def montar_resposta_motor(motor):
         "problemas": motor.get(
             "problemas",
             []
+        ),
+        "objetivo": motor.get(
+            "objetivo"
+        ),
+        "tempo_segundos": motor.get(
+            "tempo_segundos"
         )
     }
 
@@ -341,7 +367,7 @@ def diagnostico_motor():
     try:
         resultado = carregar_dados_motor()
 
-        motor = gerar_grade(
+        motor = executar_cp_sat(
             resultado
         )
 
@@ -383,7 +409,7 @@ def gerar_motor():
     try:
         resultado = carregar_dados_motor()
 
-        motor = gerar_grade(
+        motor = executar_cp_sat(
             resultado
         )
 

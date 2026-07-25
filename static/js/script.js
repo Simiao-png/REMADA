@@ -321,34 +321,102 @@ function carregarDadosPlanejamento() {
         return;
     }
 
-    dadosPlanejamento = JSON.parse(elemento.textContent);
+    dadosPlanejamento = JSON.parse(
+        elemento.textContent
+    );
 }
 
 
-function buscarProfessorPlanejamento(professorId) {
+function buscarProfessorPlanejamento(
+    professorId
+) {
     if (!dadosPlanejamento) {
         return null;
     }
 
     return dadosPlanejamento.professores.find(
         professor =>
-            String(professor.id) === String(professorId)
+            String(professor.id) ===
+            String(professorId)
     );
+}
+
+
+let temporizadorSalvamentoDisponibilidade =
+    null;
+
+let salvandoDisponibilidade = false;
+
+let salvamentoDisponibilidadePendente =
+    false;
+
+
+function atualizarStatusDisponibilidade(
+    tipo,
+    mensagem
+) {
+    const status =
+        document.getElementById(
+            "statusSalvamentoDisponibilidade"
+        );
+
+    if (!status) {
+        return;
+    }
+
+    const configuracoes = {
+        neutro: {
+            classe: "text-muted",
+            icone: "bi-cloud-check"
+        },
+
+        salvando: {
+            classe: "text-primary",
+            icone: "bi-arrow-repeat"
+        },
+
+        salvo: {
+            classe: "text-success",
+            icone: "bi-check-circle-fill"
+        },
+
+        erro: {
+            classe: "text-danger",
+            icone: "bi-exclamation-circle-fill"
+        }
+    };
+
+    const configuracao =
+        configuracoes[tipo] ||
+        configuracoes.neutro;
+
+    status.className =
+        `small ${configuracao.classe} ` +
+        "d-inline-flex align-items-center gap-2";
+
+    status.innerHTML =
+        `<i class="bi ${configuracao.icone}"></i>` +
+        mensagem;
 }
 
 
 function carregarProfessorDisponibilidade() {
     const selectProfessor =
-        document.getElementById("professorDisponibilidade");
+        document.getElementById(
+            "professorDisponibilidade"
+        );
 
-    if (!selectProfessor || !dadosPlanejamento) {
+    if (
+        !selectProfessor ||
+        !dadosPlanejamento
+    ) {
         return;
     }
 
-    const professorId = selectProfessor.value;
-
     const professor =
-        buscarProfessorPlanejamento(professorId);
+        buscarProfessorPlanejamento(
+            selectProfessor.value
+        );
 
     if (!professor) {
         return;
@@ -365,7 +433,8 @@ function carregarProfessorDisponibilidade() {
         );
 
     if (nomeProfessor) {
-        nomeProfessor.innerText = professor.nome;
+        nomeProfessor.innerText =
+            professor.nome;
     }
 
     if (disciplinasProfessor) {
@@ -375,197 +444,483 @@ function carregarProfessorDisponibilidade() {
         ) {
             disciplinasProfessor.innerHTML =
                 professor.disciplinas
-                    .map(
-                        disciplina =>
-                        `<span class="badge bg-primary-subtle text-primary me-1">
-                            ${disciplina.nome}
-                        </span>`
-                        )
+                    .map(disciplina => {
+                        const nome =
+                            typeof disciplina ===
+                            "object"
+                                ? disciplina.nome
+                                : disciplina;
+
+                        return (
+                            '<span class="badge ' +
+                            "bg-primary-subtle " +
+                            "text-primary me-1\">" +
+                            `${nome}</span>`
+                        );
+                    })
                     .join("");
         } else {
             disciplinasProfessor.innerHTML =
-                `<span class="text-muted">Nenhuma disciplina vinculada</span>`;
+                '<span class="text-muted">' +
+                "Nenhuma disciplina vinculada" +
+                "</span>";
         }
     }
 
-    montarTabelaDisponibilidade(professor);
+    montarTabelaDisponibilidade(
+        professor
+    );
+
+    atualizarStatusDisponibilidade(
+        "neutro",
+        "Salvamento automático"
+    );
 }
 
 
-function montarTabelaDisponibilidade(professor) {
+function montarTabelaDisponibilidade(
+    professor
+) {
     const corpoTabela =
         document.getElementById(
             "corpoTabelaDisponibilidade"
         );
 
-    if (!corpoTabela || !dadosPlanejamento) {
+    if (
+        !corpoTabela ||
+        !dadosPlanejamento
+    ) {
         return;
     }
 
     corpoTabela.innerHTML = "";
 
-    dadosPlanejamento.numerosAulas.forEach(numeroAula => {
-        const linha = document.createElement("tr");
+    dadosPlanejamento.numerosAulas.forEach(
+        numeroAula => {
+            const linha =
+                document.createElement("tr");
 
-        const colunaAula =
-            document.createElement("td");
-
-        colunaAula.className = "fw-semibold";
-        colunaAula.innerText = `${numeroAula}ª aula`;
-
-        linha.appendChild(colunaAula);
-
-        dadosPlanejamento.diasSemana.forEach(dia => {
-            const coluna =
+            const colunaAula =
                 document.createElement("td");
 
-            const disponivel =
-                professor.disponibilidades.some(item =>
-                    item.dia_semana === dia.valor &&
-                    Number(item.numero_aula) ===
-                        Number(numeroAula)
-                );
+            colunaAula.className =
+                "fw-semibold";
 
-            const botao =
-                document.createElement("button");
+            colunaAula.innerText =
+                `${numeroAula}ª aula`;
 
-            botao.type = "button";
+            linha.appendChild(
+                colunaAula
+            );
 
-            botao.className = disponivel
-                ? "btn btn-sm btn-success disponibilidade-botao"
-                : "btn btn-sm btn-outline-secondary disponibilidade-botao";
+            dadosPlanejamento.diasSemana.forEach(
+                dia => {
+                    const coluna =
+                        document.createElement(
+                            "td"
+                        );
 
-            botao.dataset.dia = dia.valor;
-            botao.dataset.aula = numeroAula;
+                    const disponivel = (
+                        professor.disponibilidades ||
+                        []
+                    ).some(
+                        item =>
+                            item.dia_semana ===
+                                dia.valor &&
+                            Number(
+                                item.numero_aula
+                            ) ===
+                                Number(
+                                    numeroAula
+                                )
+                    );
 
-            botao.dataset.disponivel =
-                disponivel ? "true" : "false";
+                    const botao =
+                        document.createElement(
+                            "button"
+                        );
 
-            botao.innerText = disponivel ? "✓" : "—";
+                    botao.type = "button";
 
-            botao.addEventListener(
-                "click",
-                function () {
-                    alternarDisponibilidadeBotao(botao);
+                    botao.className =
+                        disponivel
+                            ? "btn btn-sm " +
+                              "btn-success " +
+                              "disponibilidade-botao"
+                            : "btn btn-sm " +
+                              "btn-outline-secondary " +
+                              "disponibilidade-botao";
+
+                    botao.dataset.dia =
+                        dia.valor;
+
+                    botao.dataset.aula =
+                        numeroAula;
+
+                    botao.dataset.disponivel =
+                        disponivel
+                            ? "true"
+                            : "false";
+
+                    botao.innerText =
+                        disponivel
+                            ? "✓"
+                            : "—";
+
+                    botao.addEventListener(
+                        "click",
+                        function () {
+                            alternarDisponibilidadeBotao(
+                                botao
+                            );
+                        }
+                    );
+
+                    coluna.appendChild(
+                        botao
+                    );
+
+                    linha.appendChild(
+                        coluna
+                    );
                 }
             );
 
-            coluna.appendChild(botao);
-            linha.appendChild(coluna);
-        });
+            corpoTabela.appendChild(
+                linha
+            );
+        }
+    );
 
-        corpoTabela.appendChild(linha);
-    });
+    configurarCabecalhosDisponibilidade();
 }
 
 
-function alternarDisponibilidadeBotao(botao) {
+function aplicarEstadoDisponibilidade(
+    botao,
+    disponivel
+) {
+    botao.dataset.disponivel =
+        disponivel
+            ? "true"
+            : "false";
+
+    botao.className =
+        disponivel
+            ? "btn btn-sm btn-success " +
+              "disponibilidade-botao"
+            : "btn btn-sm " +
+              "btn-outline-secondary " +
+              "disponibilidade-botao";
+
+    botao.innerText =
+        disponivel
+            ? "✓"
+            : "—";
+}
+
+
+function alternarDisponibilidadeBotao(
+    botao
+) {
     const disponivel =
-        botao.dataset.disponivel === "true";
+        botao.dataset.disponivel ===
+        "true";
 
-    if (disponivel) {
-        botao.dataset.disponivel = "false";
+    aplicarEstadoDisponibilidade(
+        botao,
+        !disponivel
+    );
 
-        botao.className =
-            "btn btn-sm btn-outline-secondary disponibilidade-botao";
+    atualizarEstadoCabecalhoDia(
+        botao.dataset.dia
+    );
 
-        botao.innerText = "—";
-    } else {
-        botao.dataset.disponivel = "true";
-
-        botao.className =
-            "btn btn-sm btn-success disponibilidade-botao";
-
-        botao.innerText = "✓";
-    }
+    agendarSalvamentoDisponibilidade();
 }
 
 
-function salvarDisponibilidadeProfessorAtual() {
-    const selectProfessor =
-        document.getElementById("professorDisponibilidade");
+function configurarCabecalhosDisponibilidade() {
+    const cabecalhos =
+        document.querySelectorAll(
+            "#disponibilidades " +
+            "thead th[data-dia]"
+        );
 
-    if (!selectProfessor) {
+    cabecalhos.forEach(
+        cabecalho => {
+            if (
+                cabecalho.dataset
+                    .eventoConfigurado ===
+                "true"
+            ) {
+                atualizarEstadoCabecalhoDia(
+                    cabecalho.dataset.dia
+                );
+
+                return;
+            }
+
+            cabecalho.dataset
+                .eventoConfigurado =
+                "true";
+
+            cabecalho.style.cursor =
+                "pointer";
+
+            cabecalho.title =
+                "Clique para marcar ou " +
+                "desmarcar todas as aulas " +
+                "deste dia";
+
+            cabecalho.addEventListener(
+                "click",
+                function () {
+                    alternarDisponibilidadeDia(
+                        cabecalho.dataset.dia
+                    );
+                }
+            );
+
+            atualizarEstadoCabecalhoDia(
+                cabecalho.dataset.dia
+            );
+        }
+    );
+}
+
+
+function obterBotoesDisponibilidadeDia(
+    dia
+) {
+    return Array.from(
+        document.querySelectorAll(
+            `.disponibilidade-botao` +
+            `[data-dia="${dia}"]`
+        )
+    );
+}
+
+
+function alternarDisponibilidadeDia(
+    dia
+) {
+    const botoes =
+        obterBotoesDisponibilidadeDia(
+            dia
+        );
+
+    if (botoes.length === 0) {
         return;
     }
 
-    const professorId = selectProfessor.value;
+    const todosDisponiveis =
+        botoes.every(
+            botao =>
+                botao.dataset.disponivel ===
+                "true"
+        );
+
+    botoes.forEach(botao => {
+        aplicarEstadoDisponibilidade(
+            botao,
+            !todosDisponiveis
+        );
+    });
+
+    atualizarEstadoCabecalhoDia(
+        dia
+    );
+
+    agendarSalvamentoDisponibilidade();
+}
+
+
+function atualizarEstadoCabecalhoDia(
+    dia
+) {
+    const cabecalho =
+        document.querySelector(
+            `#disponibilidades ` +
+            `thead th[data-dia="${dia}"]`
+        );
+
+    if (!cabecalho) {
+        return;
+    }
+
+    const botoes =
+        obterBotoesDisponibilidadeDia(
+            dia
+        );
+
+    const todosDisponiveis =
+        botoes.length > 0 &&
+        botoes.every(
+            botao =>
+                botao.dataset.disponivel ===
+                "true"
+        );
+
+    cabecalho.classList.toggle(
+        "text-success",
+        todosDisponiveis
+    );
+
+    cabecalho.classList.toggle(
+        "fw-bold",
+        todosDisponiveis
+    );
+}
+
+
+function coletarDisponibilidadesMarcadas() {
+    return Array.from(
+        document.querySelectorAll(
+            ".disponibilidade-botao"
+        )
+    )
+        .filter(
+            botao =>
+                botao.dataset.disponivel ===
+                "true"
+        )
+        .map(
+            botao => ({
+                dia_semana:
+                    botao.dataset.dia,
+
+                numero_aula:
+                    Number(
+                        botao.dataset.aula
+                    )
+            })
+        );
+}
+
+
+function agendarSalvamentoDisponibilidade() {
+    window.clearTimeout(
+        temporizadorSalvamentoDisponibilidade
+    );
+
+    salvamentoDisponibilidadePendente =
+        true;
+
+    atualizarStatusDisponibilidade(
+        "salvando",
+        "Salvando..."
+    );
+
+    temporizadorSalvamentoDisponibilidade =
+        window.setTimeout(
+            salvarDisponibilidadeProfessorAtual,
+            350
+        );
+}
+
+
+async function salvarDisponibilidadeProfessorAtual() {
+    const selectProfessor =
+        document.getElementById(
+            "professorDisponibilidade"
+        );
+
+    if (
+        !selectProfessor ||
+        salvandoDisponibilidade
+    ) {
+        return;
+    }
+
+    const professorId =
+        selectProfessor.value;
 
     const professor =
-        buscarProfessorPlanejamento(professorId);
+        buscarProfessorPlanejamento(
+            professorId
+        );
 
     if (!professor) {
         return;
     }
 
-    const botoes =
-        document.querySelectorAll(
-            ".disponibilidade-botao"
-        );
+    const disponibilidades =
+        coletarDisponibilidadesMarcadas();
 
-    const disponibilidades = [];
+    salvandoDisponibilidade = true;
 
-    botoes.forEach(botao => {
-        if (botao.dataset.disponivel === "true") {
-            disponibilidades.push({
-                dia_semana: botao.dataset.dia,
-                numero_aula:
-                    Number(botao.dataset.aula)
-            });
+    salvamentoDisponibilidadePendente =
+        false;
+
+    atualizarStatusDisponibilidade(
+        "salvando",
+        "Salvando..."
+    );
+
+    try {
+        const response =
+            await fetch(
+                `/disponibilidades/` +
+                `professor/${professorId}`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        disponibilidades:
+                            disponibilidades
+                    })
+                }
+            );
+
+        if (!response.ok) {
+            const erro =
+                await response.text();
+
+            throw new Error(
+                `Erro no Backend ` +
+                `(${response.status}): ` +
+                erro
+            );
         }
-    });
 
-    const cargaHorariaSemanal =
-        Number(
-            professor.carga_horaria_semanal || 0
+        professor.disponibilidades =
+            disponibilidades;
+
+        atualizarStatusDisponibilidade(
+            "salvo",
+            "Salvo"
         );
 
-    const quantidadeMarcada =
-        disponibilidades.length;
+    } catch (erro) {
+        salvamentoDisponibilidadePendente =
+            true;
 
-    if (
-        cargaHorariaSemanal > 0 &&
-        quantidadeMarcada < cargaHorariaSemanal
-    ) {
-        const quantidadeFaltante =
-            cargaHorariaSemanal - quantidadeMarcada;
-
-        alert(
-            `Faltam ${quantidadeFaltante} horários para atingir a carga semanal.`
+        atualizarStatusDisponibilidade(
+            "erro",
+            "Erro ao salvar"
         );
 
-        return;
+        console.error(erro);
+
+    } finally {
+        salvandoDisponibilidade =
+            false;
+
+        if (
+            salvamentoDisponibilidadePendente
+        ) {
+            window.setTimeout(
+                salvarDisponibilidadeProfessorAtual,
+                250
+            );
+        }
     }
-
-    fetch(
-        `/disponibilidades/professor/${professorId}`,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                disponibilidades: disponibilidades
-            })
-        }
-    ).then(async response => {
-        if (response.ok) {
-            professor.disponibilidades =
-                disponibilidades;
-
-            alert(
-                "Disponibilidade salva com sucesso!"
-            );
-        } else {
-            const erro = await response.text();
-
-            alert(
-                `Erro no Backend (${response.status}): ${erro}`
-            );
-        }
-    });
 }
 
 
@@ -589,7 +944,8 @@ function montarPayloadParametrosSegmentos() {
         "undefined"
     ) {
         return {
-            segmentos: parametrosPorSegmento
+            segmentos:
+                parametrosPorSegmento
         };
     }
 
@@ -598,10 +954,15 @@ function montarPayloadParametrosSegmentos() {
             "segmentosParametrosJson"
         );
 
-    if (campoJson && campoJson.value) {
+    if (
+        campoJson &&
+        campoJson.value
+    ) {
         return {
             segmentos:
-                JSON.parse(campoJson.value)
+                JSON.parse(
+                    campoJson.value
+                )
         };
     }
 
@@ -664,7 +1025,9 @@ document.addEventListener(
                             },
 
                             body:
-                                JSON.stringify(payload)
+                                JSON.stringify(
+                                    payload
+                                )
                         }
                     ).then(response => {
                         if (response.ok) {
@@ -690,20 +1053,23 @@ document.addEventListener(
                     const payload =
                         montarPayloadParametrosSegmentos();
 
-                    const response = await fetch(
-                        "/configuracoes-horarias/parametros",
-                        {
-                            method: "POST",
+                    const response =
+                        await fetch(
+                            "/configuracoes-horarias/parametros",
+                            {
+                                method: "POST",
 
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
 
-                            body:
-                                JSON.stringify(payload)
-                        }
-                    );
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    )
+                            }
+                        );
 
                     if (response.ok) {
                         alert(
@@ -716,7 +1082,9 @@ document.addEventListener(
                             await response.text();
 
                         alert(
-                            `Erro no Backend (${response.status}): ${erro}`
+                            `Erro no Backend ` +
+                            `(${response.status}): ` +
+                            erro
                         );
                     }
                 }
@@ -740,13 +1108,15 @@ document.addEventListener(
                             "professorId"
                         ).value;
 
-                    const url = id
-                        ? `/professores/${id}`
-                        : "/professores";
+                    const url =
+                        id
+                            ? `/professores/${id}`
+                            : "/professores";
 
-                    const metodo = id
-                        ? "PUT"
-                        : "POST";
+                    const metodo =
+                        id
+                            ? "PUT"
+                            : "POST";
 
                     const selectDisciplinas =
                         document.getElementById(
@@ -756,10 +1126,14 @@ document.addEventListener(
                     const disciplinasSelecionadas =
                         selectDisciplinas
                             ? Array.from(
-                                  selectDisciplinas.selectedOptions
-                              ).map(option =>
-                                  Number(option.value)
-                              )
+                                selectDisciplinas
+                                    .selectedOptions
+                            ).map(
+                                option =>
+                                    Number(
+                                        option.value
+                                    )
+                            )
                             : [];
 
                     const segmentosSelecionados =
@@ -768,11 +1142,13 @@ document.addEventListener(
                                 ".segmento-professor:checked"
                             )
                         ).map(
-                            item => item.value
+                            item =>
+                                item.value
                         );
 
                     if (
-                        segmentosSelecionados.length === 0
+                        segmentosSelecionados
+                            .length === 0
                     ) {
                         alert(
                             "Selecione pelo menos um segmento."
@@ -805,7 +1181,8 @@ document.addEventListener(
                         carga_horaria_semanal:
                             cargaHorariaSemanal
                                 ? Number(
-                                    cargaHorariaSemanal.value
+                                    cargaHorariaSemanal
+                                        .value
                                 ) || 0
                                 : 0,
 
@@ -817,7 +1194,8 @@ document.addEventListener(
 
                         trabalha_outra_escola:
                             trabalhaOutraEscola
-                                ? trabalhaOutraEscola.checked
+                                ? trabalhaOutraEscola
+                                    .checked
                                 : false,
 
                         observacoes:
@@ -826,28 +1204,37 @@ document.addEventListener(
                                 : ""
                     };
 
-                    fetch(url, {
-                        method: metodo,
+                    fetch(
+                        url,
+                        {
+                            method: metodo,
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                        body:
-                            JSON.stringify(payload)
-                    }).then(async response => {
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            const erro =
-                                await response.text();
-
-                            alert(
-                                `Erro no Backend (${response.status}): ${erro}`
-                            );
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
                         }
-                    });
+                    ).then(
+                        async response => {
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                const erro =
+                                    await response.text();
+
+                                alert(
+                                    `Erro no Backend ` +
+                                    `(${response.status}): ` +
+                                    erro
+                                );
+                            }
+                        }
+                    );
                 }
             );
         }
@@ -869,13 +1256,15 @@ document.addEventListener(
                             "disciplinaId"
                         ).value;
 
-                    const url = id
-                        ? `/disciplinas/${id}`
-                        : "/disciplinas";
+                    const url =
+                        id
+                            ? `/disciplinas/${id}`
+                            : "/disciplinas";
 
-                    const metodo = id
-                        ? "PUT"
-                        : "POST";
+                    const metodo =
+                        id
+                            ? "PUT"
+                            : "POST";
 
                     const payload = {
                         nome:
@@ -889,28 +1278,37 @@ document.addEventListener(
                             ).value
                     };
 
-                    fetch(url, {
-                        method: metodo,
+                    fetch(
+                        url,
+                        {
+                            method: metodo,
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                        body:
-                            JSON.stringify(payload)
-                    }).then(async response => {
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            const erro =
-                                await response.text();
-
-                            alert(
-                                `Erro no Backend (${response.status}): ${erro}`
-                            );
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
                         }
-                    });
+                    ).then(
+                        async response => {
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                const erro =
+                                    await response.text();
+
+                                alert(
+                                    `Erro no Backend ` +
+                                    `(${response.status}): ` +
+                                    erro
+                                );
+                            }
+                        }
+                    );
                 }
             );
         }
@@ -932,13 +1330,15 @@ document.addEventListener(
                             "turmaId"
                         ).value;
 
-                    const url = id
-                        ? `/turmas/${id}`
-                        : "/turmas";
+                    const url =
+                        id
+                            ? `/turmas/${id}`
+                            : "/turmas";
 
-                    const metodo = id
-                        ? "PUT"
-                        : "POST";
+                    const metodo =
+                        id
+                            ? "PUT"
+                            : "POST";
 
                     const payload = {
                         nome:
@@ -962,28 +1362,37 @@ document.addEventListener(
                             ).value
                     };
 
-                    fetch(url, {
-                        method: metodo,
+                    fetch(
+                        url,
+                        {
+                            method: metodo,
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                        body:
-                            JSON.stringify(payload)
-                    }).then(async response => {
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            const erro =
-                                await response.text();
-
-                            alert(
-                                `Erro no Backend (${response.status}): ${erro}`
-                            );
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
                         }
-                    });
+                    ).then(
+                        async response => {
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                const erro =
+                                    await response.text();
+
+                                alert(
+                                    `Erro no Backend ` +
+                                    `(${response.status}): ` +
+                                    erro
+                                );
+                            }
+                        }
+                    );
                 }
             );
         }
@@ -1002,7 +1411,9 @@ document.addEventListener(
 
             if (botaoAba) {
                 const tab =
-                    new bootstrap.Tab(botaoAba);
+                    new bootstrap.Tab(
+                        botaoAba
+                    );
 
                 tab.show();
             }
@@ -1011,7 +1422,8 @@ document.addEventListener(
 
         document
             .querySelectorAll(
-                '#cadastrosTabs button[data-bs-toggle="tab"]'
+                "#cadastrosTabs " +
+                'button[data-bs-toggle="tab"]'
             )
             .forEach(botao => {
                 botao.addEventListener(
@@ -1019,7 +1431,8 @@ document.addEventListener(
                     function (e) {
                         localStorage.setItem(
                             "abaCadastroAtiva",
-                            e.target.dataset.bsTarget
+                            e.target.dataset
+                                .bsTarget
                         );
                     }
                 );
@@ -1034,34 +1447,42 @@ document.addEventListener(
                 "professorDisponibilidade"
             );
 
-        if (selectProfessorDisponibilidade) {
+        if (
+            selectProfessorDisponibilidade
+        ) {
             carregarProfessorDisponibilidade();
 
-            selectProfessorDisponibilidade.addEventListener(
-                "change",
-                function () {
-                    carregarProfessorDisponibilidade();
-                }
-            );
+            selectProfessorDisponibilidade
+                .addEventListener(
+                    "change",
+                    function () {
+                        carregarProfessorDisponibilidade();
+                    }
+                );
         }
     }
 );
 
 
 document
-    .querySelectorAll(".disciplina-cor-bolinha")
+    .querySelectorAll(
+        ".disciplina-cor-bolinha"
+    )
     .forEach(el => {
         const cor =
             el.dataset.corDisciplina ||
             el.dataset.cor ||
             "#2563EB";
 
-        el.style.backgroundColor = cor;
+        el.style.backgroundColor =
+            cor;
     });
 
 
 document
-    .querySelectorAll(".badge-disciplina-colorida")
+    .querySelectorAll(
+        ".badge-disciplina-colorida"
+    )
     .forEach(el => {
         const cor =
             el.dataset.corDisciplina ||
@@ -1071,8 +1492,11 @@ document
         el.style.backgroundColor =
             cor + "22";
 
-        el.style.color = cor;
+        el.style.color =
+            cor;
 
         el.style.border =
-            "1px solid " + cor + "55";
+            "1px solid " +
+            cor +
+            "55";
     });

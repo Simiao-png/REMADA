@@ -116,7 +116,13 @@
                                     </th>
 
                                     {% for dia in dias_semana %}
-                                        <th class="text-capitalize">
+                                        <th
+                                            class="text-capitalize cabecalho-dia-disponibilidade"
+                                            data-dia="{{ dia.valor }}"
+                                            role="button"
+                                            title="Clique para marcar todo o dia"
+                                            style="cursor: pointer;">
+
                                             {{ dia.label }}
                                         </th>
                                     {% endfor %}
@@ -144,13 +150,13 @@
                             </span>
                         </div>
 
-                        <button
-                            class="btn btn-primary"
-                            type="button"
-                            onclick="salvarDisponibilidadeProfessorAtual()">
+                        <span
+                            id="statusSalvamentoDisponibilidade"
+                            class="small text-muted d-inline-flex align-items-center gap-2">
 
-                            Salvar Disponibilidade
-                        </button>
+                            <i class="bi bi-cloud-check"></i>
+                            <span>Salvamento automático</span>
+                        </span>
 
                     </div>
 

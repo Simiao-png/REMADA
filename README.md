@@ -2,22 +2,28 @@
 
 Sistema inteligente para geração automática de grades horárias escolares.
 
-O REMADA automatiza um dos processos mais complexos da gestão escolar: a construção da grade horária. A plataforma organiza os parâmetros da escola por segmento, valida inconsistências antes da geração da grade e distribui as aulas de forma inteligente, reduzindo conflitos e o tempo gasto na montagem manual.
+O REMADA automatiza um dos processos mais complexos da gestão escolar: a construção da grade horária. A plataforma organiza os parâmetros da escola por segmento, valida inconsistências antes da geração e distribui automaticamente as aulas, respeitando disponibilidade, matriz curricular e vínculos entre professores, disciplinas e turmas.
 
 ---
 
 # Últimas Atualizações
 
-- ✅ Configuração horária independente por segmento.
-- ✅ Cadastro de disciplinas com cores personalizadas.
-- ✅ Associação Professor × Disciplina.
-- ✅ Associação Professor × Turma.
-- ✅ Associação Turma × Disciplina.
-- ✅ Cadastro de carga horária semanal dos professores.
-- ✅ Controle de atribuição da carga horária.
-- ✅ Situação automática da carga dos professores (Completa, Faltam e Excedeu).
-- ✅ Validação da disponibilidade mínima conforme a carga horária semanal.
-- ✅ Correção da exibição das disciplinas na tela de disponibilidade.
+- ✅ Implementação do novo motor de geração com Google OR-Tools CP-SAT.
+- ✅ Criação de 1.080 variáveis de decisão no cenário de testes.
+- ✅ Geração automática de uma grade viável com 120 aulas alocadas.
+- ✅ Respeito à carga semanal definida na matriz curricular.
+- ✅ Controle de conflito de professor no mesmo horário.
+- ✅ Controle de conflito de turma no mesmo horário.
+- ✅ Respeito à disponibilidade dos professores.
+- ✅ Limite diário de aulas da mesma disciplina.
+- ✅ Função objetivo para melhorar a distribuição da grade.
+- ✅ Penalização de disciplinas em dias consecutivos.
+- ✅ Penalização de aulas nos últimos horários.
+- ✅ Penalização de concentração excessiva da carga diária do professor.
+- ✅ Extração e exibição da solução no frontend.
+- ✅ Visualização da grade por turma e em visão geral.
+- ✅ Diagnóstico inicial de cenários inviáveis.
+- ✅ Preservação do motor guloso como alternativa e base de comparação.
 
 ---
 
@@ -27,6 +33,8 @@ O REMADA automatiza um dos processos mais complexos da gestão escolar: a constr
 - Flask
 - PostgreSQL
 - SQLAlchemy
+- Google OR-Tools
+- CP-SAT
 - HTML5
 - CSS3
 - JavaScript
@@ -41,25 +49,44 @@ O REMADA automatiza um dos processos mais complexos da gestão escolar: a constr
 ## Configuração da Escola
 
 - ✅ Parâmetros por segmento
-- ✅ Cadastro de Professores
-- ✅ Cadastro de Disciplinas
-- ✅ Cadastro de Turmas
-- ✅ Disponibilidade dos Professores
-- ✅ Carga Horária dos Professores
+- ✅ Quantidade de aulas por dia
+- ✅ Duração das aulas
+- ✅ Configuração dos dias letivos
+- ✅ Cadastro de professores
+- ✅ Cadastro de disciplinas
+- ✅ Cadastro de turmas
+- ✅ Disponibilidade dos professores
 
 ## Relacionamentos
 
 - ✅ Professor × Disciplina
 - ✅ Professor × Turma
 - ✅ Turma × Disciplina
+- ✅ Professor × Segmento
+- ✅ Turma × Configuração Horária
 
 ## Planejamento
 
-- ✅ Definição da carga horária semanal
-- ✅ Distribuição das turmas por professor
-- ✅ Controle automático da carga atribuída
-- ✅ Situação da carga (Completa, Faltam e Excedeu)
-- ✅ Validação da disponibilidade mínima
+- ✅ Definição da matriz curricular por turma
+- ✅ Definição das aulas semanais por disciplina
+- ✅ Distribuição das turmas entre os professores
+- ✅ Associação dos professores às disciplinas
+- ✅ Definição da disponibilidade semanal
+- ✅ Validação dos vínculos necessários para geração da grade
+
+## Motor de Geração
+
+- ✅ Motor guloso inicial
+- ✅ Nova arquitetura separada por motores
+- ✅ Motor de otimização CP-SAT
+- ✅ Criação das variáveis de decisão
+- ✅ Restrições obrigatórias
+- ✅ Função objetivo
+- ✅ Execução do solver
+- ✅ Extração da solução
+- ✅ Diagnóstico de inviabilidade
+- ✅ Geração completa de grade
+- ✅ Alocação de todas as aulas do cenário de testes
 
 ## Interface
 
@@ -67,110 +94,25 @@ O REMADA automatiza um dos processos mais complexos da gestão escolar: a constr
 - ✅ Central de Cadastros
 - ✅ Planejamento
 - ✅ Disponibilidade dos Professores
-- ✅ Carga Horária
-- 🚧 Gerar Grade
-- 🚧 Diagnóstico
-- 🚧 Visualização da Grade
+- ✅ Gerar Grade
+- ✅ Visualização por turma
+- ✅ Visão geral da grade
+- ✅ Identificação visual das disciplinas por cores
+- ✅ Exibição de professor e disciplina
+- 🚧 Diagnóstico detalhado
+- 🚧 Configuração das preferências de otimização
 
 ---
 
-# Roadmap
+# Motor CP-SAT
 
-## Backend
+O REMADA utiliza o resolvedor CP-SAT do Google OR-Tools para encontrar grades horárias que atendam simultaneamente às regras obrigatórias da escola.
 
-- [x] CRUDs completos
-- [x] Configuração horária por segmento
-- [x] Relacionamentos do planejamento
-- [x] Controle de carga horária
-- [ ] Motor de geração da grade
-- [ ] Otimização do motor
-
-## Interface
-
-- [x] Dashboard
-- [x] Cadastros
-- [x] Planejamento
-- [x] Disponibilidade
-- [x] Carga Horária
-- [ ] Gerar Grade
-- [ ] Diagnóstico
-- [ ] Visualização da Grade
-
----
-
-# Status
-
-🟡 Em desenvolvimento
-
-## Progresso
-
-- ✅ Banco de dados concluído
-- ✅ CRUDs concluídos
-- ✅ Planejamento concluído
-- ✅ Configuração por segmentos
-- ✅ Disponibilidade dos professores
-- ✅ Controle da carga horária
-- ✅ Relacionamentos entre professores, turmas e disciplinas
-- 🚧 Motor de geração automática
-- 🚧 Diagnóstico inteligente
-- 🚧 Otimização do algoritmo
-
----
-
-# Estrutura
+Cada variável de decisão representa a possibilidade de uma aula ser atribuída a uma combinação de:
 
 ```text
-REMADA/
-├── models/
-├── routes/
-├── services/
-│   ├── motor/
-│   ├── carga_horaria_service.py
-│   ├── disponibilidade_professor_service.py
-│   ├── professor_service.py
-│   └── ...
-├── static/
-│   ├── css/
-│   ├── js/
-│   └── img/
-├── templates/
-│   ├── components/
-│   ├── dashboard.html
-│   ├── cadastros.html
-│   ├── planejamento.html
-│   └── base.html
-├── app.py
-├── config.py
-└── README.md
-```
-
----
-
-# Fluxo do Sistema
-
-1. Configurar os parâmetros da escola.
-2. Cadastrar disciplinas.
-3. Cadastrar professores.
-4. Definir os segmentos de atuação.
-5. Definir a carga horária semanal.
-6. Cadastrar turmas.
-7. Definir a matriz curricular das turmas.
-8. Informar a disponibilidade dos professores.
-9. Distribuir as turmas entre os professores.
-10. Gerar automaticamente a grade horária.
-
----
-
-# Próxima Etapa
-
-O próximo grande marco do REMADA é o desenvolvimento do motor de geração automática da grade horária.
-
-O algoritmo utilizará todas as informações cadastradas (segmentos, carga horária, disponibilidade, matriz curricular e vínculos entre professores, disciplinas e turmas) para construir automaticamente uma grade viável, minimizando conflitos e distribuindo as aulas de forma equilibrada.
-
----
-
-# Visão de Produto
-
-O REMADA está sendo desenvolvido como uma plataforma SaaS especializada em geração inteligente de grades horárias escolares.
-
-Seu objetivo é permitir que coordenadores configurem toda a estrutura da escola, realizem o planejamento dos professores e gerem automaticamente grades horárias consistentes através de um fluxo simples, moderno e inteligente.
+Turma
+Disciplina
+Professor
+Dia
+Horário
