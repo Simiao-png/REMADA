@@ -116,3 +116,192 @@ Disciplina
 Professor
 Dia
 Horário
+
+Exemplo conceitual:
+
+(6º A, Matemática, Professor 1, Segunda-feira, 1ª aula)
+
+O solver decide quais combinações devem ser ativadas para construir uma grade válida.
+
+Restrições Obrigatórias
+A carga semanal de cada disciplina deve ser cumprida.
+Uma turma não pode ter duas aulas no mesmo horário.
+Um professor não pode atender duas turmas simultaneamente.
+A disponibilidade cadastrada do professor deve ser respeitada.
+A quantidade máxima diária de aulas da mesma disciplina deve ser respeitada.
+Apenas professores vinculados simultaneamente à turma e à disciplina podem ser alocados.
+Critérios de Otimização
+Evitar aulas nos últimos horários.
+Evitar concentração excessiva de aulas do professor no mesmo dia.
+Melhorar a distribuição das disciplinas durante a semana.
+Penalizar a repetição da mesma disciplina em dias consecutivos.
+Primeiro Resultado
+
+No cenário inicial de testes, o motor apresentou:
+
+Variáveis criadas: 1.080
+Status: FEASIBLE
+Aulas alocadas: 120
+Tempo de execução: aproximadamente 30 segundos
+
+O status FEASIBLE indica que o solver encontrou uma solução válida dentro do limite de tempo configurado.
+
+Arquitetura do Motor
+services/
+└── motor/
+    ├── cp_sat/
+    │   ├── __init__.py
+    │   ├── modelo.py
+    │   ├── variaveis.py
+    │   ├── restricoes.py
+    │   ├── objetivo.py
+    │   ├── solver.py
+    │   ├── extrator.py
+    │   └── diagnostico.py
+    │
+    ├── guloso/
+    │   ├── alocador.py
+    │   ├── aulas.py
+    │   ├── debug_penalidades.py
+    │   ├── estado.py
+    │   ├── heuristicas.py
+    │   ├── otimizador.py
+    │   ├── penalidades.py
+    │   └── validacoes.py
+    │
+    ├── carregador.py
+    ├── estrutura.py
+    ├── grade_service.py
+    ├── inviabilidade.py
+    └── seed.py
+Fluxo do CP-SAT
+carregador.py
+      ↓
+grade_service.py
+      ↓
+solver.py
+      ↓
+modelo.py
+      ↓
+variaveis.py
+restricoes.py
+objetivo.py
+      ↓
+CpSolver
+      ↓
+extrator.py
+      ↓
+grade exibida no frontend
+Roadmap
+Backend
+ CRUDs principais
+ Configuração horária por segmento
+ Relacionamentos do planejamento
+ Matriz curricular por turma
+ Disponibilidade dos professores
+ Motor guloso inicial
+ Estrutura modular dos motores
+ Motor CP-SAT
+ Restrições obrigatórias
+ Função objetivo inicial
+ Extração da solução
+ Geração completa da grade
+ Validador automático da grade gerada
+ Diagnóstico detalhado de inviabilidade
+ Otimização das penalidades
+ Configuração das preferências da escola
+ Testes automatizados do motor
+ Comparação de desempenho entre motores
+Interface
+ Dashboard
+ Cadastros
+ Planejamento
+ Disponibilidade
+ Gerar Grade
+ Visualização por turma
+ Visão geral
+ Tela detalhada de diagnóstico
+ Configuração das preferências do motor
+ Edição manual da grade gerada
+ Exportação da grade
+ Impressão e geração de PDF
+Status
+
+🟡 Em desenvolvimento — motor de geração funcional.
+
+Progresso
+✅ Banco de dados estruturado
+✅ CRUDs principais concluídos
+✅ Planejamento concluído
+✅ Configuração por segmentos
+✅ Disponibilidade dos professores
+✅ Relacionamentos entre professores, turmas e disciplinas
+✅ Matriz curricular por turma
+✅ Motor guloso preservado
+✅ Motor CP-SAT implementado
+✅ Geração automática funcionando
+✅ 120 aulas alocadas no cenário de testes
+✅ Visualização completa da grade
+🚧 Diagnóstico inteligente
+🚧 Validação automática
+🚧 Otimização da qualidade da grade
+Estrutura Geral
+REMADA/
+├── models/
+├── routes/
+├── services/
+│   ├── motor/
+│   │   ├── cp_sat/
+│   │   └── guloso/
+│   ├── disponibilidade_professor_service.py
+│   ├── professor_service.py
+│   └── ...
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── img/
+├── templates/
+│   ├── components/
+│   ├── dashboard.html
+│   ├── cadastros.html
+│   ├── planejamento.html
+│   ├── gerar_grade.html
+│   └── base.html
+├── app.py
+├── config.py
+├── requirements.txt
+└── README.md
+Fluxo do Sistema
+Configurar os parâmetros da escola.
+Configurar os horários por segmento.
+Cadastrar disciplinas.
+Cadastrar professores.
+Definir os segmentos de atuação dos professores.
+Cadastrar turmas.
+Definir a matriz curricular das turmas.
+Informar a disponibilidade dos professores.
+Associar professores às disciplinas.
+Associar professores às turmas.
+Executar as validações iniciais.
+Gerar automaticamente a grade horária.
+Visualizar a grade por turma ou em visão geral.
+Próxima Etapa
+
+A próxima etapa será dedicada à lapidação do motor CP-SAT.
+
+As prioridades são:
+
+criar um validador automático da solução;
+melhorar o diagnóstico de cenários inviáveis;
+evitar janelas nos horários dos professores;
+melhorar a distribuição das disciplinas;
+configurar preferências por escola;
+reduzir o tempo necessário para encontrar soluções melhores;
+ampliar os testes com cenários maiores e mais complexos.
+Visão de Produto
+
+O REMADA está sendo desenvolvido como uma plataforma SaaS especializada em geração inteligente de grades horárias escolares.
+
+Seu objetivo é permitir que coordenadores configurem toda a estrutura da escola, realizem o planejamento dos professores e gerem automaticamente grades consistentes por meio de um fluxo simples, moderno e inteligente.
+
+O sistema combina validações, regras pedagógicas, algoritmos heurísticos e otimização por restrições para reduzir conflitos e transformar um processo normalmente manual em uma operação automatizada e confiável.
