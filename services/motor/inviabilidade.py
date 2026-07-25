@@ -1,11 +1,31 @@
+from services.motor.estrutura import (
+    buscar_configuracao_turma,
+    obter_dias_configuracao
+)
+
+
 def analisar_inviabilidade(dados):
     problemas = []
 
-    problemas.extend(verificar_carga_horaria_vs_slots(dados))
-    problemas.extend(verificar_professor_sem_disponibilidade(dados))
-    problemas.extend(verificar_disciplina_sem_professor(dados))
-    problemas.extend(verificar_professor_com_carga_excessiva(dados))
-    problemas.extend(verificar_professor_disciplina_sem_turma(dados))
+    problemas.extend(
+        verificar_carga_horaria_vs_slots(dados)
+    )
+
+    problemas.extend(
+        verificar_professor_sem_disponibilidade(dados)
+    )
+
+    problemas.extend(
+        verificar_disciplina_sem_professor(dados)
+    )
+
+    problemas.extend(
+        verificar_professor_com_carga_excessiva(dados)
+    )
+
+    problemas.extend(
+        verificar_atribuicao_invalida(dados)
+    )
 
     return {
         "viavel": len(problemas) == 0,
@@ -17,29 +37,57 @@ def verificar_carga_horaria_vs_slots(dados):
     problemas = []
 
     turmas = dados.get("turmas", [])
-    cargas = dados.get("cargas_horarias", [])
-    configuracoes = dados.get("configuracoes", [])
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
 
-    aulas_por_dia = 6
-
-    if configuracoes:
-        aulas_por_dia = configuracoes[0].aulas_por_dia
-
-    dias_semana = 5
+    configuracoes = dados.get(
+        "configuracoes",
+        []
+    )
 
     for turma in turmas:
-        carga_total = sum(
-            carga.quantidade_aulas_semana
-            for carga in cargas
-            if carga.turma_id == turma.id
+        configuracao = buscar_configuracao_turma(
+            turma,
+            configuracoes
         )
 
-        capacidade = aulas_por_dia * dias_semana
+        if not configuracao:
+            problemas.append({
+                "tipo": "TURMA_SEM_CONFIGURACAO",
+                "turma_id": turma.id,
+                "turma": turma.nome,
+                "mensagem": (
+                    f"A turma '{turma.nome}' não possui "
+                    "configuração horária válida."
+                )
+            })
+
+            continue
+
+        dias = obter_dias_configuracao(
+            configuracao
+        )
+
+        capacidade = (
+            len(dias)
+            * int(configuracao.aulas_por_dia or 0)
+        )
+
+        carga_total = sum(
+            int(matriz.aulas_por_semana or 0)
+            for matriz in matrizes
+            if matriz.turma_id == turma.id
+        )
 
         if carga_total > capacidade:
             problemas.append({
                 "tipo": "CARGA_HORARIA_EXCESSIVA",
+                "turma_id": turma.id,
                 "turma": turma.nome,
+                "carga_total": carga_total,
+                "capacidade": capacidade,
                 "mensagem": (
                     f"A turma '{turma.nome}' possui "
                     f"{carga_total} aulas para apenas "
@@ -50,36 +98,60 @@ def verificar_carga_horaria_vs_slots(dados):
     return problemas
 
 
-def verificar_professor_sem_disponibilidade(dados):
+def verificar_professor_sem_disponibilidade(
+    dados
+):
     problemas = []
 
-    professores = dados.get("professores", [])
-    disponibilidades = dados.get("disponibilidades", [])
-    professor_disciplina = dados.get("professor_disciplina", [])
-    professor_turma = dados.get("professor_turma", [])
+    professores = dados.get(
+        "professores",
+        []
+    )
 
-    professores_com_disponibilidade = {
-        disp.professor_id
-        for disp in disponibilidades
+    disponibilidades = dados.get(
+        "disponibilidades",
+        []
+    )
+
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
+
+    mapa_professores = {
+        professor.id: professor.nome
+        for professor in professores
     }
 
     professores_utilizados = {
-        rel_disciplina.professor_id
-        for rel_disciplina in professor_disciplina
-        for rel_turma in professor_turma
-        if rel_disciplina.professor_id == rel_turma.professor_id
+        atribuicao.professor_id
+        for atribuicao in atribuicoes
     }
 
-    for professor in professores:
+    professores_com_disponibilidade = {
+        disponibilidade.professor_id
+        for disponibilidade in disponibilidades
+        if disponibilidade.disponivel
+    }
+
+    for professor_id in professores_utilizados:
         if (
-            professor.id in professores_utilizados
-            and professor.id not in professores_com_disponibilidade
+            professor_id
+            not in professores_com_disponibilidade
         ):
+            nome_professor = mapa_professores.get(
+                professor_id,
+                f"Professor {professor_id}"
+            )
+
             problemas.append({
-                "tipo": "PROFESSOR_SEM_DISPONIBILIDADE",
-                "professor": professor.nome,
+                "tipo": (
+                    "PROFESSOR_SEM_DISPONIBILIDADE"
+                ),
+                "professor_id": professor_id,
+                "professor": nome_professor,
                 "mensagem": (
-                    f"O professor '{professor.nome}' "
+                    f"O professor '{nome_professor}' "
                     "não possui disponibilidade cadastrada."
                 )
             })
@@ -90,105 +162,363 @@ def verificar_professor_sem_disponibilidade(dados):
 def verificar_disciplina_sem_professor(dados):
     problemas = []
 
-    cargas = dados.get("cargas_horarias", [])
-    professor_disciplina = dados.get("professor_disciplina", [])
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
 
-    disciplinas = {
-        rel.disciplina_id
-        for rel in professor_disciplina
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
+
+    turmas = dados.get(
+        "turmas",
+        []
+    )
+
+    disciplinas = dados.get(
+        "disciplinas",
+        []
+    )
+
+    mapa_turmas = {
+        turma.id: turma.nome
+        for turma in turmas
     }
 
-    for carga in cargas:
-        if carga.disciplina_id not in disciplinas:
+    mapa_disciplinas = {
+        disciplina.id: disciplina.nome
+        for disciplina in disciplinas
+    }
+
+    chaves_atribuidas = {
+        (
+            atribuicao.turma_id,
+            atribuicao.disciplina_id
+        )
+        for atribuicao in atribuicoes
+    }
+
+    for matriz in matrizes:
+        quantidade = int(
+            matriz.aulas_por_semana or 0
+        )
+
+        if quantidade <= 0:
+            continue
+
+        chave = (
+            matriz.turma_id,
+            matriz.disciplina_id
+        )
+
+        if chave in chaves_atribuidas:
+            continue
+
+        nome_turma = mapa_turmas.get(
+            matriz.turma_id,
+            f"Turma {matriz.turma_id}"
+        )
+
+        nome_disciplina = mapa_disciplinas.get(
+            matriz.disciplina_id,
+            f"Disciplina {matriz.disciplina_id}"
+        )
+
+        problemas.append({
+            "tipo": "DISCIPLINA_SEM_PROFESSOR",
+            "turma_id": matriz.turma_id,
+            "disciplina_id": matriz.disciplina_id,
+            "mensagem": (
+                f"A disciplina '{nome_disciplina}' "
+                f"da turma '{nome_turma}' não possui "
+                "professor atribuído."
+            )
+        })
+
+    return problemas
+
+
+def verificar_professor_com_carga_excessiva(
+    dados
+):
+    problemas = []
+
+    professores = dados.get(
+        "professores",
+        []
+    )
+
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
+
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
+
+    disponibilidades = dados.get(
+        "disponibilidades",
+        []
+    )
+
+    mapa_professores = {
+        professor.id: professor
+        for professor in professores
+    }
+
+    mapa_matrizes = {
+        (
+            matriz.turma_id,
+            matriz.disciplina_id
+        ): int(matriz.aulas_por_semana or 0)
+        for matriz in matrizes
+    }
+
+    carga_por_professor = {}
+
+    for atribuicao in atribuicoes:
+        chave = (
+            atribuicao.turma_id,
+            atribuicao.disciplina_id
+        )
+
+        quantidade = mapa_matrizes.get(
+            chave,
+            0
+        )
+
+        carga_por_professor[
+            atribuicao.professor_id
+        ] = (
+            carga_por_professor.get(
+                atribuicao.professor_id,
+                0
+            )
+            + quantidade
+        )
+
+    disponibilidade_por_professor = {}
+
+    for disponibilidade in disponibilidades:
+        if not disponibilidade.disponivel:
+            continue
+
+        professor_id = (
+            disponibilidade.professor_id
+        )
+
+        disponibilidade_por_professor[
+            professor_id
+        ] = (
+            disponibilidade_por_professor.get(
+                professor_id,
+                0
+            )
+            + 1
+        )
+
+    for professor_id, carga_total in (
+        carga_por_professor.items()
+    ):
+        professor = mapa_professores.get(
+            professor_id
+        )
+
+        disponibilidade_total = (
+            disponibilidade_por_professor.get(
+                professor_id,
+                0
+            )
+        )
+
+        nome_professor = (
+            professor.nome
+            if professor
+            else f"Professor {professor_id}"
+        )
+
+        if carga_total > disponibilidade_total:
             problemas.append({
-                "tipo": "DISCIPLINA_SEM_PROFESSOR",
-                "disciplina_id": carga.disciplina_id,
+                "tipo": (
+                    "PROFESSOR_COM_CARGA_EXCESSIVA"
+                ),
+                "professor_id": professor_id,
+                "carga_total": carga_total,
+                "disponibilidade_total": (
+                    disponibilidade_total
+                ),
                 "mensagem": (
-                    "Existe uma carga horária cadastrada "
-                    "para uma disciplina sem professor."
+                    f"O professor '{nome_professor}' "
+                    f"possui {carga_total} aulas atribuídas, "
+                    f"mas apenas {disponibilidade_total} "
+                    "horários disponíveis."
+                )
+            })
+
+        if not professor:
+            continue
+
+        carga_contratada = int(
+            professor.carga_horaria_semanal or 0
+        )
+
+        if (
+            carga_contratada > 0
+            and carga_total > carga_contratada
+        ):
+            problemas.append({
+                "tipo": (
+                    "PROFESSOR_ACIMA_DA_CARGA_SEMANAL"
+                ),
+                "professor_id": professor_id,
+                "carga_atribuida": carga_total,
+                "carga_semanal": carga_contratada,
+                "mensagem": (
+                    f"O professor '{nome_professor}' "
+                    f"possui {carga_total} aulas atribuídas "
+                    f"para uma carga semanal de "
+                    f"{carga_contratada} aulas."
                 )
             })
 
     return problemas
 
 
-def verificar_professor_com_carga_excessiva(dados):
+def verificar_atribuicao_invalida(dados):
     problemas = []
 
-    cargas = dados.get("cargas_horarias", [])
-    disponibilidades = dados.get("disponibilidades", [])
-    professor_disciplina = dados.get("professor_disciplina", [])
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
 
-    for relacao in professor_disciplina:
-        carga_total = sum(
-            carga.quantidade_aulas_semana
-            for carga in cargas
-            if carga.disciplina_id == relacao.disciplina_id
-        )
+    professores_disciplinas = dados.get(
+        "professor_disciplina",
+        []
+    )
 
-        disponibilidade = sum(
-            1
-            for disp in disponibilidades
-            if disp.professor_id == relacao.professor_id
-        )
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
 
-        if carga_total > disponibilidade:
-            problemas.append({
-                "tipo": "PROFESSOR_COM_CARGA_EXCESSIVA",
-                "professor_id": relacao.professor_id,
-                "mensagem": (
-                    f"O professor {relacao.professor_id} "
-                    f"possui apenas {disponibilidade} horários "
-                    f"para {carga_total} aulas."
-                )
-            })
+    professores = dados.get(
+        "professores",
+        []
+    )
 
-    return problemas
+    turmas = dados.get(
+        "turmas",
+        []
+    )
 
-def verificar_professor_disciplina_sem_turma(dados):
-    problemas = []
-
-    cargas = dados.get("cargas_horarias", [])
-    professor_disciplina = dados.get("professor_disciplina", [])
-    professor_turma = dados.get("professor_turma", [])
-    professores = dados.get("professores", [])
+    disciplinas = dados.get(
+        "disciplinas",
+        []
+    )
 
     mapa_professores = {
         professor.id: professor.nome
         for professor in professores
     }
 
-    for relacao in professor_disciplina:
-        turmas_que_precisam_da_disciplina = {
-            carga.turma_id
-            for carga in cargas
-            if carga.disciplina_id == relacao.disciplina_id
-        }
+    mapa_turmas = {
+        turma.id: turma.nome
+        for turma in turmas
+    }
 
-        turmas_do_professor = {
-            rel_turma.turma_id
-            for rel_turma in professor_turma
-            if rel_turma.professor_id == relacao.professor_id
-        }
+    mapa_disciplinas = {
+        disciplina.id: disciplina.nome
+        for disciplina in disciplinas
+    }
 
-        turmas_compativeis = turmas_que_precisam_da_disciplina.intersection(
-            turmas_do_professor
+    vinculos_professor_disciplina = {
+        (
+            vinculo.professor_id,
+            vinculo.disciplina_id
+        )
+        for vinculo in professores_disciplinas
+    }
+
+    matrizes_validas = {
+        (
+            matriz.turma_id,
+            matriz.disciplina_id
+        )
+        for matriz in matrizes
+        if int(matriz.aulas_por_semana or 0) > 0
+    }
+
+    for atribuicao in atribuicoes:
+        chave_professor_disciplina = (
+            atribuicao.professor_id,
+            atribuicao.disciplina_id
         )
 
-        if turmas_que_precisam_da_disciplina and not turmas_compativeis:
-            nome_professor = mapa_professores.get(
-                relacao.professor_id,
-                f"Professor {relacao.professor_id}"
-            )
+        chave_matriz = (
+            atribuicao.turma_id,
+            atribuicao.disciplina_id
+        )
 
+        nome_professor = mapa_professores.get(
+            atribuicao.professor_id,
+            f"Professor {atribuicao.professor_id}"
+        )
+
+        nome_turma = mapa_turmas.get(
+            atribuicao.turma_id,
+            f"Turma {atribuicao.turma_id}"
+        )
+
+        nome_disciplina = mapa_disciplinas.get(
+            atribuicao.disciplina_id,
+            f"Disciplina {atribuicao.disciplina_id}"
+        )
+
+        if (
+            chave_professor_disciplina
+            not in vinculos_professor_disciplina
+        ):
             problemas.append({
-                "tipo": "PROFESSOR_DISCIPLINA_SEM_TURMA",
-                "professor_id": relacao.professor_id,
-                "disciplina_id": relacao.disciplina_id,
+                "tipo": (
+                    "PROFESSOR_NAO_LECIONA_DISCIPLINA"
+                ),
+                "professor_id": (
+                    atribuicao.professor_id
+                ),
+                "turma_id": atribuicao.turma_id,
+                "disciplina_id": (
+                    atribuicao.disciplina_id
+                ),
                 "mensagem": (
-                    f"O professor '{nome_professor}' está vinculado "
-                    f"à disciplina {relacao.disciplina_id}, mas não está "
-                    "vinculado a nenhuma turma que precisa dessa disciplina."
+                    f"O professor '{nome_professor}' "
+                    f"foi atribuído à disciplina "
+                    f"'{nome_disciplina}' da turma "
+                    f"'{nome_turma}', mas não está "
+                    "vinculado a essa disciplina."
+                )
+            })
+
+        if chave_matriz not in matrizes_validas:
+            problemas.append({
+                "tipo": (
+                    "ATRIBUICAO_FORA_DA_MATRIZ"
+                ),
+                "professor_id": (
+                    atribuicao.professor_id
+                ),
+                "turma_id": atribuicao.turma_id,
+                "disciplina_id": (
+                    atribuicao.disciplina_id
+                ),
+                "mensagem": (
+                    f"A atribuição de '{nome_disciplina}' "
+                    f"para a turma '{nome_turma}' não possui "
+                    "carga válida na matriz curricular."
                 )
             })
 

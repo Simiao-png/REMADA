@@ -23,7 +23,7 @@ ORDEM_DIAS = [
 
 
 def calcular_penalidade(
-    grade,
+    estado,
     turma_id,
     professor_id,
     disciplina_id,
@@ -34,21 +34,21 @@ def calcular_penalidade(
     penalidade = 0
 
     penalidade += penalizar_disciplina_repetida_no_dia(
-        grade,
+        estado,
         turma_id,
         disciplina_id,
         dia
     )
 
     penalidade += penalizar_disciplina_em_dia_consecutivo(
-        grade,
+        estado,
         turma_id,
         disciplina_id,
         dia
     )
 
     penalidade += penalizar_ultimos_horarios(
-        grade,
+        estado,
         turma_id,
         dia,
         indice,
@@ -56,13 +56,13 @@ def calcular_penalidade(
     )
 
     penalidade += penalizar_professor_muitas_aulas_no_dia(
-        grade,
+        estado,
         professor_id,
         dia
     )
 
     penalidade += penalizar_janela_professor(
-        grade,
+        estado,
         professor_id,
         dia,
         indice,
@@ -70,7 +70,7 @@ def calcular_penalidade(
     )
 
     penalidade += penalizar_janela_turma(
-        grade,
+        estado,
         turma_id,
         dia,
         indice,
@@ -78,7 +78,7 @@ def calcular_penalidade(
     )
 
     penalidade += bonificar_dia_menos_ocupado(
-        grade,
+        estado,
         turma_id,
         dia
     )
@@ -87,22 +87,26 @@ def calcular_penalidade(
 
 
 def penalizar_disciplina_repetida_no_dia(
-    grade,
+    estado,
     turma_id,
     disciplina_id,
     dia
 ):
-    penalidade = 0
+    quantidade = obter_quantidade_disciplina_no_dia(
+        estado,
+        turma_id,
+        disciplina_id,
+        dia
+    )
 
-    for aula in grade[turma_id][dia]:
-        if aula is not None and aula["disciplina"] == disciplina_id:
-            penalidade += PESO_DISCIPLINA_REPETIDA_NO_DIA
-
-    return penalidade
+    return (
+        quantidade
+        * PESO_DISCIPLINA_REPETIDA_NO_DIA
+    )
 
 
 def penalizar_disciplina_em_dia_consecutivo(
-    grade,
+    estado,
     turma_id,
     disciplina_id,
     dia
@@ -114,41 +118,77 @@ def penalizar_disciplina_em_dia_consecutivo(
 
     penalidade = 0
 
-    dia_anterior = obter_dia_por_indice(indice_dia - 1)
-    proximo_dia = obter_dia_por_indice(indice_dia + 1)
+    dia_anterior = obter_dia_por_indice(
+        indice_dia - 1
+    )
 
-    if dia_anterior in grade[turma_id]:
-        if turma_tem_disciplina_no_dia(
-            grade,
-            turma_id,
-            disciplina_id,
-            dia_anterior
-        ):
-            penalidade += PESO_DISCIPLINA_DIA_CONSECUTIVO
+    proximo_dia = obter_dia_por_indice(
+        indice_dia + 1
+    )
 
-    if proximo_dia in grade[turma_id]:
-        if turma_tem_disciplina_no_dia(
-            grade,
-            turma_id,
-            disciplina_id,
-            proximo_dia
-        ):
-            penalidade += PESO_DISCIPLINA_DIA_CONSECUTIVO
+    if turma_tem_disciplina_no_dia(
+        estado,
+        turma_id,
+        disciplina_id,
+        dia_anterior
+    ):
+        penalidade += (
+            PESO_DISCIPLINA_DIA_CONSECUTIVO
+        )
+
+    if turma_tem_disciplina_no_dia(
+        estado,
+        turma_id,
+        disciplina_id,
+        proximo_dia
+    ):
+        penalidade += (
+            PESO_DISCIPLINA_DIA_CONSECUTIVO
+        )
 
     return penalidade
 
 
 def turma_tem_disciplina_no_dia(
-    grade,
+    estado,
     turma_id,
     disciplina_id,
     dia
 ):
-    for aula in grade[turma_id][dia]:
-        if aula is not None and aula["disciplina"] == disciplina_id:
-            return True
+    if dia is None:
+        return False
 
-    return False
+    grade = estado["grade"]
+
+    if turma_id not in grade:
+        return False
+
+    if dia not in grade[turma_id]:
+        return False
+
+    quantidade = obter_quantidade_disciplina_no_dia(
+        estado,
+        turma_id,
+        disciplina_id,
+        dia
+    )
+
+    return quantidade > 0
+
+
+def obter_quantidade_disciplina_no_dia(
+    estado,
+    turma_id,
+    disciplina_id,
+    dia
+):
+    return (
+        estado["turmas"]
+        .get(turma_id, {})
+        .get(dia, {})
+        .get("disciplinas", {})
+        .get(disciplina_id, 0)
+    )
 
 
 def obter_indice_dia(dia):
@@ -169,35 +209,49 @@ def obter_dia_por_indice(indice):
 
 
 def penalizar_ultimos_horarios(
-    grade,
+    estado,
     turma_id,
     dia,
     indice,
     quantidade_aulas
 ):
-    quantidade_horarios = len(grade[turma_id][dia])
-    ultimo_indice_usado = indice + quantidade_aulas - 1
+    grade = estado["grade"]
 
-    if ultimo_indice_usado == quantidade_horarios - 1:
+    quantidade_horarios = len(
+        grade[turma_id][dia]
+    )
+
+    ultimo_indice_usado = (
+        indice
+        + quantidade_aulas
+        - 1
+    )
+
+    if ultimo_indice_usado == (
+        quantidade_horarios - 1
+    ):
         return PESO_ULTIMO_HORARIO
 
-    if ultimo_indice_usado == quantidade_horarios - 2:
+    if ultimo_indice_usado == (
+        quantidade_horarios - 2
+    ):
         return PESO_PENULTIMO_HORARIO
 
     return 0
 
 
 def penalizar_professor_muitas_aulas_no_dia(
-    grade,
+    estado,
     professor_id,
     dia
 ):
-    quantidade = 0
+    horarios_ocupados = obter_horarios_professor(
+        estado,
+        professor_id,
+        dia
+    )
 
-    for turma_id in grade:
-        for aula in grade[turma_id][dia]:
-            if aula is not None and aula["professor"] == professor_id:
-                quantidade += 1
+    quantidade = len(horarios_ocupados)
 
     if quantidade >= 4:
         return PESO_PROFESSOR_4_AULAS_NO_DIA
@@ -209,52 +263,98 @@ def penalizar_professor_muitas_aulas_no_dia(
 
 
 def penalizar_janela_professor(
-    grade,
+    estado,
     professor_id,
     dia,
     indice,
     quantidade_aulas
 ):
-    horarios_ocupados = []
+    horarios_ocupados = obter_horarios_professor(
+        estado,
+        professor_id,
+        dia
+    )
 
-    for turma_id in grade:
-        for i, aula in enumerate(grade[turma_id][dia]):
-            if aula is not None and aula["professor"] == professor_id:
-                horarios_ocupados.append(i)
+    novos_horarios = list(
+        range(
+            indice,
+            indice + quantidade_aulas
+        )
+    )
 
-    novos_horarios = list(range(indice, indice + quantidade_aulas))
+    horarios_simulados = sorted(
+        set(
+            horarios_ocupados
+            + novos_horarios
+        )
+    )
 
-    horarios_ocupados.extend(novos_horarios)
-    horarios_ocupados = sorted(set(horarios_ocupados))
-
-    if existe_janela(horarios_ocupados):
+    if existe_janela(horarios_simulados):
         return PESO_JANELA_PROFESSOR
 
     return 0
 
 
 def penalizar_janela_turma(
-    grade,
+    estado,
     turma_id,
     dia,
     indice,
     quantidade_aulas
 ):
-    horarios_ocupados = []
+    horarios_ocupados = obter_horarios_turma(
+        estado,
+        turma_id,
+        dia
+    )
 
-    for i, aula in enumerate(grade[turma_id][dia]):
-        if aula is not None:
-            horarios_ocupados.append(i)
+    novos_horarios = list(
+        range(
+            indice,
+            indice + quantidade_aulas
+        )
+    )
 
-    novos_horarios = list(range(indice, indice + quantidade_aulas))
+    horarios_simulados = sorted(
+        set(
+            horarios_ocupados
+            + novos_horarios
+        )
+    )
 
-    horarios_ocupados.extend(novos_horarios)
-    horarios_ocupados = sorted(set(horarios_ocupados))
-
-    if existe_janela(horarios_ocupados):
+    if existe_janela(horarios_simulados):
         return PESO_JANELA_TURMA
 
     return 0
+
+
+def obter_horarios_professor(
+    estado,
+    professor_id,
+    dia
+):
+    horarios = (
+        estado["professores"]
+        .get(professor_id, {})
+        .get(dia, set())
+    )
+
+    return list(horarios)
+
+
+def obter_horarios_turma(
+    estado,
+    turma_id,
+    dia
+):
+    horarios = (
+        estado["turmas"]
+        .get(turma_id, {})
+        .get(dia, {})
+        .get("horarios", set())
+    )
+
+    return list(horarios)
 
 
 def existe_janela(horarios_ocupados):
@@ -264,28 +364,39 @@ def existe_janela(horarios_ocupados):
     primeiro = min(horarios_ocupados)
     ultimo = max(horarios_ocupados)
 
-    for i in range(primeiro, ultimo + 1):
-        if i not in horarios_ocupados:
+    for indice in range(
+        primeiro,
+        ultimo + 1
+    ):
+        if indice not in horarios_ocupados:
             return True
 
     return False
 
 
 def bonificar_dia_menos_ocupado(
-    grade,
+    estado,
     turma_id,
     dia
 ):
+    grade = estado["grade"]
     ocupacoes = {}
 
     for dia_atual in grade[turma_id]:
-        ocupacoes[dia_atual] = contar_aulas_da_turma_no_dia(
-            grade,
-            turma_id,
-            dia_atual
+        ocupacoes[dia_atual] = (
+            contar_aulas_da_turma_no_dia(
+                estado,
+                turma_id,
+                dia_atual
+            )
         )
 
-    menor_ocupacao = min(ocupacoes.values())
+    if not ocupacoes:
+        return 0
+
+    menor_ocupacao = min(
+        ocupacoes.values()
+    )
 
     if ocupacoes[dia] == menor_ocupacao:
         return BONUS_DIA_MENOS_OCUPADO
@@ -294,14 +405,14 @@ def bonificar_dia_menos_ocupado(
 
 
 def contar_aulas_da_turma_no_dia(
-    grade,
+    estado,
     turma_id,
     dia
 ):
-    total = 0
+    horarios_ocupados = obter_horarios_turma(
+        estado,
+        turma_id,
+        dia
+    )
 
-    for aula in grade[turma_id][dia]:
-        if aula is not None:
-            total += 1
-
-    return total
+    return len(horarios_ocupados)

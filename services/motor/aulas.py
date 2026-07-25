@@ -1,28 +1,63 @@
-from models.professor_disciplina import ProfessorDisciplina
-
-
-def criar_fila_aulas(cargas_horarias):
+def criar_fila_aulas(
+    turmas_disciplinas,
+    professores_turmas
+):
     fila = []
 
-    for carga in cargas_horarias:
-        professor = ProfessorDisciplina.query.filter_by(
-            disciplina_id=carga.disciplina_id
-        ).first()
+    mapa_professores = {
+        (
+            vinculo.turma_id,
+            vinculo.disciplina_id
+        ): vinculo.professor_id
+        for vinculo in professores_turmas
+    }
 
-        professor_id = None
+    matrizes_ordenadas = sorted(
+        turmas_disciplinas,
+        key=lambda matriz: (
+            -int(matriz.aulas_por_semana or 0),
+            matriz.turma_id,
+            matriz.disciplina_id
+        )
+    )
 
-        if professor:
-            professor_id = professor.professor_id
+    for matriz in matrizes_ordenadas:
+        quantidade_aulas = int(
+            matriz.aulas_por_semana or 0
+        )
 
-        for _ in range(carga.quantidade_aulas_semana):
+        if quantidade_aulas <= 0:
+            continue
+
+        professor_id = mapa_professores.get(
+            (
+                matriz.turma_id,
+                matriz.disciplina_id
+            )
+        )
+
+        for _ in range(quantidade_aulas):
             fila.append({
-                "turma_id": carga.turma_id,
-                "disciplina_id": carga.disciplina_id,
+                "turma_id": matriz.turma_id,
+                "disciplina_id": matriz.disciplina_id,
                 "professor_id": professor_id,
-                "permite_aula_dupla": carga.permite_aula_dupla,
-                "permite_aula_tripla": carga.permite_aula_tripla,
-                "exige_distribuicao_semanal": carga.exige_distribuicao_semanal,
-                "quantidade_minima_dias_semana": carga.quantidade_minima_dias_semana
+
+                # Por enquanto, disciplinas com duas ou mais
+                # aulas semanais podem formar aula dupla.
+                "permite_aula_dupla": (
+                    quantidade_aulas >= 2
+                ),
+
+                "permite_aula_tripla": False,
+
+                "exige_distribuicao_semanal": (
+                    quantidade_aulas >= 3
+                ),
+
+                "quantidade_minima_dias_semana": min(
+                    quantidade_aulas,
+                    3
+                )
             })
 
     return fila

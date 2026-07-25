@@ -1,0 +1,248 @@
+.grade-page {
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+.grade-view-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    padding-bottom: 1px;
+    border-bottom: 1px solid #dce2e8;
+}
+
+.grade-view-tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 18px;
+    color: #667085;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+}
+
+.grade-view-tab:hover {
+    color: #0d6efd;
+}
+
+.grade-view-tab.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+}
+
+.grade-view {
+    display: none;
+}
+
+.grade-view.active {
+    display: block;
+}
+
+.turma-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    overflow-x: auto;
+}
+
+.turma-tab {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    color: #526078;
+    font-size: 13px;
+    font-weight: 600;
+    background: #ffffff;
+    border: 1px solid #dce2e8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.turma-tab:hover {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.turma-tab.active {
+    color: #ffffff;
+    background: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.18);
+}
+
+.grade-wrapper {
+    padding: 20px;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+}
+
+.grade-title {
+    margin-bottom: 14px;
+    color: #172033;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.grade-grid {
+    display: grid;
+    gap: 6px;
+    min-width: max-content;
+}
+
+.grade-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 44px;
+    padding: 0 10px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    background: #0d6efd;
+    border-radius: 9px;
+}
+
+.grade-header:first-child {
+    min-width: 110px;
+}
+
+.grade-aula {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 110px;
+    min-width: 110px;
+    height: 70px;
+    padding: 0 8px;
+    color: #263247;
+    font-size: 13px;
+    font-weight: 700;
+    background: #f4f6f8;
+    border-radius: 9px;
+}
+
+.grade-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 70px;
+    padding: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #ffffff;
+    border: 1px solid #dce2e8;
+    border-radius: 9px;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s;
+}
+
+.grade-cell:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    transform: translateY(-1px);
+}
+
+.grade-cell-indisponivel {
+    cursor: default;
+    background: #f2f4f7;
+    border-color: #edf0f3;
+}
+
+.grade-cell-indisponivel:hover {
+    border-color: #edf0f3;
+    box-shadow: none;
+    transform: none;
+}
+
+.grade-vazia {
+    color: #cbd3dc;
+    font-size: 20px;
+}
+
+.professor {
+    max-width: 100%;
+    overflow: hidden;
+    color: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.disciplina {
+    max-width: 100%;
+    margin-top: 3px;
+    overflow: hidden;
+    color: inherit;
+    font-size: 11px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+.grade-geral-dia + .grade-geral-dia {
+    margin-top: 30px;
+    padding-top: 24px;
+    border-top: 1px solid #e6eaf0;
+}
+
+.grade-geral-dia-titulo {
+    margin-bottom: 12px;
+    padding: 8px 14px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    background: #172033;
+    border-radius: 8px;
+}
+
+.grade-grid-geral .grade-cell,
+.grade-grid-geral .grade-header {
+    min-width: 120px;
+}
+
+.progress {
+    height: 9px;
+    overflow: hidden;
+    background: #e9edf2;
+    border-radius: 999px;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .grade-wrapper {
+        padding: 12px;
+    }
+
+    .grade-view-tab {
+        padding: 10px 12px;
+    }
+
+    .turma-tab {
+        padding: 7px 13px;
+    }
+}

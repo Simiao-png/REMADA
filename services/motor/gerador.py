@@ -1,11 +1,57 @@
-from services.motor.estrutura import criar_grade_vazia
-from services.motor.aulas import criar_fila_aulas
-from services.motor.alocador import alocar_melhor_posicao
-from services.motor.inviabilidade import analisar_inviabilidade
+from services.motor.estrutura import (
+    criar_grade_vazia
+)
+
+from services.motor.aulas import (
+    criar_fila_aulas
+)
+
+from services.motor.alocador import (
+    alocar_melhor_posicao
+)
+
+from services.motor.inviabilidade import (
+    analisar_inviabilidade
+)
+
+from services.motor.estado import (
+    criar_estado
+)
+
+
+def mesma_aula(aula_1, aula_2):
+    return (
+        aula_1["turma_id"] == aula_2["turma_id"]
+        and
+        aula_1["disciplina_id"] == aula_2["disciplina_id"]
+        and
+        aula_1["professor_id"] == aula_2["professor_id"]
+    )
+
+
+def contar_aulas_iguais_restantes(
+    fila,
+    indice
+):
+    aula_atual = fila[indice]
+    quantidade = 0
+
+    for posicao in range(indice, len(fila)):
+        if not mesma_aula(
+            aula_atual,
+            fila[posicao]
+        ):
+            break
+
+        quantidade += 1
+
+    return quantidade
 
 
 def gerar_grade(resultado):
-    analise = analisar_inviabilidade(resultado["dados"])
+    dados = resultado["dados"]
+
+    analise = analisar_inviabilidade(dados)
 
     if not analise["viavel"]:
         return {
@@ -16,44 +62,96 @@ def gerar_grade(resultado):
             "problemas": analise["problemas"]
         }
 
-    configuracao = resultado["dados"]["configuracoes"][0]
-
-    grade = criar_grade_vazia(
-        configuracao,
-        resultado["turmas"]
+    configuracoes = dados.get(
+        "configuracoes",
+        []
     )
 
+    turmas = resultado.get(
+        "turmas",
+        {}
+    )
+
+    grade = criar_grade_vazia(
+        configuracoes,
+        turmas
+    )
+
+    estado = criar_estado(grade)
+
     fila = criar_fila_aulas(
-        resultado["dados"]["cargas_horarias"]
+        dados.get(
+            "turma_disciplina",
+            []
+        ),
+        dados.get(
+            "professor_turma",
+            []
+        )
+    )
+
+    disponibilidades = dados.get(
+        "disponibilidades",
+        []
     )
 
     nao_alocadas = []
-
-    disponibilidades = resultado["dados"]["disponibilidades"]
-
     indice = 0
 
     while indice < len(fila):
         aula = fila[indice]
-        aulas_restantes = len(fila) - indice
 
-        quantidade_alocada = alocar_melhor_posicao(
-            grade,
-            aula,
-            disponibilidades,
-            aulas_restantes
+        if aula["professor_id"] is None:
+            nao_alocadas.append({
+                **aula,
+                "motivo": (
+                    "Nenhum professor atribuído "
+                    "para esta turma e disciplina."
+                )
+            })
+
+            indice += 1
+            continue
+
+        aulas_iguais_restantes = (
+            contar_aulas_iguais_restantes(
+                fila,
+                indice
+            )
+        )
+
+        quantidade_alocada = (
+            alocar_melhor_posicao(
+                estado,
+                aula,
+                disponibilidades,
+                aulas_iguais_restantes
+            )
         )
 
         if quantidade_alocada == 0:
-            nao_alocadas.append(aula)
+            nao_alocadas.append({
+                **aula,
+                "motivo": (
+                    "Nenhuma posição válida "
+                    "encontrada."
+                )
+            })
+
             indice += 1
         else:
             indice += quantidade_alocada
+
+    status = (
+        "ok"
+        if len(nao_alocadas) == 0
+        else "parcial"
+    )
 
     return {
         "grade": grade,
         "fila": fila,
         "nao_alocadas": nao_alocadas,
-        "status": "ok" if len(nao_alocadas) == 0 else "parcial",
+        "status": status,
         "problemas": []
     }

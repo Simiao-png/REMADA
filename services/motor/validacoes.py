@@ -1,24 +1,17 @@
-def professor_livre_na_grade(grade, professor_id, dia, indice_horario):
-
-    for turma_id, dias in grade.items():
-
-        aula = dias[dia][indice_horario]
-
-        if aula is None:
-            continue
-
-        if aula["professor"] == professor_id:
-            return False
-
-    return True
+from services.motor.estado import (
+    professor_livre
+)
 
 
-def professor_disponivel(disponibilidades, professor_id, dia, indice_horario):
-
+def professor_disponivel(
+    disponibilidades,
+    professor_id,
+    dia,
+    indice_horario
+):
     numero_aula = indice_horario + 1
 
     for disponibilidade in disponibilidades:
-
         if disponibilidade.professor_id != professor_id:
             continue
 
@@ -33,23 +26,26 @@ def professor_disponivel(disponibilidades, professor_id, dia, indice_horario):
     return False
 
 
-def limite_disciplina_por_dia(grade, turma_id, disciplina_id, dia, limite=2):
-
-    quantidade = 0
-
-    for aula in grade[turma_id][dia]:
-
-        if aula is None:
-            continue
-
-        if aula["disciplina"] == disciplina_id:
-            quantidade += 1
+def limite_disciplina_por_dia(
+    estado,
+    turma_id,
+    disciplina_id,
+    dia,
+    limite=2
+):
+    quantidade = (
+        estado["turmas"]
+        .get(turma_id, {})
+        .get(dia, {})
+        .get("disciplinas", {})
+        .get(disciplina_id, 0)
+    )
 
     return quantidade < limite
 
 
-def pode_alocar_aula(
-    grade,
+def validar_alocacao_aula(
+    estado,
     disponibilidades,
     turma_id,
     professor_id,
@@ -57,17 +53,24 @@ def pode_alocar_aula(
     dia,
     indice_horario
 ):
+    grade = estado["grade"]
 
     if grade[turma_id][dia][indice_horario] is not None:
-        return False
+        return {
+            "valido": False,
+            "motivo": "turma_ocupada"
+        }
 
-    if not professor_livre_na_grade(
-        grade,
+    if not professor_livre(
+        estado,
         professor_id,
         dia,
         indice_horario
     ):
-        return False
+        return {
+            "valido": False,
+            "motivo": "professor_ocupado"
+        }
 
     if not professor_disponivel(
         disponibilidades,
@@ -75,21 +78,30 @@ def pode_alocar_aula(
         dia,
         indice_horario
     ):
-        return False
+        return {
+            "valido": False,
+            "motivo": "professor_indisponivel"
+        }
 
     if not limite_disciplina_por_dia(
-        grade,
+        estado,
         turma_id,
         disciplina_id,
         dia
     ):
-        return False
+        return {
+            "valido": False,
+            "motivo": "limite_disciplina_dia"
+        }
 
-    return True
+    return {
+        "valido": True,
+        "motivo": None
+    }
 
 
-def pode_alocar_dupla(
-    grade,
+def pode_alocar_aula(
+    estado,
     disponibilidades,
     turma_id,
     professor_id,
@@ -97,30 +109,114 @@ def pode_alocar_dupla(
     dia,
     indice_horario
 ):
+    validacao = validar_alocacao_aula(
+        estado,
+        disponibilidades,
+        turma_id,
+        professor_id,
+        disciplina_id,
+        dia,
+        indice_horario
+    )
 
+    return validacao["valido"]
+
+
+def validar_alocacao_dupla(
+    estado,
+    disponibilidades,
+    turma_id,
+    professor_id,
+    disciplina_id,
+    dia,
+    indice_horario
+):
+    grade = estado["grade"]
     horarios = grade[turma_id][dia]
 
-    if indice_horario + 1 >= len(horarios):
-        return False
+    segundo_indice = indice_horario + 1
 
-    return (
-        pode_alocar_aula(
-            grade,
-            disponibilidades,
-            turma_id,
-            professor_id,
-            disciplina_id,
-            dia,
-            indice_horario
-        )
-        and
-        pode_alocar_aula(
-            grade,
-            disponibilidades,
-            turma_id,
-            professor_id,
-            disciplina_id,
-            dia,
-            indice_horario + 1
-        )
+    if segundo_indice >= len(horarios):
+        return {
+            "valido": False,
+            "motivo": "sem_espaco_para_dupla"
+        }
+
+    if horarios[indice_horario] is not None:
+        return {
+            "valido": False,
+            "motivo": "turma_ocupada"
+        }
+
+    if horarios[segundo_indice] is not None:
+        return {
+            "valido": False,
+            "motivo": "turma_ocupada"
+        }
+
+    quantidade_disciplina = (
+        estado["turmas"]
+        .get(turma_id, {})
+        .get(dia, {})
+        .get("disciplinas", {})
+        .get(disciplina_id, 0)
     )
+
+    if quantidade_disciplina + 2 > 2:
+        return {
+            "valido": False,
+            "motivo": "limite_disciplina_dia"
+        }
+
+    for indice in [
+        indice_horario,
+        segundo_indice
+    ]:
+        if not professor_livre(
+            estado,
+            professor_id,
+            dia,
+            indice
+        ):
+            return {
+                "valido": False,
+                "motivo": "professor_ocupado"
+            }
+
+        if not professor_disponivel(
+            disponibilidades,
+            professor_id,
+            dia,
+            indice
+        ):
+            return {
+                "valido": False,
+                "motivo": "professor_indisponivel"
+            }
+
+    return {
+        "valido": True,
+        "motivo": None
+    }
+
+
+def pode_alocar_dupla(
+    estado,
+    disponibilidades,
+    turma_id,
+    professor_id,
+    disciplina_id,
+    dia,
+    indice_horario
+):
+    validacao = validar_alocacao_dupla(
+        estado,
+        disponibilidades,
+        turma_id,
+        professor_id,
+        disciplina_id,
+        dia,
+        indice_horario
+    )
+
+    return validacao["valido"]

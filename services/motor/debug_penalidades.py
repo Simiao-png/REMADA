@@ -1,3 +1,6 @@
+DEBUG_PENALIDADES = True
+
+
 def imprimir_candidato(
     turma_id,
     disciplina_id,
@@ -7,7 +10,11 @@ def imprimir_candidato(
     quantidade,
     penalidade
 ):
+    if not DEBUG_PENALIDADES:
+        return
+
     print(
+        f"CANDIDATO -> "
         f"Turma {turma_id} | "
         f"Disciplina {disciplina_id} | "
         f"Professor {professor_id} | "
