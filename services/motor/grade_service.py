@@ -11,6 +11,9 @@ from services.motor.seed import (
     popular_duas_turmas
 )
 
+from models.db import db
+from models.grade import Grade
+
 
 def executar_motor():
     resultado = carregar_dados_motor()
@@ -313,6 +316,99 @@ def obter_cor_disciplina(
     return "#e9ecef"
 
 
+def salvar_grade(
+    motor,
+    resultado
+):
+    if not isinstance(motor, dict):
+        return None
+
+    if motor.get("status") == "erro":
+        return None
+
+    grade_gerada = motor.get("grade")
+
+    if not isinstance(grade_gerada, dict):
+        return None
+
+    turmas = resultado.get(
+        "turmas",
+        {}
+    )
+
+    escola_id = None
+
+    for turma in turmas.values():
+        escola_id = getattr(
+            turma,
+            "escola_id",
+            None
+        )
+
+        if escola_id is not None:
+            break
+
+    if escola_id is None:
+        raise ValueError(
+            "Não foi possível identificar a escola."
+        )
+
+    ultima_versao = (
+        db.session.query(
+            db.func.max(Grade.versao)
+        )
+        .filter(
+            Grade.escola_id == escola_id
+        )
+        .scalar()
+        or 0
+    )
+
+    total_aulas = 0
+
+    for dias_turma in grade_gerada.values():
+        if not isinstance(dias_turma, dict):
+            continue
+
+        for horarios in dias_turma.values():
+            if not isinstance(horarios, list):
+                continue
+
+            total_aulas += sum(
+                1
+                for aula in horarios
+                if isinstance(aula, dict)
+            )
+
+    nova_grade = Grade(
+        escola_id=escola_id,
+        versao=ultima_versao + 1,
+        status="ATIVA",
+        solver_status=(
+            motor.get("status_solver")
+            or "DESCONHECIDO"
+        ),
+        penalidade=motor.get(
+            "objetivo"
+        ),
+        tempo_execucao=motor.get(
+            "tempo_segundos"
+        ),
+        total_aulas=total_aulas
+    )
+
+    db.session.add(
+        nova_grade
+    )
+
+    db.session.commit()
+
+    motor["grade_id"] = nova_grade.id
+    motor["versao"] = nova_grade.versao
+
+    return nova_grade
+
+
 def montar_resposta_motor(motor):
     if not isinstance(motor, dict):
         return {
@@ -341,6 +437,12 @@ def montar_resposta_motor(motor):
         ),
         "grade": motor.get(
             "grade"
+        ),
+        "grade_id": motor.get(
+            "grade_id"
+        ),
+        "versao": motor.get(
+            "versao"
         ),
         "fila": motor.get(
             "fila",
@@ -428,11 +530,18 @@ def gerar_motor():
             )
         )
 
+        salvar_grade(
+            motor,
+            resultado
+        )
+
         return montar_resposta_motor(
             motor
         )
 
     except Exception as erro:
+        db.session.rollback()
+
         return {
             "status": "erro",
             "grade": None,

@@ -3,11 +3,15 @@
     <div>
 
         <h4 class="mb-0">
-            Dashboard
+            {% block page_title %}
+                Central de Controle
+            {% endblock %}
         </h4>
 
-        <small>
-            Bem-vindo ao REMADA
+        <small class="text-muted">
+            {% block page_subtitle %}
+                Resumo da configuração da escola
+            {% endblock %}
         </small>
 
     </div>

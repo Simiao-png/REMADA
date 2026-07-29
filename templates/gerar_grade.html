@@ -4,120 +4,67 @@
 
 {% block content %}
 
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/gerar_grade.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gerar_grade.css') }}">
 
 <div class="grade-page">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <div>
             <h2 class="fw-bold mb-1">
                 Geração de Grade
             </h2>
-
             <p class="text-muted mb-0">
                 Monte automaticamente a grade horária da escola.
             </p>
         </div>
 
-        <button
-            id="btnGerarGrade"
-            class="btn btn-primary">
-
+        <button id="btnGerarGrade" class="btn btn-primary">
             <i class="bi bi-play-fill"></i>
             Gerar Grade
-
         </button>
-
     </div>
 
-
-    <div
-        id="progressoContainer"
-        class="mb-4 d-none">
-
+    <div id="progressoContainer" class="mb-4 d-none">
         <div class="d-flex justify-content-between mb-2">
-
-            <strong id="tituloProgresso">
-                Preparando grade...
-            </strong>
-
-            <span id="textoProgresso">
-                0%
-            </span>
-
+            <strong id="tituloProgresso">Preparando grade...</strong>
+            <span id="textoProgresso">0%</span>
         </div>
-
         <div class="progress">
-
-            <div
-                id="barraProgresso"
-                class="progress-bar"
-                style="width: 0%">
-            </div>
-
+            <div id="barraProgresso" class="progress-bar" style="width: 0%"></div>
         </div>
-
     </div>
-
 
     <div class="grade-view-tabs">
-
-        <button
-            type="button"
-            class="grade-view-tab active"
-            data-view="turmas">
-
+        <button type="button" class="grade-view-tab active" data-view="turmas">
             <i class="bi bi-grid-3x3-gap"></i>
             Por turma
-
         </button>
-
-        <button
-            type="button"
-            class="grade-view-tab"
-            data-view="geral">
-
+        <button type="button" class="grade-view-tab" data-view="geral">
             <i class="bi bi-table"></i>
             Visão geral
-
         </button>
-
     </div>
 
-
-    <section
-        id="viewTurmas"
-        class="grade-view active">
-
-        <div
-            id="abasTurmas"
-            class="turma-tabs">
-        </div>
-
+    <section id="viewTurmas" class="grade-view active">
+        <div id="abasTurmas" class="turma-tabs"></div>
         <div class="grade-wrapper">
-
             <div id="gradeTurma"></div>
-
         </div>
-
     </section>
 
-
-    <section
-        id="viewGeral"
-        class="grade-view">
-
+    <section id="viewGeral" class="grade-view">
         <div class="grade-wrapper">
-
             <div id="gradeGeral"></div>
-
         </div>
-
     </section>
 
 </div>
+
+<!-- INJEÇÃO DOS DADOS DO BANCO PARA O JAVASCRIPT LER -->
+<script>
+    window.GRADE_SALVA = {{ grade_json | tojson | safe if grade_json else 'null' }};
+    window.AULAS_SALVAS = {{ aulas_json | tojson | safe if aulas_json else 'null' }};
+</script>
 
 <script src="{{ url_for('static', filename='js/gerar_grade.js') }}"></script>
 

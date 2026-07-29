@@ -19,13 +19,25 @@ from routes.motor_grade_routes import motor_grade_bp
 from routes.cadastro_routes import cadastro_bp
 from routes.gerar_grade import gerar_grade_bp
 
+from models.disponibilidade_professor import DisponibilidadeProfessor
+from models.grade import Grade
+from models.grade_aula import GradeAula
+
+from models.professor import Professor
+from models.turma import Turma
+from models.disciplina import Disciplina
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
 
-# Blueprints
+
+# ------------------------------------------------------------------
+# BLUEPRINTS
+# ------------------------------------------------------------------
+
 app.register_blueprint(professor_bp)
 app.register_blueprint(escola_bp)
 app.register_blueprint(disciplina_bp)
@@ -41,33 +53,218 @@ app.register_blueprint(cadastro_bp)
 app.register_blueprint(gerar_grade_bp)
 
 
-# --- IMPORTS DOS MODELS PARA A DASHBOARD ---
-# O Flask precisa conhecer a estrutura para contar as linhas no banco
-from models.professor import Professor  # Ajuste o nome do arquivo/classe se for diferente
-from models.turma import Turma          # Ex: se seu arquivo for turma.py e a classe Turma
-from models.disciplina import Disciplina
+# ------------------------------------------------------------------
+# DASHBOARD
+# ------------------------------------------------------------------
 
 @app.route("/")
 def dashboard():
+
     try:
-        # Faz a contagem diretamente no PostgreSQL usando o SQLAlchemy
+
         total_professores = db.session.query(Professor).count()
         total_turmas = db.session.query(Turma).count()
         total_disciplinas = db.session.query(Disciplina).count()
+
+        # ----------------------------------------------------------
+        # MATRIZES
+        # ----------------------------------------------------------
+
+        turmas_com_matriz = (
+            db.session.query(TurmaDisciplina.turma_id)
+            .distinct()
+            .count()
+        )
+
+        # ----------------------------------------------------------
+        # VÍNCULOS
+        # ----------------------------------------------------------
+
+        turmas_com_professores = (
+            db.session.query(ProfessorTurma.turma_id)
+            .distinct()
+            .count()
+        )
+
+        # ----------------------------------------------------------
+        # DISPONIBILIDADE
+        # ----------------------------------------------------------
+
+        professores_com_disponibilidade = (
+            db.session.query(DisponibilidadeProfessor.professor_id)
+            .distinct()
+            .count()
+        )
+
+        # ----------------------------------------------------------
+        # PERCENTUAIS
+        # ----------------------------------------------------------
+
+        percentual_matrizes = (
+            round((turmas_com_matriz / total_turmas) * 100)
+            if total_turmas > 0 else 0
+        )
+
+        percentual_vinculos = (
+            round((turmas_com_professores / total_turmas) * 100)
+            if total_turmas > 0 else 0
+        )
+
+        percentual_disponibilidades = (
+            round(
+                (professores_com_disponibilidade / total_professores) * 100
+            )
+            if total_professores > 0 else 0
+        )
+
+        # ----------------------------------------------------------
+        # PROGRESSO GERAL
+        # ----------------------------------------------------------
+
+        progresso_geral = 0
+
+        if total_professores > 0:
+            progresso_geral += 15
+
+        if total_turmas > 0:
+            progresso_geral += 15
+
+        if total_disciplinas > 0:
+            progresso_geral += 15
+
+        progresso_geral += round(percentual_matrizes * 0.25)
+        progresso_geral += round(percentual_vinculos * 0.15)
+        progresso_geral += round(percentual_disponibilidades * 0.15)
+
+        progresso_geral = min(progresso_geral, 100)
+
+        # ----------------------------------------------------------
+        # PROGRESSO DAS TURMAS
+        # ----------------------------------------------------------
+
+        turmas_banco = (
+            db.session.query(Turma)
+            .order_by(Turma.nome)
+            .all()
+        )
+
+        progresso_turmas = []
+
+        for turma in turmas_banco:
+
+            possui_matriz = (
+                db.session.query(TurmaDisciplina)
+                .filter(TurmaDisciplina.turma_id == turma.id)
+                .first()
+                is not None
+            )
+
+            possui_professor = (
+                db.session.query(ProfessorTurma)
+                .filter(ProfessorTurma.turma_id == turma.id)
+                .first()
+                is not None
+            )
+
+            percentual_turma = 0
+
+            if possui_matriz:
+                percentual_turma += 50
+
+            if possui_professor:
+                percentual_turma += 50
+
+            progresso_turmas.append(
+                {
+                    "nome": turma.nome,
+                    "percentual": percentual_turma,
+                    "possui_matriz": possui_matriz,
+                    "possui_professor": possui_professor,
+                }
+            )
+
+        # ----------------------------------------------------------
+        # PENDÊNCIAS
+        # ----------------------------------------------------------
+
+        pendencias = []
+
+        if total_professores == 0:
+            pendencias.append("Nenhum professor cadastrado.")
+
+        if total_turmas == 0:
+            pendencias.append("Nenhuma turma cadastrada.")
+
+        if total_disciplinas == 0:
+            pendencias.append("Nenhuma disciplina cadastrada.")
+
+        matrizes_pendentes = total_turmas - turmas_com_matriz
+
+        if matrizes_pendentes > 0:
+            pendencias.append(
+                f"{matrizes_pendentes} turma(s) sem matriz curricular."
+            )
+
+        vinculos_pendentes = total_turmas - turmas_com_professores
+
+        if vinculos_pendentes > 0:
+            pendencias.append(
+                f"{vinculos_pendentes} turma(s) sem professor vinculado."
+            )
+
+        disponibilidades_pendentes = (
+            total_professores - professores_com_disponibilidade
+        )
+
+        if disponibilidades_pendentes > 0:
+            pendencias.append(
+                f"{disponibilidades_pendentes} professor(es) sem disponibilidade."
+            )
+
+        # ----------------------------------------------------------
+        # ÚLTIMAS GRADES
+        # ----------------------------------------------------------
+
+        ultimas_grades = (
+            db.session.query(Grade)
+            .order_by(Grade.criado_em.desc())
+            .limit(10)
+            .all()
+        )
+
     except Exception as e:
-        # Se der erro de banco (ex: tabela ainda não criada ou import errado), 
-        # o sistema não cai, ele joga 0 na tela para você diagnosticar
+
         print(f"Erro ao buscar dados da dashboard: {e}")
+
         total_professores = 0
         total_turmas = 0
         total_disciplinas = 0
+
+        turmas_com_matriz = 0
+        professores_com_disponibilidade = 0
+
+        progresso_geral = 0
+        progresso_turmas = []
+
+        pendencias = [
+            "Não foi possível carregar o resumo da escola."
+        ]
+
+        ultimas_grades = []
 
     return render_template(
         "dashboard.html",
         professores=total_professores,
         turmas=total_turmas,
-        disciplinas=total_disciplinas
+        disciplinas=total_disciplinas,
+        matrizes=turmas_com_matriz,
+        professores_com_disponibilidade=professores_com_disponibilidade,
+        progresso_geral=progresso_geral,
+        progresso_turmas=progresso_turmas,
+        pendencias=pendencias,
+        ultimas_grades=ultimas_grades,
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
