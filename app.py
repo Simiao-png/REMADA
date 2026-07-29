@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from config import Config
 from models.db import db
 
@@ -26,7 +26,6 @@ from models.grade_aula import GradeAula
 from models.professor import Professor
 from models.turma import Turma
 from models.disciplina import Disciplina
-
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -265,6 +264,86 @@ def dashboard():
         ultimas_grades=ultimas_grades,
     )
 
+
+# ------------------------------------------------------------------
+# VER GRADE SALVA (LEITURA PURA DO POSTGRESQL)
+# ------------------------------------------------------------------
+
+
+@app.route("/ver-grade")
+def tela_ver_grade():
+    grade_id = request.args.get("id", type=int)
+
+    if not grade_id:
+        return "ID da grade não fornecido.", 400
+
+    grade = Grade.query.get_or_404(grade_id)
+    aulas = GradeAula.query.filter_by(grade_id=grade.id).all()
+
+    # Dicionarios de busca rapida para garantir nomes e cores
+    turmas_dict = {t.id: t.nome for t in Turma.query.all()}
+    profs_dict = {p.id: p.nome for p in Professor.query.all()}
+    discs_obj = Disciplina.query.all()
+    discs_nome_dict = {d.id: d.nome for d in discs_obj}
+    discs_cor_dict = {
+        d.id: getattr(
+            d, "cor", getattr(d, "color", getattr(d, "cor_hex", "#4a90e2"))
+        )
+        for d in discs_obj
+    }
+
+    grade_dict = {
+        "id": grade.id,
+        "versao": grade.versao,
+        "penalidade": grade.penalidade,
+        "tempo_execucao": grade.tempo_execucao,
+        "grade": {},
+    }
+
+    mapa_dias = {
+        1: "segunda",
+        2: "terca",
+        3: "quarta",
+        4: "quinta",
+        5: "sexta",
+        6: "sabado",
+    }
+
+    for a in aulas:
+        turma_id_str = str(a.turma_id)
+        dia_num = getattr(a, "dia_semana", getattr(a, "dia", 1))
+        dia_str = mapa_dias.get(dia_num, "segunda")
+        numero_aula = getattr(a, "numero_aula", getattr(a, "aula", 1))
+
+        if turma_id_str not in grade_dict["grade"]:
+            grade_dict["grade"][turma_id_str] = {}
+
+        if dia_str not in grade_dict["grade"][turma_id_str]:
+            grade_dict["grade"][turma_id_str][dia_str] = []
+
+        while len(grade_dict["grade"][turma_id_str][dia_str]) < numero_aula:
+            grade_dict["grade"][turma_id_str][dia_str].append(None)
+
+        disc_nome = discs_nome_dict.get(
+            a.disciplina_id, f"Disciplina {a.disciplina_id}"
+        )
+        disc_cor = discs_cor_dict.get(a.disciplina_id, "#4a90e2")
+        turma_nome = turmas_dict.get(a.turma_id, f"Turma {a.turma_id}")
+        prof_nome = profs_dict.get(a.professor_id, "A definir")
+
+        grade_dict["grade"][turma_id_str][dia_str][numero_aula - 1] = {
+            "turma_id": a.turma_id,
+            "turma_nome": turma_nome,
+            "professor_id": a.professor_id,
+            "professor_nome": prof_nome,
+            "disciplina_id": a.disciplina_id,
+            "disciplina_nome": disc_nome,
+            "disciplina_cor": disc_cor,
+        }
+
+    return render_template(
+        "ver_grade.html", grade_json=grade_dict, grade=grade
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

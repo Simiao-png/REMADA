@@ -3,19 +3,19 @@
 {% block title %}Visualizar Grade Versão {{ grade.versao }} | REMADA{% endblock %}
 
 {% block content %}
+<!-- Biblioteca para gerar arquivo Excel diretamente via Browser -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
-/* ==========================================================================
-   ESTILOS GERAIS DA TELA
-   ========================================================================== */
 .grade-page {
     background-color: #f8f9fa;
 }
 
 /* ==========================================================================
-   ESTILOS EXCLUSIVOS PARA IMPRESSÃO / SALVAR EM PDF
+   REGRAS EXCLUSIVAS DE IMPRESSÃO (PDF)
    ========================================================================== */
 @media print {
-    /* 1. Esconde menu lateral, barras de navegação, botões e elementos fora da impressão */
+    /* Esconde elementos do sistema */
     .sidebar,
     .topbar,
     .btn,
@@ -28,7 +28,7 @@
         display: none !important;
     }
 
-    /* 2. Reseta margens para ocupar toda a folha A4 */
+    /* Ocupa folha cheia */
     body, 
     main,
     .content, 
@@ -40,13 +40,12 @@
         background: #ffffff !important;
     }
 
-    /* 3. FORÇA O NAVEGADOR A IMPRIMIR AS CORES DE FUNDO DAS DISCIPLINAS */
+    /* Força cores de fundo no papel */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    /* 4. Estilização das tabelas no papel */
     .table-responsive {
         overflow: visible !important;
     }
@@ -55,29 +54,30 @@
         width: 100% !important;
         border-collapse: collapse !important;
         page-break-inside: avoid;
+        margin-bottom: 20px !important;
     }
 
     th, td {
         border: 1px solid #000000 !important;
-        font-size: 10pt !important;
-        padding: 6px !important;
+        font-size: 9pt !important;
+        padding: 5px !important;
     }
 
+    /* Controle inteligente: só imprime a aba que está visível na tela */
     .tab-pane {
+        display: none !important;
+    }
+
+    .tab-pane.active {
         display: block !important;
         opacity: 1 !important;
-    }
-
-    h2, h4, h5 {
-        color: #000000 !important;
-        margin-bottom: 8px !important;
     }
 }
 </style>
 
 <div class="container-fluid p-3 grade-page">
 
-    <!-- CABEÇALHO DA TELA -->
+    <!-- CABEÇALHO -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1">Grade Horária — Versão {{ grade.versao }}</h2>
@@ -91,13 +91,16 @@
             <a href="/gerar-grade" class="btn btn-outline-primary">
                 <i class="bi bi-play-circle me-1"></i> Ir para Gerador
             </a>
+            <button onclick="baixarExcel()" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-1"></i> Baixar em Excel
+            </button>
             <button onclick="window.print()" class="btn btn-primary">
                 <i class="bi bi-printer me-1"></i> Imprimir / PDF
             </button>
         </div>
     </div>
 
-    <!-- NAVEGAÇÃO DE ABAS POR TURMA / VISÃO GERAL -->
+    <!-- ABAS POR TURMA / VISÃO GERAL -->
     <ul class="nav nav-pills mb-3 no-print" id="pills-tab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="pills-turmas-tab" data-bs-toggle="pill" data-bs-target="#pills-turmas" type="button" role="tab">
@@ -127,8 +130,7 @@
 </div>
 
 <script>
-    window.GRADE_SALVA = JSON.parse('{{ grade_json | tojson | safe if grade_json else "null" }}');
-    window.AULAS_SALVAS = JSON.parse('{{ aulas_json | tojson | safe if aulas_json else "null" }}');
+    const DADOS_GRADE = {{ grade_json | tojson if grade_json else {} }};
     const DIAS = [
         { chave: "segunda", nome: "Segunda" },
         { chave: "terca", nome: "Terça" },
@@ -246,6 +248,68 @@
         });
 
         container.innerHTML = html;
+    }
+
+    /* ==========================================================================
+       FUNÇÃO PARA BAIXAR EM EXCEL (.XLSX)
+       ========================================================================== */
+    function baixarExcel() {
+        const turmasIds = Object.keys(DADOS_GRADE.grade || {});
+        if (turmasIds.length === 0) {
+            alert("Não há dados de grade para exportar.");
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+
+        // 1. Aba de Visão Geral
+        const dadosGeral = [];
+        DIAS.forEach(d => {
+            dadosGeral.push([d.nome.toUpperCase()]);
+            const cabecalho = ["Aula", ...turmasIds.map(tId => obterNomeTurma(tId))];
+            dadosGeral.push(cabecalho);
+
+            for (let numAula = 1; numAula <= 6; numAula++) {
+                const linha = [`${numAula}ª aula`];
+                turmasIds.forEach(tId => {
+                    const gradeTurma = DADOS_GRADE.grade[tId] || {};
+                    const lista = gradeTurma[d.chave] || [];
+                    const aula = lista[numAula - 1];
+                    linha.push(aula ? `${aula.professor_nome} (${aula.disciplina_nome})` : "—");
+                });
+                dadosGeral.push(linha);
+            }
+            dadosGeral.push([]); // linha em branco
+        });
+
+        const wsGeral = XLSX.utils.aoa_to_sheet(dadosGeral);
+        XLSX.utils.book_append_sheet(wb, wsGeral, "Visão Geral");
+
+        // 2. Aba por cada Turma
+        turmasIds.forEach(tId => {
+            const nomeTurma = obterNomeTurma(tId);
+            const gradeTurma = DADOS_GRADE.grade[tId] || {};
+            const dadosTurma = [[`GRADE HORÁRIA - ${nomeTurma.toUpperCase()}`], []];
+            
+            dadosTurma.push(["Aula", ...DIAS.map(d => d.nome)]);
+
+            for (let numAula = 1; numAula <= 6; numAula++) {
+                const linha = [`${numAula}ª aula`];
+                DIAS.forEach(d => {
+                    const lista = gradeTurma[d.chave] || [];
+                    const aula = lista[numAula - 1];
+                    linha.push(aula ? `${aula.professor_nome}\n${aula.disciplina_nome}` : "—");
+                });
+                dadosTurma.push(linha);
+            }
+
+            const wsTurma = XLSX.utils.aoa_to_sheet(dadosTurma);
+            // Limita nome da aba a 30 chars
+            XLSX.utils.book_append_sheet(wb, wsTurma, nomeTurma.substring(0, 30));
+        });
+
+        // Baixa o arquivo
+        XLSX.writeFile(wb, `Grade_Horaria_Versao_{{ grade.versao }}.xlsx`);
     }
 </script>
 {% endblock %}

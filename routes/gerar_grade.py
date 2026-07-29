@@ -1,12 +1,13 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 
+from models.db import db
 from models.grade import Grade
 from models.grade_aula import GradeAula
 
 gerar_grade_bp = Blueprint("gerar_grade", __name__)
 
 
-@gerar_grade_bp.route("/gerar-grade")
+@gerar_grade_bp.route("/gerar-grade", methods=["GET"])
 def tela_gerar_grade():
     grade_id = request.args.get("id", type=int)
 
@@ -15,38 +16,86 @@ def tela_gerar_grade():
 
     if grade_id:
         grade = Grade.query.get_or_404(grade_id)
-
-        # Busca todas as aulas sem tentar ordenar por atributos que podem ter nomes diferentes no model
         aulas = GradeAula.query.filter_by(grade_id=grade.id).all()
 
         grade_dict = {
             "id": grade.id,
             "versao": grade.versao,
             "penalidade": grade.penalidade,
-            "tempo_execucao": grade.tempo_execucao
+            "tempo_execucao": grade.tempo_execucao,
         }
 
-        # Converte os objetos GradeAula tratando com seguranca cada campo
         for a in aulas:
-            # Pega o dia (seja 'dia' ou 'dia_semana') sem dar erro
-            dia_val = getattr(a, 'dia', getattr(a, 'dia_semana', ''))
-            # Pega a aula (seja 'aula' ou 'numero_aula')
-            aula_val = getattr(a, 'aula', getattr(a, 'numero_aula', 1))
+            dia_val = getattr(a, "dia_semana", getattr(a, "dia", 1))
+            aula_val = getattr(a, "numero_aula", getattr(a, "aula", 1))
 
-            aulas_list.append({
-                "turma_id": a.turma_id,
-                "turma_nome": a.turma.nome if (hasattr(a, 'turma') and a.turma) else f"Turma {a.turma_id}",
-                "dia": dia_val,
-                "aula": aula_val,
-                "disciplina_id": a.disciplina_id,
-                "disciplina_nome": a.disciplina.nome if (hasattr(a, 'disciplina') and a.disciplina) else f"Disc {a.disciplina_id}",
-                "professor_id": a.professor_id,
-                "professor_nome": a.professor.nome if (hasattr(a, 'professor') and a.professor) else "A definir"
-            })
+            disc_nome = f"Disciplina {a.disciplina_id}"
+            disc_cor = "#4a90e2"
+            if hasattr(a, "disciplina") and a.disciplina:
+                disc_nome = getattr(a.disciplina, "nome", disc_nome)
+                disc_cor = getattr(
+                    a.disciplina,
+                    "cor",
+                    getattr(
+                        a.disciplina,
+                        "color",
+                        getattr(a.disciplina, "cor_hex", "#4a90e2"),
+                    ),
+                )
 
-    # Envia os dados prontos para o HTML/JS
+            turma_nome = f"Turma {a.turma_id}"
+            if hasattr(a, "turma") and a.turma:
+                turma_nome = getattr(a.turma, "nome", turma_nome)
+
+            prof_nome = "A definir"
+            if hasattr(a, "professor") and a.professor:
+                prof_nome = getattr(a.professor, "nome", prof_nome)
+
+            aulas_list.append(
+                {
+                    "turma_id": a.turma_id,
+                    "turma_nome": turma_nome,
+                    "dia_semana": dia_val,
+                    "numero_aula": aula_val,
+                    "disciplina_id": a.disciplina_id,
+                    "disciplina_nome": disc_nome,
+                    "disciplina_cor": disc_cor,
+                    "professor_id": a.professor_id,
+                    "professor_nome": prof_nome,
+                }
+            )
+
     return render_template(
-        "gerar_grade.html",
-        grade_json=grade_dict,
-        aulas_json=aulas_list
+        "gerar_grade.html", grade_json=grade_dict, aulas_json=aulas_list
     )
+
+
+@gerar_grade_bp.route("/motor/grade/<int:grade_id>", methods=["DELETE"])
+def deletar_grade(grade_id):
+    try:
+        grade = Grade.query.get(grade_id)
+        if not grade:
+            return (
+                jsonify(
+                    {"status": "erro", "mensagem": "Grade não encontrada."}
+                ),
+                404,
+            )
+
+        GradeAula.query.filter_by(grade_id=grade.id).delete()
+        db.session.delete(grade)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "status": "sucesso",
+                    "mensagem": "Grade excluída com sucesso.",
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500

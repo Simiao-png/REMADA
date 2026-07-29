@@ -3,12 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const dias = [
-    { chave: "segunda", nome: "Segunda" },
-    { chave: "terca", nome: "Terça" },
-    { chave: "quarta", nome: "Quarta" },
-    { chave: "quinta", nome: "Quinta" },
-    { chave: "sexta", nome: "Sexta" },
-    { chave: "sabado", nome: "Sábado" }
+    { chave: "segunda", nome: "Segunda", numero: 1 },
+    { chave: "terca", nome: "Terça", numero: 2 },
+    { chave: "quarta", nome: "Quarta", numero: 3 },
+    { chave: "quinta", nome: "Quinta", numero: 4 },
+    { chave: "sexta", nome: "Sexta", numero: 5 },
+    { chave: "sabado", nome: "Sábado", numero: 6 }
 ];
 
 let turmas = [];
@@ -19,23 +19,36 @@ function iniciarTela() {
     configurarAbasPrincipais();
     configurarBotaoGerar();
 
-    // 1. Verifica se recebemos dados de uma grade salva vindos do Flask
     if (window.AULAS_SALVAS && Array.isArray(window.AULAS_SALVAS) && window.AULAS_SALVAS.length > 0) {
         carregarGradeSalvaDoBanco(window.AULAS_SALVAS);
     } else {
-        // 2. Se não houver grade salva no histórico, exibe o estado inicial
         exibirEstadoInicial();
     }
+}
+
+function normalizarChaveDia(val) {
+    if (typeof val === "number" || !isNaN(Number(val))) {
+        const num = Number(val);
+        const item = dias.find(d => d.numero === num);
+        if (item) return item.chave;
+    }
+    const str = String(val || "").toLowerCase().trim();
+    if (str.includes("seg")) return "segunda";
+    if (str.includes("ter")) return "terca";
+    if (str.includes("qua")) return "quarta";
+    if (str.includes("qui")) return "quinta";
+    if (str.includes("sex")) return "sexta";
+    if (str.includes("sab")) return "sabado";
+    return str || "segunda";
 }
 
 function carregarGradeSalvaDoBanco(aulasArray) {
     const gradeFormatada = {};
 
     aulasArray.forEach(aula => {
-        // Usa o nome da turma ou o ID se não houver nome
         const turmaIdKey = String(aula.turma_id || "1");
-        const diaKey = String(aula.dia).toLowerCase();
-        const numeroAula = Number(aula.aula || 1);
+        const diaKey = normalizarChaveDia(aula.dia_semana || aula.dia);
+        const numeroAula = Number(aula.numero_aula || aula.aula || 1);
 
         if (!gradeFormatada[turmaIdKey]) {
             gradeFormatada[turmaIdKey] = {};
@@ -44,7 +57,6 @@ function carregarGradeSalvaDoBanco(aulasArray) {
             gradeFormatada[turmaIdKey][diaKey] = [];
         }
 
-        // Garante que o array tenha tamanho suficiente para a posição da aula
         while (gradeFormatada[turmaIdKey][diaKey].length < numeroAula) {
             gradeFormatada[turmaIdKey][diaKey].push(null);
         }
@@ -54,7 +66,8 @@ function carregarGradeSalvaDoBanco(aulasArray) {
             disciplina_nome: aula.disciplina_nome,
             professor_nome: aula.professor_nome,
             disciplina_id: aula.disciplina_id,
-            professor_id: aula.professor_id
+            professor_id: aula.professor_id,
+            disciplina_cor: aula.disciplina_cor || "#4a90e2"
         };
     });
 
@@ -510,14 +523,14 @@ function obterNomeDisciplina(aula) {
 
 function obterCorDisciplina(aula) {
     if (aula.disciplina && typeof aula.disciplina === "object") {
-        return primeiroValor(aula.disciplina.cor, aula.disciplina.color, "#e9ecef");
+        return primeiroValor(aula.disciplina.cor, aula.disciplina.color, "#4a90e2");
     }
     return primeiroValor(
-        aula.cor_disciplina,
         aula.disciplina_cor,
+        aula.cor_disciplina,
         aula.cor,
         aula.color,
-        "#e9ecef"
+        "#4a90e2"
     );
 }
 

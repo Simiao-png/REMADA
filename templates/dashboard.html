@@ -320,12 +320,12 @@
                         <tr>
                             <th>Versão</th>
                             <th>Data de Criação</th>
-                            <th class="text-end">Ação</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for grade in ultimas_grades %}
-                            <tr>
+                            <tr id="grade-row-{{ grade.id }}">
                                 <td>
                                     <span class="badge bg-primary-subtle text-primary fw-bold">
                                         Versão {{ grade.versao }}
@@ -336,9 +336,12 @@
                                     {{ grade.criado_em.strftime('%d/%m/%Y às %H:%M') if grade.criado_em else 'Data N/A' }}
                                 </td>
                                 <td class="text-end">
-                                    <a href="/gerar-grade?id={{ grade.id }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="/ver-grade?id={{ grade.id }}" class="btn btn-sm btn-outline-primary me-1">
                                         <i class="bi bi-folder2-open me-1"></i> Abrir
                                     </a>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="excluirGrade({{ grade.id }}, {{ grade.versao }})">
+                                        <i class="bi bi-trash me-1"></i> Excluir
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -360,5 +363,30 @@
     </div>
 
 </div>
+
+<script>
+async function excluirGrade(gradeId, versao) {
+    if (!confirm(`Tem certeza que deseja excluir permanentemente a Versão ${versao}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/motor/grade/${gradeId}`, { method: 'DELETE' });
+        const res = await response.json();
+
+        if (response.ok && res.status === 'sucesso') {
+            const linha = document.getElementById(`grade-row-${gradeId}`);
+            if (linha) {
+                linha.remove();
+            }
+        } else {
+            alert("Erro ao excluir grade: " + (res.mensagem || "Ocorreu um erro."));
+        }
+    } catch (err) {
+        console.error("Erro na exclusão:", err);
+        alert("Não foi possível excluir a grade.");
+    }
+}
+</script>
 
 {% endblock %}
