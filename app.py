@@ -27,11 +27,22 @@ from models.professor import Professor
 from models.turma import Turma
 from models.disciplina import Disciplina
 
+from models.usuario import Usuario
+from routes.auth_routes import auth_bp
+
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
+app.secret_key = "remada_secret_key_super_segura_2026"
+
 db.init_app(app)
 
+app.register_blueprint(auth_bp)
+
+with app.app_context():
+    db.create_all()
 
 # ------------------------------------------------------------------
 # BLUEPRINTS

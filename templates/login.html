@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>REMADA — Inteligência em Gestão Horária</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --navy-950: #020817;
+            --navy-900: #061329;
+            --navy-800: #0b1f43;
+            --blue-600: #146bff;
+            --blue-500: #1d7dff;
+            --cyan-400: #16d9ff;
+            --violet-500: #7a5cff;
+            --text-dark: #0f172a;
+            --text-muted: #667085;
+            --border: #dfe7f1;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f6f8fb;
+            color: var(--text-dark);
+        }
+
+        .login-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(0, 58%) minmax(420px, 42%);
+        }
+
+        /* =========================================================
+           LADO ESQUERDO
+        ========================================================= */
+
+        .brand-panel {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 42px 52px 34px;
+            color: #fff;
+            background:
+                radial-gradient(circle at 82% 20%, rgba(0, 210, 255, 0.13), transparent 25%),
+                radial-gradient(circle at 60% 95%, rgba(23, 105, 255, 0.22), transparent 34%),
+                linear-gradient(145deg, var(--navy-950) 0%, var(--navy-900) 50%, var(--navy-800) 100%);
+        }
+
+        .brand-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 74%);
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            width: fit-content;
+        }
+
+        .brand-symbol {
+            width: 54px;
+            height: 54px;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid rgba(47, 153, 255, .45);
+            background:
+                linear-gradient(145deg, rgba(20,107,255,.20), rgba(22,217,255,.08));
+            box-shadow:
+                inset 0 0 20px rgba(20,107,255,.12),
+                0 12px 30px rgba(0,0,0,.24);
+        }
+
+        .brand-symbol span {
+            border-radius: 4px;
+            background: linear-gradient(145deg, #1182ff, #214bff);
+        }
+
+        .brand-symbol span:nth-child(5) {
+            background: linear-gradient(145deg, #20e1bc, #08b99f);
+        }
+
+        .brand-symbol span:nth-child(8) {
+            background: linear-gradient(145deg, #ffd166, #ffae42);
+        }
+
+        .brand-symbol span:nth-child(7) {
+            background: linear-gradient(145deg, #8d67ff, #6841e8);
+        }
+
+        .brand-name {
+            font-size: 2.3rem;
+            line-height: 1;
+            font-weight: 850;
+            letter-spacing: .23em;
+            color: #fff;
+            text-shadow: 0 10px 32px rgba(0, 0, 0, .28);
+        }
+
+        .brand-name span {
+            background: linear-gradient(90deg, #1784ff, #22dcff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 3;
+            width: min(700px, 100%);
+            margin: auto 0;
+            padding: 44px 0 30px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 20px;
+            padding: 8px 13px;
+            border: 1px solid rgba(79, 158, 255, .28);
+            border-radius: 999px;
+            background: rgba(20, 107, 255, .09);
+            color: #8dc6ff;
+            font-size: .73rem;
+            font-weight: 750;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--cyan-400);
+            box-shadow: 0 0 14px rgba(22, 217, 255, .9);
+        }
+
+        .brand-title {
+            max-width: 660px;
+            margin: 0;
+            font-size: clamp(2.45rem, 4.1vw, 4.35rem);
+            line-height: 1.05;
+            font-weight: 780;
+            letter-spacing: -.04em;
+        }
+
+        .brand-title strong {
+            background: linear-gradient(90deg, #fff 0%, #8bdcff 50%, #4a83ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-copy {
+            max-width: 610px;
+            margin: 24px 0 0;
+            color: rgba(231, 239, 251, .74);
+            font-size: 1.06rem;
+            line-height: 1.8;
+        }
+
+        .brand-motto {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-top: 18px;
+            color: #42b8ff;
+            font-weight: 700;
+        }
+
+        .brand-motto::before {
+            content: "";
+            width: 42px;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--blue-500), var(--cyan-400));
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 38px;
+        }
+
+        .feature-card {
+            min-height: 138px;
+            padding: 20px 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(129, 178, 255, .14);
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+            backdrop-filter: blur(12px);
+            transition: transform .25s ease, border-color .25s ease, background .25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(80, 167, 255, .38);
+            background: linear-gradient(145deg, rgba(29,125,255,.13), rgba(255,255,255,.025));
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 18px;
+            border-radius: 13px;
+            font-size: 1.2rem;
+            color: #35c6ff;
+            border: 1px solid rgba(43, 141, 255, .35);
+            background: rgba(20, 107, 255, .12);
+            box-shadow: 0 10px 26px rgba(0,0,0,.14);
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            color: #2de1c3;
+            border-color: rgba(45, 225, 195, .28);
+            background: rgba(45, 225, 195, .08);
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            color: #9b7cff;
+            border-color: rgba(155, 124, 255, .30);
+            background: rgba(155, 124, 255, .09);
+        }
+
+        .feature-title {
+            margin: 0;
+            color: #fff;
+            font-size: .78rem;
+            line-height: 1.45;
+            font-weight: 750;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+        }
+
+        .brand-footer {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: rgba(220, 231, 247, .50);
+            font-size: .78rem;
+        }
+
+        .wave {
+            position: absolute;
+            left: -12%;
+            bottom: -5%;
+            width: 125%;
+            height: 220px;
+            pointer-events: none;
+            opacity: .95;
+        }
+
+        .wave span {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            border-radius: 50%;
+            border-top: 2px solid rgba(26, 119, 255, .44);
+            transform: rotate(-4deg);
+        }
+
+        .wave span:nth-child(1) {
+            bottom: 10px;
+            border-color: rgba(21, 104, 255, .30);
+        }
+
+        .wave span:nth-child(2) {
+            bottom: 24px;
+            left: 4%;
+            border-color: rgba(16, 120, 255, .47);
+        }
+
+        .wave span:nth-child(3) {
+            bottom: 39px;
+            left: 8%;
+            border-color: rgba(22, 217, 255, .72);
+            box-shadow: 0 -5px 20px rgba(18, 123, 255, .18);
+        }
+
+        .wave span:nth-child(4) {
+            bottom: 52px;
+            left: 12%;
+            border-color: rgba(30, 98, 255, .34);
+        }
+
+        /* =========================================================
+           LADO DIREITO
+        ========================================================= */
+
+        .form-panel {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 46px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(24, 116, 255, .08), transparent 26%),
+                radial-gradient(circle at 85% 92%, rgba(18, 217, 255, .06), transparent 28%),
+                #f8fafc;
+        }
+
+        .form-panel::before,
+        .form-panel::after {
+            content: "";
+            position: absolute;
+            width: 380px;
+            height: 380px;
+            border-radius: 62px;
+            border: 1px solid rgba(68, 114, 176, .055);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        .form-panel::before {
+            top: -220px;
+            right: -175px;
+        }
+
+        .form-panel::after {
+            bottom: -245px;
+            left: -205px;
+        }
+
+        .auth-shell {
+            width: min(100%, 500px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .auth-heading {
+            margin-bottom: 24px;
+        }
+
+        .auth-heading .small-label {
+            color: var(--blue-600);
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .auth-heading h2 {
+            margin: 8px 0 7px;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+        }
+
+        .auth-heading p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: .94rem;
+        }
+
+        .form-card {
+            width: 100%;
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(28, 65, 112, .09);
+            background: rgba(255, 255, 255, .92);
+            box-shadow:
+                0 30px 80px rgba(15, 42, 77, .13),
+                0 5px 18px rgba(15, 42, 77, .04);
+            backdrop-filter: blur(18px);
+        }
+
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            padding: 6px;
+            margin-bottom: 26px !important;
+            border: 0;
+            border-radius: 14px;
+            background: #f2f5f9;
+        }
+
+        .nav-tabs .nav-item {
+            width: 100%;
+        }
+
+        .nav-tabs .nav-link {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 0 !important;
+            border-radius: 10px;
+            color: #667085;
+            background: transparent;
+            font-size: .82rem;
+            font-weight: 700;
+            transition: all .2s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--blue-600);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0d5bd7;
+            background: #fff;
+            box-shadow: 0 5px 14px rgba(23, 60, 108, .09);
+        }
+
+        .field-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            margin-bottom: 8px;
+            color: #344054;
+            font-size: .79rem;
+            font-weight: 700;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            z-index: 2;
+            transform: translateY(-50%);
+            color: #8a98aa;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .form-control {
+            min-height: 52px;
+            padding: 13px 16px 13px 44px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            color: var(--text-dark);
+            background: #fbfcfe;
+            font-size: .91rem;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .form-control::placeholder {
+            color: #98a2b3;
+        }
+
+        .form-control:focus {
+            color: var(--text-dark);
+            border-color: rgba(20, 107, 255, .68);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(20, 107, 255, .10);
+        }
+
+        .password-action {
+            color: var(--blue-600);
+            font-size: .75rem;
+            font-weight: 650;
+            text-decoration: none;
+        }
+
+        .password-action:hover {
+            color: #084fc2;
+        }
+
+        .form-check {
+            margin: 3px 0 18px;
+        }
+
+        .form-check-input {
+            width: 1.05rem;
+            height: 1.05rem;
+            border-color: #cfd8e5;
+        }
+
+        .form-check-input:checked {
+            border-color: var(--blue-600);
+            background-color: var(--blue-600);
+        }
+
+        .form-check-label {
+            color: #667085;
+            font-size: .81rem;
+        }
+
+        .btn-premium {
+            min-height: 53px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            width: 100%;
+            padding: 13px 18px;
+            border: 0;
+            border-radius: 13px;
+            color: #fff;
+            background: linear-gradient(100deg, #0b74ff 0%, #2349f5 100%);
+            box-shadow:
+                0 14px 28px rgba(25, 91, 239, .26),
+                inset 0 1px 0 rgba(255,255,255,.18);
+            font-size: .92rem;
+            font-weight: 750;
+            transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+        }
+
+        .btn-premium::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -80%;
+            width: 55%;
+            height: 100%;
+            transform: skewX(-22deg);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+            transition: left .55s ease;
+        }
+
+        .btn-premium:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            filter: saturate(1.08);
+            box-shadow:
+                0 18px 36px rgba(25, 91, 239, .32),
+                inset 0 1px 0 rgba(255,255,255,.18);
+        }
+
+        .btn-premium:hover::before {
+            left: 130%;
+        }
+
+        .btn-premium i {
+            transition: transform .22s ease;
+        }
+
+        .btn-premium:hover i {
+            transform: translateX(4px);
+        }
+
+        .secure-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 18px;
+            color: #7b8797;
+            font-size: .78rem;
+        }
+
+        .secure-note i {
+            color: var(--blue-600);
+        }
+
+        .alert {
+            border: 0;
+            border-radius: 13px;
+            font-size: .84rem;
+        }
+
+        .mobile-logo {
+            display: none;
+        }
+
+        @media (max-width: 1100px) {
+            .login-page {
+                grid-template-columns: 54% 46%;
+            }
+
+            .brand-panel {
+                padding: 36px;
+            }
+
+            .brand-title {
+                font-size: 3.15rem;
+            }
+
+            .feature-card {
+                min-height: 126px;
+                padding: 17px 14px;
+            }
+        }
+
+        @media (max-width: 991px) {
+            .login-page {
+                display: block;
+            }
+
+            .brand-panel {
+                display: none;
+            }
+
+            .form-panel {
+                min-height: 100vh;
+                padding: 28px 18px;
+            }
+
+            .mobile-logo {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 24px;
+            }
+
+            .mobile-logo .brand-name {
+                color: #091a33;
+                text-shadow: none;
+                font-size: 1.8rem;
+            }
+
+            .mobile-logo .brand-symbol {
+                width: 46px;
+                height: 46px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .form-card {
+                padding: 22px 18px;
+                border-radius: 19px;
+            }
+
+            .auth-heading h2 {
+                font-size: 1.55rem;
+            }
+
+            .nav-tabs .nav-link {
+                min-height: 48px;
+                font-size: .76rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-page">
+
+    <!-- LADO ESQUERDO -->
+    <section class="brand-panel">
+
+        <div class="brand-logo">
+            <div class="brand-symbol" aria-hidden="true">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+
+            <div class="brand-name">REM<span>ADA</span></div>
+        </div>
+
+        <div class="brand-content">
+            <div class="eyebrow">Gestão escolar inteligente</div>
+
+            <h1 class="brand-title">
+                A inteligência que <strong>conecta sua escola.</strong>
+            </h1>
+
+            <p class="brand-copy">
+                Transforme a construção da grade horária em um processo simples,
+                organizado e confiável. Mais eficiência para a gestão e mais tempo
+                para o que realmente importa: a educação.
+            </p>
+
+            <div class="brand-motto">
+                Remamos juntos. Chegamos mais longe.
+            </div>
+
+            <div class="features">
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+                    <p class="feature-title">Geração inteligente</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <p class="feature-title">Colaboração eficiente</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <p class="feature-title">Decisões baseadas em dados</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="brand-footer">
+            <span>&copy; 2026 REMADA Data Science & Education.</span>
+            <span>Grades horárias perfeitas. Resultados reais.</span>
+        </div>
+
+        <div class="wave" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+    </section>
+
+    <!-- LADO DIREITO -->
+    <section class="form-panel">
+
+        <div class="auth-shell">
+
+            <div class="mobile-logo">
+                <div class="brand-logo">
+                    <div class="brand-symbol" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="brand-name">REM<span>ADA</span></div>
+                </div>
+            </div>
+
+            <div class="auth-heading">
+                <div class="small-label">Acesso seguro</div>
+                <h2>Bem-vindo ao REMADA</h2>
+                <p>Acesse sua conta ou crie o primeiro acesso da escola.</p>
+            </div>
+
+            <div class="form-card">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <ul class="nav nav-tabs" id="authTabs" role="tablist">
+
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link active"
+                            id="login-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#login-pane"
+                            type="button"
+                            role="tab">
+                            Entrar
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link"
+                            id="cadastro-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#cadastro-pane"
+                            type="button"
+                            role="tab">
+                            Criar acesso
+                        </button>
+                    </li>
+
+                </ul>
+
+                <div class="tab-content" id="authTabsContent">
+
+                    <!-- LOGIN -->
+                    <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+
+                        <form action="/login" method="POST">
+
+                            <div class="field-group">
+                                <label class="form-label">E-mail</label>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-envelope input-icon"></i>
+
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        class="form-control"
+                                        placeholder="seu@email.com"
+                                        autocomplete="email"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label class="form-label">Senha</label>
+
+                                    <a href="#" class="password-action">
+                                        Esqueceu a senha?
+                                    </a>
+                                </div>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-lock input-icon"></i>
+
+                                    <input
+                                        type="password"
+                                        name="senha"
+                                        class="form-control"
+                                        placeholder="••••••••"
+                                        autocomplete="current-password"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="lembrar"
+                                    id="lembrar">
+
+                                <label class="form-check-label" for="lembrar">
+                                    Lembrar de mim
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-premium">
+                                <span>Acessar painel</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    <!-- CADASTRO -->
+                    <div class="tab-pane fade" id="cadastro-pane" role="tabpanel">
+
+                        <form action="/cadastrar-escola" method="POST">
+
+                            <div class="field-group">
+                                <label class="form-label">Nome da escola</label>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-building input-icon"></i>
+
+                                    <input
+                                        type="text"
+                                        name="nome_escola"
+                                        class="form-control"
+                                        placeholder="Ex.: Colégio Novo Horizonte"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="form-label">Nome do responsável</label>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-person input-icon"></i>
+
+                                    <input
+                                        type="text"
+                                        name="nome_responsavel"
+                                        class="form-control"
+                                        placeholder="Ex.: Silas Simião"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="form-label">E-mail institucional</label>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-envelope input-icon"></i>
+
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        class="form-control"
+                                        placeholder="direcao@escola.com"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label class="form-label">Crie uma senha</label>
+
+                                <div class="input-wrap">
+                                    <i class="bi bi-shield-lock input-icon"></i>
+
+                                    <input
+                                        type="password"
+                                        name="senha"
+                                        class="form-control"
+                                        placeholder="Mínimo de 6 caracteres"
+                                        minlength="6"
+                                        required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-premium">
+                                <span>Criar conta da escola</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="secure-note">
+                <i class="bi bi-shield-check"></i>
+                <span>Seus dados são protegidos com segurança.</span>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

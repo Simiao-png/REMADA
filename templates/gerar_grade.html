@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Visualizar Grade Versão {{ grade.versao }} | REMADA{% endblock %}
+{% block title %}Visualizar Grade Versão {{ grade.versao if grade else '' }} | REMADA{% endblock %}
 
 {% block content %}
 <style>
@@ -15,7 +15,6 @@
    ESTILOS EXCLUSIVOS PARA IMPRESSÃO / SALVAR EM PDF
    ========================================================================== */
 @media print {
-    /* 1. Esconde menu lateral, barras de navegação, botões e elementos fora da impressão */
     .sidebar,
     .topbar,
     .btn,
@@ -28,7 +27,6 @@
         display: none !important;
     }
 
-    /* 2. Reseta margens para ocupar toda a folha A4 */
     body, 
     main,
     .content, 
@@ -40,13 +38,11 @@
         background: #ffffff !important;
     }
 
-    /* 3. FORÇA O NAVEGADOR A IMPRIMIR AS CORES DE FUNDO DAS DISCIPLINAS */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    /* 4. Estilização das tabelas no papel */
     .table-responsive {
         overflow: visible !important;
     }
@@ -80,8 +76,16 @@
     <!-- CABEÇALHO DA TELA -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Grade Horária — Versão {{ grade.versao }}</h2>
-            <span class="text-muted">Visualizando histórico salvo no banco de dados (ID: {{ grade.id }})</span>
+            <h2 class="fw-bold mb-1">
+                Grade Horária {% if grade and grade.versao %}— Versão {{ grade.versao }}{% endif %}
+            </h2>
+            <span class="text-muted">
+                {% if grade and grade.id %}
+                    Visualizando histórico salvo no banco de dados (ID: {{ grade.id }})
+                {% else %}
+                    Nenhuma grade carregada no momento.
+                {% endif %}
+            </span>
         </div>
 
         <div class="d-flex gap-2 no-print">
@@ -128,14 +132,37 @@
 
 <script>
     window.GRADE_SALVA = JSON.parse('{{ grade_json | tojson | safe if grade_json else "null" }}');
-    window.AULAS_SALVAS = JSON.parse('{{ aulas_json | tojson | safe if aulas_json else "null" }}');
+    window.AULAS_SALVAS = JSON.parse('{{ aulas_json | tojson | safe if aulas_json else "[]" }}');
+
     const DIAS = [
-        { chave: "segunda", nome: "Segunda" },
-        { chave: "terca", nome: "Terça" },
-        { chave: "quarta", nome: "Quarta" },
-        { chave: "quinta", nome: "Quinta" },
-        { chave: "sexta", nome: "Sexta" }
+        { chave: "segunda", val: 1, nome: "Segunda" },
+        { chave: "terca", val: 2, nome: "Terça" },
+        { chave: "quarta", val: 3, nome: "Quarta" },
+        { chave: "quinta", val: 4, nome: "Quinta" },
+        { chave: "sexta", val: 5, nome: "Sexta" }
     ];
+
+    // CONSTRÓI A ESTRUTURA DADOS_GRADE A PARTIR DE AULAS_SALVAS
+    const DADOS_GRADE = { grade: {} };
+
+    if (Array.isArray(window.AULAS_SALVAS)) {
+        window.AULAS_SALVAS.forEach(aula => {
+            const tId = aula.turma_id;
+            if (!DADOS_GRADE.grade[tId]) {
+                DADOS_GRADE.grade[tId] = {
+                    segunda: [], terca: [], quarta: [], quinta: [], sexta: []
+                };
+            }
+
+            const diaObj = DIAS.find(d => d.val === Number(aula.dia_semana) || d.chave === String(aula.dia_semana).toLowerCase());
+            const chaveDia = diaObj ? diaObj.chave : "segunda";
+
+            const numAula = Number(aula.numero_aula) - 1;
+            if (numAula >= 0) {
+                DADOS_GRADE.grade[tId][chaveDia][numAula] = aula;
+            }
+        });
+    }
 
     let turmaAtiva = null;
 
@@ -191,7 +218,7 @@
         DIAS.forEach(d => html += `<th>${d.nome}</th>`);
         html += `</tr></thead><tbody>`;
 
-        for (let numAula = 1; numAula <= 6; numAula++) {
+        for (let numAula = 1; numAula <= 7; numAula++) {
             html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
             DIAS.forEach(d => {
                 const lista = gradeTurma[d.chave] || [];
@@ -224,7 +251,7 @@
             turmasIds.forEach(tId => html += `<th>${obterNomeTurma(tId)}</th>`);
             html += `</tr></thead><tbody>`;
 
-            for (let numAula = 1; numAula <= 6; numAula++) {
+            for (let numAula = 1; numAula <= 7; numAula++) {
                 html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
                 turmasIds.forEach(tId => {
                     const gradeTurma = DADOS_GRADE.grade[tId] || {};
