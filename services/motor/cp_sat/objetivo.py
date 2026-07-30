@@ -131,7 +131,7 @@ def adicionar_penalidade_dias_consecutivos(
         chave_grupo = (
             turma_id,
             disciplina_id,
-            dia
+            str(dia).lower().strip()
         )
 
         grupos.setdefault(
@@ -278,7 +278,7 @@ def adicionar_penalidade_carga_diaria_professor(
 
         chave_professor_dia = (
             professor_id,
-            dia
+            str(dia).lower().strip()
         )
 
         grupos.setdefault(

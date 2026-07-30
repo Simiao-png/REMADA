@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Visualizar Grade Versão {{ grade.versao }} | REMADA{% endblock %}
+{% block title %}Visualizar Grade Versão {{ grade.versao if grade else '' }} | REMADA{% endblock %}
 
 {% block content %}
-<!-- Biblioteca para gerar arquivo Excel diretamente via Browser -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -11,77 +10,49 @@
     background-color: #f8f9fa;
 }
 
-/* ==========================================================================
-   REGRAS EXCLUSIVAS DE IMPRESSÃO (PDF)
-   ========================================================================== */
 @media print {
-    /* Esconde elementos do sistema */
-    .sidebar,
-    .topbar,
-    .btn,
-    .nav,
-    .nav-pills,
-    #botoesTurmas,
-    header,
-    nav,
-    .no-print {
+    .sidebar, .topbar, .btn, .nav, .nav-pills, #botoesTurmas, header, nav, .no-print {
         display: none !important;
     }
-
-    /* Ocupa folha cheia */
-    body, 
-    main,
-    .content, 
-    .container-fluid, 
-    .grade-page {
+    body, main, .content, .container-fluid, .grade-page {
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
         background: #ffffff !important;
     }
-
-    /* Força cores de fundo no papel */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
-
-    .table-responsive {
-        overflow: visible !important;
-    }
-
+    .table-responsive { overflow: visible !important; }
     table {
         width: 100% !important;
         border-collapse: collapse !important;
         page-break-inside: avoid;
         margin-bottom: 20px !important;
     }
-
     th, td {
         border: 1px solid #000000 !important;
         font-size: 9pt !important;
         padding: 5px !important;
     }
-
-    /* Controle inteligente: só imprime a aba que está visível na tela */
-    .tab-pane {
-        display: none !important;
-    }
-
-    .tab-pane.active {
-        display: block !important;
-        opacity: 1 !important;
-    }
+    .tab-pane { display: none !important; }
+    .tab-pane.active { display: block !important; opacity: 1 !important; }
 }
 </style>
 
 <div class="container-fluid p-3 grade-page">
 
-    <!-- CABEÇALHO -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Grade Horária — Versão {{ grade.versao }}</h2>
-            <span class="text-muted">Visualizando histórico salvo no banco de dados (ID: {{ grade.id }})</span>
+            <h2 class="fw-bold mb-1">Grade Horária — Versão {{ grade.versao if grade else '1' }}</h2>
+            <span class="text-muted">
+                {% if grade and grade.id %}
+                    Visualizando histórico salvo no banco de dados (ID: {{ grade.id }})
+                {% else %}
+                    Visualizando grade gerada.
+                {% endif %}
+            </span>
         </div>
 
         <div class="d-flex gap-2 no-print">
@@ -100,7 +71,6 @@
         </div>
     </div>
 
-    <!-- ABAS POR TURMA / VISÃO GERAL -->
     <ul class="nav nav-pills mb-3 no-print" id="pills-tab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="pills-turmas-tab" data-bs-toggle="pill" data-bs-target="#pills-turmas" type="button" role="tab">
@@ -115,13 +85,11 @@
     </ul>
 
     <div class="tab-content" id="pills-tabContent">
-        <!-- ABA TURMAS -->
         <div class="tab-pane fade show active" id="pills-turmas" role="tabpanel">
             <div id="botoesTurmas" class="d-flex gap-2 mb-3 no-print"></div>
             <div id="conteudoTurma"></div>
         </div>
 
-        <!-- ABA VISÃO GERAL -->
         <div class="tab-pane fade" id="pills-geral" role="tabpanel">
             <div id="conteudoGeral"></div>
         </div>
@@ -130,14 +98,35 @@
 </div>
 
 <script>
-    const DADOS_GRADE = {{ grade_json | tojson if grade_json else {} }};
+    window.GRADE_SALVA = JSON.parse('{{ grade_json | tojson | safe if grade_json else "null" }}');
+    window.AULAS_SALVAS = JSON.parse('{{ aulas_json | tojson | safe if aulas_json else "[]" }}');
+
     const DIAS = [
-        { chave: "segunda", nome: "Segunda" },
-        { chave: "terca", nome: "Terça" },
-        { chave: "quarta", nome: "Quarta" },
-        { chave: "quinta", nome: "Quinta" },
-        { chave: "sexta", nome: "Sexta" }
+        { chave: "segunda", val: 1, nome: "Segunda" },
+        { chave: "terca", val: 2, nome: "Terça" },
+        { chave: "quarta", val: 3, nome: "Quarta" },
+        { chave: "quinta", val: 4, nome: "Quinta" },
+        { chave: "sexta", val: 5, nome: "Sexta" }
     ];
+
+    const DADOS_GRADE = { grade: {} };
+
+    if (Array.isArray(window.AULAS_SALVAS)) {
+        window.AULAS_SALVAS.forEach(aula => {
+            const tId = aula.turma_id;
+            if (!DADOS_GRADE.grade[tId]) {
+                DADOS_GRADE.grade[tId] = { segunda: [], terca: [], quarta: [], quinta: [], sexta: [] };
+            }
+
+            const diaObj = DIAS.find(d => d.val === Number(aula.dia_semana) || d.chave === String(aula.dia_semana).toLowerCase());
+            const chaveDia = diaObj ? diaObj.chave : "segunda";
+            const numAula = Number(aula.numero_aula) - 1;
+
+            if (numAula >= 0) {
+                DADOS_GRADE.grade[tId][chaveDia][numAula] = aula;
+            }
+        });
+    }
 
     let turmaAtiva = null;
 
@@ -193,7 +182,7 @@
         DIAS.forEach(d => html += `<th>${d.nome}</th>`);
         html += `</tr></thead><tbody>`;
 
-        for (let numAula = 1; numAula <= 6; numAula++) {
+        for (let numAula = 1; numAula <= 7; numAula++) {
             html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
             DIAS.forEach(d => {
                 const lista = gradeTurma[d.chave] || [];
@@ -226,7 +215,7 @@
             turmasIds.forEach(tId => html += `<th>${obterNomeTurma(tId)}</th>`);
             html += `</tr></thead><tbody>`;
 
-            for (let numAula = 1; numAula <= 6; numAula++) {
+            for (let numAula = 1; numAula <= 7; numAula++) {
                 html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
                 turmasIds.forEach(tId => {
                     const gradeTurma = DADOS_GRADE.grade[tId] || {};
@@ -250,9 +239,6 @@
         container.innerHTML = html;
     }
 
-    /* ==========================================================================
-       FUNÇÃO PARA BAIXAR EM EXCEL (.XLSX)
-       ========================================================================== */
     function baixarExcel() {
         const turmasIds = Object.keys(DADOS_GRADE.grade || {});
         if (turmasIds.length === 0) {
@@ -261,15 +247,13 @@
         }
 
         const wb = XLSX.utils.book_new();
-
-        // 1. Aba de Visão Geral
         const dadosGeral = [];
+
         DIAS.forEach(d => {
             dadosGeral.push([d.nome.toUpperCase()]);
-            const cabecalho = ["Aula", ...turmasIds.map(tId => obterNomeTurma(tId))];
-            dadosGeral.push(cabecalho);
+            dadosGeral.push(["Aula", ...turmasIds.map(tId => obterNomeTurma(tId))]);
 
-            for (let numAula = 1; numAula <= 6; numAula++) {
+            for (let numAula = 1; numAula <= 7; numAula++) {
                 const linha = [`${numAula}ª aula`];
                 turmasIds.forEach(tId => {
                     const gradeTurma = DADOS_GRADE.grade[tId] || {};
@@ -279,13 +263,12 @@
                 });
                 dadosGeral.push(linha);
             }
-            dadosGeral.push([]); // linha em branco
+            dadosGeral.push([]);
         });
 
         const wsGeral = XLSX.utils.aoa_to_sheet(dadosGeral);
         XLSX.utils.book_append_sheet(wb, wsGeral, "Visão Geral");
 
-        // 2. Aba por cada Turma
         turmasIds.forEach(tId => {
             const nomeTurma = obterNomeTurma(tId);
             const gradeTurma = DADOS_GRADE.grade[tId] || {};
@@ -293,7 +276,7 @@
             
             dadosTurma.push(["Aula", ...DIAS.map(d => d.nome)]);
 
-            for (let numAula = 1; numAula <= 6; numAula++) {
+            for (let numAula = 1; numAula <= 7; numAula++) {
                 const linha = [`${numAula}ª aula`];
                 DIAS.forEach(d => {
                     const lista = gradeTurma[d.chave] || [];
@@ -304,12 +287,10 @@
             }
 
             const wsTurma = XLSX.utils.aoa_to_sheet(dadosTurma);
-            // Limita nome da aba a 30 chars
             XLSX.utils.book_append_sheet(wb, wsTurma, nomeTurma.substring(0, 30));
         });
 
-        // Baixa o arquivo
-        XLSX.writeFile(wb, `Grade_Horaria_Versao_{{ grade.versao }}.xlsx`);
+        XLSX.writeFile(wb, `Grade_Horaria.xlsx`);
     }
 </script>
 {% endblock %}

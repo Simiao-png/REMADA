@@ -194,23 +194,36 @@ def criar_horarios_por_turma(
             configuracoes
         )
 
-        if configuracao is None:
-            continue
+        # Regra de Negócio: Identificação do número de aulas pelo segmento da turma
+        segmento = str(obter_valor(turma, "segmento") or "").lower()
+        if "médio" in segmento or "medio" in segmento:
+            quantidade_aulas_padrao = 7
+        else:
+            quantidade_aulas_padrao = 6
 
-        quantidade_aulas = int(
-            obter_valor(
-                configuracao,
-                "aulas_por_dia"
+        dias_padrao = ["segunda", "terca", "quarta", "quinta", "sexta"]
+
+        if configuracao is not None:
+            quantidade_aulas = int(
+                obter_valor(
+                    configuracao,
+                    "aulas_por_dia"
+                )
+                or quantidade_aulas_padrao
             )
-            or 0
-        )
+            dias = obter_dias_configuracao(
+                configuracao
+            )
+            if not dias:
+                dias = dias_padrao
+        else:
+            # Fallback corporativo: se a turma não tiver configuração explícita salva,
+            # aplica 6 aulas (Fund II) ou 7 aulas (Médio) para não travar o solver.
+            quantidade_aulas = quantidade_aulas_padrao
+            dias = dias_padrao
 
         if quantidade_aulas <= 0:
-            continue
-
-        dias = obter_dias_configuracao(
-            configuracao
-        )
+            quantidade_aulas = quantidade_aulas_padrao
 
         horarios_por_turma[
             turma_id

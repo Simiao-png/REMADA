@@ -1,278 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Visualizar Grade Versão {{ grade.versao if grade else '' }} | REMADA{% endblock %}
+{% block title %}Gerar Grade | REMADA{% endblock %}
 
 {% block content %}
-<style>
-/* ==========================================================================
-   ESTILOS GERAIS DA TELA
-   ========================================================================== */
-.grade-page {
-    background-color: #f8f9fa;
-}
-
-/* ==========================================================================
-   ESTILOS EXCLUSIVOS PARA IMPRESSÃO / SALVAR EM PDF
-   ========================================================================== */
-@media print {
-    .sidebar,
-    .topbar,
-    .btn,
-    .nav,
-    .nav-pills,
-    #botoesTurmas,
-    header,
-    nav,
-    .no-print {
-        display: none !important;
-    }
-
-    body, 
-    main,
-    .content, 
-    .container-fluid, 
-    .grade-page {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        background: #ffffff !important;
-    }
-
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-
-    .table-responsive {
-        overflow: visible !important;
-    }
-
-    table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-        page-break-inside: avoid;
-    }
-
-    th, td {
-        border: 1px solid #000000 !important;
-        font-size: 10pt !important;
-        padding: 6px !important;
-    }
-
-    .tab-pane {
-        display: block !important;
-        opacity: 1 !important;
-    }
-
-    h2, h4, h5 {
-        color: #000000 !important;
-        margin-bottom: 8px !important;
-    }
-}
-</style>
-
 <div class="container-fluid p-3 grade-page">
 
-    <!-- CABEÇALHO DA TELA -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1">
-                Grade Horária {% if grade and grade.versao %}— Versão {{ grade.versao }}{% endif %}
-            </h2>
-            <span class="text-muted">
-                {% if grade and grade.id %}
-                    Visualizando histórico salvo no banco de dados (ID: {{ grade.id }})
-                {% else %}
-                    Nenhuma grade carregada no momento.
-                {% endif %}
-            </span>
+            <h2 class="fw-bold mb-1">Geração de Grade</h2>
+            <p class="text-muted mb-0">Monte automaticamente a grade horária da escola utilizando otimização por restrições.</p>
         </div>
 
-        <div class="d-flex gap-2 no-print">
-            <a href="/" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Dashboard
-            </a>
-            <a href="/gerar-grade" class="btn btn-outline-primary">
-                <i class="bi bi-play-circle me-1"></i> Ir para Gerador
-            </a>
-            <button onclick="window.print()" class="btn btn-primary">
-                <i class="bi bi-printer me-1"></i> Imprimir / PDF
+        <div>
+            <button id="btnGerarGrade" class="btn btn-primary btn-lg shadow-sm">
+                <i class="bi bi-play-circle me-1"></i> Gerar Grade
             </button>
         </div>
     </div>
 
-    <!-- NAVEGAÇÃO DE ABAS POR TURMA / VISÃO GERAL -->
-    <ul class="nav nav-pills mb-3 no-print" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold" id="pills-turmas-tab" data-bs-toggle="pill" data-bs-target="#pills-turmas" type="button" role="tab">
-                Por Turma
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="pills-geral-tab" data-bs-toggle="pill" data-bs-target="#pills-geral" type="button" role="tab">
-                Visão Geral
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="pills-tabContent">
-        <!-- ABA TURMAS -->
-        <div class="tab-pane fade show active" id="pills-turmas" role="tabpanel">
-            <div id="botoesTurmas" class="d-flex gap-2 mb-3 no-print"></div>
-            <div id="conteudoTurma"></div>
+    <!-- PAINEL DE PROGRESSO E STATUS DO MOTOR -->
+    <div id="painelStatusMotor" class="card shadow-sm border-0 mb-4 d-none">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-primary" id="statusTextoMotor">Iniciando motor de otimização...</span>
+                <span class="fw-bold" id="porcentagemMotor">0%</span>
+            </div>
+            <div class="progress style-progress mb-3" style="height: 12px;">
+                <div id="barraProgressoMotor" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
+            </div>
+            <p class="text-muted small mb-0" id="detalhesMotor">Analisando disponibilidades dos professores e restrições das turmas...</p>
         </div>
+    </div>
 
-        <!-- ABA VISÃO GERAL -->
-        <div class="tab-pane fade" id="pills-geral" role="tabpanel">
-            <div id="conteudoGeral"></div>
+    <!-- AREA DE RESULTADO / MATRIZES GERADAS -->
+    <div id="areaResultadoMotor">
+        <div class="card border-0 shadow-sm p-5 text-center bg-white">
+            <i class="bi bi-cpu fs-1 text-muted mb-3 d-block"></i>
+            <h5 class="fw-bold mb-2">Pronto para gerar</h5>
+            <p class="text-muted mb-3">Clique no botão <strong>"Gerar Grade"</strong> acima para executar o motor de otimização.</p>
         </div>
     </div>
 
 </div>
 
 <script>
-    window.GRADE_SALVA = JSON.parse('{{ grade_json | tojson | safe if grade_json else "null" }}');
-    window.AULAS_SALVAS = JSON.parse('{{ aulas_json | tojson | safe if aulas_json else "[]" }}');
+document.addEventListener("DOMContentLoaded", function () {
+    const btnGerar = document.getElementById("btnGerarGrade");
+    const painelStatus = document.getElementById("painelStatusMotor");
+    const barraProgresso = document.getElementById("barraProgressoMotor");
+    const porcentagemTexto = document.getElementById("porcentagemMotor");
 
-    const DIAS = [
-        { chave: "segunda", val: 1, nome: "Segunda" },
-        { chave: "terca", val: 2, nome: "Terça" },
-        { chave: "quarta", val: 3, nome: "Quarta" },
-        { chave: "quinta", val: 4, nome: "Quinta" },
-        { chave: "sexta", val: 5, nome: "Sexta" }
-    ];
+    if (btnGerar) {
+        btnGerar.addEventListener("click", function () {
+            btnGerar.disabled = true;
+            btnGerar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processando...';
+            
+            if (painelStatus) painelStatus.classList.remove("d-none");
 
-    // CONSTRÓI A ESTRUTURA DADOS_GRADE A PARTIR DE AULAS_SALVAS
-    const DADOS_GRADE = { grade: {} };
+            let progresso = 0;
+            const intervalo = setInterval(() => {
+                progresso += 15;
+                if (progresso > 90) progresso = 95;
 
-    if (Array.isArray(window.AULAS_SALVAS)) {
-        window.AULAS_SALVAS.forEach(aula => {
-            const tId = aula.turma_id;
-            if (!DADOS_GRADE.grade[tId]) {
-                DADOS_GRADE.grade[tId] = {
-                    segunda: [], terca: [], quarta: [], quinta: [], sexta: []
-                };
-            }
+                if (barraProgresso) barraProgresso.style.width = progresso + "%";
+                if (porcentagemTexto) porcentagemTexto.textContent = progresso + "%";
+            }, 400);
 
-            const diaObj = DIAS.find(d => d.val === Number(aula.dia_semana) || d.chave === String(aula.dia_semana).toLowerCase());
-            const chaveDia = diaObj ? diaObj.chave : "segunda";
+            // Chamada à API do motor
+            fetch("/motor/gerar", { method: "POST" })
+                .then(r => r.json())
+                .then(dados => {
+                    clearInterval(intervalo);
+                    if (barraProgresso) barraProgresso.style.width = "100%";
+                    if (porcentagemTexto) porcentagemTexto.textContent = "100%";
 
-            const numAula = Number(aula.numero_aula) - 1;
-            if (numAula >= 0) {
-                DADOS_GRADE.grade[tId][chaveDia][numAula] = aula;
-            }
-        });
-    }
-
-    let turmaAtiva = null;
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const turmasIds = Object.keys(DADOS_GRADE.grade || {});
-        if (turmasIds.length === 0) {
-            document.getElementById("conteudoTurma").innerHTML = "<div class='alert alert-info'>Nenhuma aula gravada nesta versão da grade.</div>";
-            return;
-        }
-
-        turmaAtiva = turmasIds[0];
-        renderizarBotoesTurmas(turmasIds);
-        renderizarTurma(turmaAtiva);
-        renderizarGeral(turmasIds);
-    });
-
-    function renderizarBotoesTurmas(turmasIds) {
-        const container = document.getElementById("botoesTurmas");
-        container.innerHTML = "";
-
-        turmasIds.forEach(tId => {
-            const btn = document.createElement("button");
-            btn.className = `btn ${tId === turmaAtiva ? 'btn-primary' : 'btn-outline-primary'}`;
-            btn.textContent = obterNomeTurma(tId);
-            btn.onclick = () => {
-                turmaAtiva = tId;
-                renderizarBotoesTurmas(turmasIds);
-                renderizarTurma(tId);
-            };
-            container.appendChild(btn);
-        });
-    }
-
-    function obterNomeTurma(tId) {
-        const diasObj = DADOS_GRADE.grade[tId] || {};
-        for (const dia in diasObj) {
-            const aulas = diasObj[dia] || [];
-            for (const a of aulas) {
-                if (a && a.turma_nome) return a.turma_nome;
-            }
-        }
-        return `Turma ${tId}`;
-    }
-
-    function renderizarTurma(tId) {
-        const container = document.getElementById("conteudoTurma");
-        const gradeTurma = DADOS_GRADE.grade[tId] || {};
-
-        let html = `<h4 class="fw-bold mb-3">${obterNomeTurma(tId)}</h4>`;
-        html += `<div class="table-responsive"><table class="table table-bordered text-center align-middle bg-white">`;
-        html += `<thead class="table-dark"><tr><th>Aula</th>`;
-
-        DIAS.forEach(d => html += `<th>${d.nome}</th>`);
-        html += `</tr></thead><tbody>`;
-
-        for (let numAula = 1; numAula <= 7; numAula++) {
-            html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
-            DIAS.forEach(d => {
-                const lista = gradeTurma[d.chave] || [];
-                const aula = lista[numAula - 1];
-
-                if (aula) {
-                    html += `<td style="background-color: ${aula.disciplina_cor}; color: #ffffff; padding: 12px; border-radius: 4px;">
-                                <div class="fw-bold">${aula.professor_nome}</div>
-                                <div class="small opacity-75">${aula.disciplina_nome}</div>
-                             </td>`;
-                } else {
-                    html += `<td class="bg-light text-muted small">—</td>`;
-                }
-            });
-            html += `</tr>`;
-        }
-
-        html += `</tbody></table></div>`;
-        container.innerHTML = html;
-    }
-
-    function renderizarGeral(turmasIds) {
-        const container = document.getElementById("conteudoGeral");
-        let html = "";
-
-        DIAS.forEach(d => {
-            html += `<h5 class="fw-bold text-primary mt-4 mb-2">${d.nome}</h5>`;
-            html += `<div class="table-responsive"><table class="table table-bordered text-center align-middle bg-white"><thead class="table-secondary"><tr><th>Aula</th>`;
-
-            turmasIds.forEach(tId => html += `<th>${obterNomeTurma(tId)}</th>`);
-            html += `</tr></thead><tbody>`;
-
-            for (let numAula = 1; numAula <= 7; numAula++) {
-                html += `<tr><td class="fw-bold text-muted">${numAula}ª aula</td>`;
-                turmasIds.forEach(tId => {
-                    const gradeTurma = DADOS_GRADE.grade[tId] || {};
-                    const lista = gradeTurma[d.chave] || [];
-                    const aula = lista[numAula - 1];
-
-                    if (aula) {
-                        html += `<td style="background-color: ${aula.disciplina_cor}; color: #ffffff; padding: 8px;">
-                                    <div class="fw-bold small">${aula.professor_nome}</div>
-                                    <div class="small opacity-75">${aula.disciplina_nome}</div>
-                                 </td>`;
+                    if (dados.status === "sucesso" || dados.grade_id || dados.id) {
+                        const idGrade = dados.grade_id || dados.id || 1;
+                        // Redireciona apontando para a rota unificada /ver-grade
+                        window.location.href = `/ver-grade?id=${idGrade}`;
                     } else {
-                        html += `<td class="bg-light text-muted small">—</td>`;
+                        alert(dados.mensagem || "Ocorreu um erro ao gerar a grade.");
+                        btnGerar.disabled = false;
+                        btnGerar.innerHTML = '<i class="bi bi-play-circle me-1"></i> Gerar Grade';
                     }
+                })
+                .catch(err => {
+                    clearInterval(intervalo);
+                    btnGerar.disabled = false;
+                    btnGerar.innerHTML = '<i class="bi bi-play-circle me-1"></i> Gerar Grade';
+                    alert("Erro ao conectar com o motor de geração.");
                 });
-                html += `</tr>`;
-            }
-            html += `</tbody></table></div>`;
         });
-
-        container.innerHTML = html;
     }
+});
 </script>
 {% endblock %}

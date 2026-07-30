@@ -38,6 +38,8 @@ def resolver_cp_sat(
         NUMERO_TRABALHADORES
     )
 
+    solver.parameters.log_search_progress = True
+
     status = solver.Solve(
         modelo
     )

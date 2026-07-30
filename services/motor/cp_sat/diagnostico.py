@@ -62,6 +62,12 @@ def montar_diagnostico(
         )
     )
 
+    problemas.extend(
+        diagnosticar_insuficiencia_disponibilidade_professor(
+            dados
+        )
+    )
+
     return remover_problemas_duplicados(
         problemas
     )
@@ -145,30 +151,24 @@ def diagnosticar_carga_das_turmas(
             configuracoes
         )
 
-        if not configuracao:
-            continue
+        # Trata dinamicamente turmas de Ensino Médio com 7 aulas por dia
+        segmento = str(obter_valor(turma, "segmento") or "").lower()
+        if "médio" in segmento or "medio" in segmento:
+            aulas_por_dia_padrao = 7
+        else:
+            aulas_por_dia_padrao = 6
 
-        quantidade_dias = contar_dias_ativos(
-            configuracao
-        )
-
-        aulas_por_dia = int(
-            obter_valor(
-                configuracao,
-                "aulas_por_dia"
+        if configuracao:
+            quantidade_dias = contar_dias_ativos(configuracao)
+            aulas_por_dia = int(
+                obter_valor(configuracao, "aulas_por_dia") or aulas_por_dia_padrao
             )
-            or 0
-        )
+        else:
+            quantidade_dias = 5
+            aulas_por_dia = aulas_por_dia_padrao
 
-        total_horarios = (
-            quantidade_dias
-            * aulas_por_dia
-        )
-
-        carga_semanal = carga_por_turma.get(
-            turma_id,
-            0
-        )
+        total_horarios = quantidade_dias * aulas_por_dia
+        carga_semanal = carga_por_turma.get(turma_id, 0)
 
         if carga_semanal <= total_horarios:
             continue
@@ -351,6 +351,65 @@ def diagnosticar_professores_sem_disponibilidade(
                 "disponibilidade cadastrada."
             )
         })
+
+    return problemas
+
+
+def diagnosticar_insuficiencia_disponibilidade_professor(
+    dados
+):
+    """
+    Diagnostica se algum professor possui mais aulas atribuídas na carga horária
+    do que horários marcados como disponíveis na sua grade semanal.
+    """
+    matrizes = dados.get("turma_disciplina", [])
+    professor_turma = dados.get("professor_turma", [])
+    professor_disciplina = dados.get("professor_disciplina", [])
+    disponibilidades = dados.get("disponibilidades", [])
+    professores = {p.id: p for p in dados.get("professores", [])}
+
+    professores_por_turma = {}
+    for vinculo in professor_turma:
+        professores_por_turma.setdefault(obter_valor(vinculo, "turma_id"), set()).add(obter_valor(vinculo, "professor_id"))
+
+    professores_por_disciplina = {}
+    for vinculo in professor_disciplina:
+        professores_por_disciplina.setdefault(obter_valor(vinculo, "disciplina_id"), set()).add(obter_valor(vinculo, "professor_id"))
+
+    carga_necessaria_professor = {}
+
+    for matriz in matrizes:
+        t_id = obter_valor(matriz, "turma_id")
+        d_id = obter_valor(matriz, "disciplina_id")
+        aulas = int(obter_valor(matriz, "aulas_por_semana") or 0)
+
+        professores_validos = professores_por_turma.get(t_id, set()) & professores_por_disciplina.get(d_id, set())
+        for p_id in professores_validos:
+            carga_necessaria_professor[p_id] = carga_necessaria_professor.get(p_id, 0) + aulas
+
+    horarios_marcados_professor = {}
+    for d in disponibilidades:
+        if obter_valor(d, "disponivel"):
+            p_id = obter_valor(d, "professor_id")
+            horarios_marcados_professor[p_id] = horarios_marcados_professor.get(p_id, 0) + 1
+
+    problemas = []
+    for p_id, carga in carga_necessaria_professor.items():
+        # Se o professor tem registro de disponibilidade
+        if p_id in horarios_marcados_professor:
+            marcados = horarios_marcados_professor[p_id]
+            if marcados < carga:
+                prof_obj = professores.get(p_id)
+                prof_nome = obter_valor(prof_obj, "nome") or f"ID {p_id}"
+                problemas.append({
+                    "tipo": "disponibilidade_insuficiente",
+                    "professor_id": p_id,
+                    "mensagem": (
+                        f"O professor '{prof_nome}' precisa ministrar {carga} aula(s) "
+                        f"na semana, mas só possui {marcados} horário(s) marcados "
+                        "como disponíveis."
+                    )
+                })
 
     return problemas
 

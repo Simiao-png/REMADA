@@ -31,7 +31,6 @@ from models.usuario import Usuario
 from routes.auth_routes import auth_bp
 
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -280,8 +279,8 @@ def dashboard():
 # VER GRADE SALVA (LEITURA PURA DO POSTGRESQL)
 # ------------------------------------------------------------------
 
-
 @app.route("/ver-grade")
+@app.route("/visualizar-grade")
 def tela_ver_grade():
     grade_id = request.args.get("id", type=int)
 
@@ -303,6 +302,8 @@ def tela_ver_grade():
         for d in discs_obj
     }
 
+    # Monta a lista serializável de aulas para o frontend em JS
+    aulas_lista = []
     grade_dict = {
         "id": grade.id,
         "versao": grade.versao,
@@ -326,6 +327,25 @@ def tela_ver_grade():
         dia_str = mapa_dias.get(dia_num, "segunda")
         numero_aula = getattr(a, "numero_aula", getattr(a, "aula", 1))
 
+        disc_nome = discs_nome_dict.get(
+            a.disciplina_id, f"Disciplina {a.disciplina_id}"
+        )
+        disc_cor = discs_cor_dict.get(a.disciplina_id, "#4a90e2")
+        turma_nome = turmas_dict.get(a.turma_id, f"Turma {a.turma_id}")
+        prof_nome = profs_dict.get(a.professor_id, "A definir")
+
+        aulas_lista.append({
+            "turma_id": a.turma_id,
+            "turma_nome": turma_nome,
+            "professor_id": a.professor_id,
+            "professor_nome": prof_nome,
+            "disciplina_id": a.disciplina_id,
+            "disciplina_nome": disc_nome,
+            "disciplina_cor": disc_cor,
+            "dia_semana": dia_num,
+            "numero_aula": numero_aula
+        })
+
         if turma_id_str not in grade_dict["grade"]:
             grade_dict["grade"][turma_id_str] = {}
 
@@ -334,13 +354,6 @@ def tela_ver_grade():
 
         while len(grade_dict["grade"][turma_id_str][dia_str]) < numero_aula:
             grade_dict["grade"][turma_id_str][dia_str].append(None)
-
-        disc_nome = discs_nome_dict.get(
-            a.disciplina_id, f"Disciplina {a.disciplina_id}"
-        )
-        disc_cor = discs_cor_dict.get(a.disciplina_id, "#4a90e2")
-        turma_nome = turmas_dict.get(a.turma_id, f"Turma {a.turma_id}")
-        prof_nome = profs_dict.get(a.professor_id, "A definir")
 
         grade_dict["grade"][turma_id_str][dia_str][numero_aula - 1] = {
             "turma_id": a.turma_id,
@@ -353,7 +366,10 @@ def tela_ver_grade():
         }
 
     return render_template(
-        "ver_grade.html", grade_json=grade_dict, grade=grade
+        "ver_grade.html", 
+        grade_json=grade_dict, 
+        aulas_json=aulas_lista,  # <--- Variável essencial adicionada aqui!
+        grade=grade
     )
 
 if __name__ == "__main__":

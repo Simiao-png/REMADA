@@ -19,6 +19,16 @@ def extrair_grade(
         turmas
     )
 
+    # Garantia de produção: expande dinamicamente a matriz da turma se ela for Ensino Médio (até 7 aulas)
+    for turma_id, turma in turmas.items():
+        segmento = str(getattr(turma, "segmento", "") or "").lower()
+        limite_aulas = 7 if ("médio" in segmento or "medio" in segmento) else 6
+        
+        if turma_id in grade:
+            for dia in grade[turma_id]:
+                while len(grade[turma_id][dia]) < limite_aulas:
+                    grade[turma_id][dia].append(None)
+
     quantidade_alocada = 0
 
     for chave, variavel in variaveis.items():
