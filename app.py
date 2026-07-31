@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from config import Config
 from models.db import db
 
@@ -26,7 +26,7 @@ from models.grade_aula import GradeAula
 from models.professor import Professor
 from models.turma import Turma
 from models.disciplina import Disciplina
-from models.escola import Escola  # <--- IMPORT ADICIONADO AQUI!
+from models.escola import Escola
 
 from models.usuario import Usuario
 from routes.auth_routes import auth_bp
@@ -43,6 +43,24 @@ app.register_blueprint(auth_bp)
 
 with app.app_context():
     db.create_all()
+
+
+# ------------------------------------------------------------------
+# CONTEXT PROCESSOR (INJETA A ESCOLA EM TODAS AS PAGINAS DO SISTEMA)
+# ------------------------------------------------------------------
+@app.context_processor
+def inject_escola():
+    escola_id = session.get('escola_id')
+    escola_atual = None
+    
+    if escola_id:
+        escola_atual = db.session.query(Escola).get(escola_id)
+    else:
+        # Pega a escola mais recente cadastrada se não houver session
+        escola_atual = db.session.query(Escola).order_by(Escola.id.desc()).first()
+        
+    return dict(escola=escola_atual)
+
 
 # ------------------------------------------------------------------
 # BLUEPRINTS
@@ -71,46 +89,55 @@ app.register_blueprint(gerar_grade_bp)
 def dashboard():
 
     try:
-        # Busca a escola cadastrada no sistema
-        escola_cadastrada = db.session.query(Escola).first()
+        escola_id = session.get('escola_id')
+        
+        if not escola_id:
+            escola_temp = db.session.query(Escola).order_by(Escola.id.desc()).first()
+            if escola_temp:
+                escola_id = escola_temp.id
 
-        total_professores = db.session.query(Professor).count()
-        total_turmas = db.session.query(Turma).count()
-        total_disciplinas = db.session.query(Disciplina).count()
+        if not escola_id:
+            return render_template(
+                "dashboard.html",
+                professores=0,
+                turmas=0,
+                disciplinas=0,
+                matrizes=0,
+                professores_com_disponibilidade=0,
+                progresso_geral=0,
+                progresso_turmas=[],
+                pendencias=["Cadastre uma escola para iniciar."],
+                ultimas_grades=[],
+            )
 
-        # ----------------------------------------------------------
-        # MATRIZES
-        # ----------------------------------------------------------
+        # Filtros isolados por escola
+        total_professores = db.session.query(Professor).filter_by(escola_id=escola_id).count()
+        total_turmas = db.session.query(Turma).filter_by(escola_id=escola_id).count()
+        total_disciplinas = db.session.query(Disciplina).filter_by(escola_id=escola_id).count()
 
         turmas_com_matriz = (
             db.session.query(TurmaDisciplina.turma_id)
+            .join(Turma, Turma.id == TurmaDisciplina.turma_id)
+            .filter(Turma.escola_id == escola_id)
             .distinct()
             .count()
         )
-
-        # ----------------------------------------------------------
-        # VÍNCULOS
-        # ----------------------------------------------------------
 
         turmas_com_professores = (
             db.session.query(ProfessorTurma.turma_id)
+            .join(Turma, Turma.id == ProfessorTurma.turma_id)
+            .filter(Turma.escola_id == escola_id)
             .distinct()
             .count()
         )
-
-        # ----------------------------------------------------------
-        # DISPONIBILIDADE
-        # ----------------------------------------------------------
 
         professores_com_disponibilidade = (
             db.session.query(DisponibilidadeProfessor.professor_id)
+            .join(Professor, Professor.id == DisponibilidadeProfessor.professor_id)
+            .filter(Professor.escola_id == escola_id)
             .distinct()
             .count()
         )
-
-        # ----------------------------------------------------------
-        # PERCENTUAIS
-        # ----------------------------------------------------------
 
         percentual_matrizes = (
             round((turmas_com_matriz / total_turmas) * 100)
@@ -123,15 +150,9 @@ def dashboard():
         )
 
         percentual_disponibilidades = (
-            round(
-                (professores_com_disponibilidade / total_professores) * 100
-            )
+            round((professores_com_disponibilidade / total_professores) * 100)
             if total_professores > 0 else 0
         )
-
-        # ----------------------------------------------------------
-        # PROGRESSO GERAL
-        # ----------------------------------------------------------
 
         progresso_geral = 0
 
@@ -150,12 +171,9 @@ def dashboard():
 
         progresso_geral = min(progresso_geral, 100)
 
-        # ----------------------------------------------------------
-        # PROGRESSO DAS TURMAS
-        # ----------------------------------------------------------
-
         turmas_banco = (
             db.session.query(Turma)
+            .filter_by(escola_id=escola_id)
             .order_by(Turma.nome)
             .all()
         )
@@ -195,10 +213,6 @@ def dashboard():
                 }
             )
 
-        # ----------------------------------------------------------
-        # PENDÊNCIAS
-        # ----------------------------------------------------------
-
         pendencias = []
 
         if total_professores == 0:
@@ -233,10 +247,6 @@ def dashboard():
                 f"{disponibilidades_pendentes} professor(es) sem disponibilidade."
             )
 
-        # ----------------------------------------------------------
-        # ÚLTIMAS GRADES
-        # ----------------------------------------------------------
-
         ultimas_grades = (
             db.session.query(Grade)
             .order_by(Grade.criado_em.desc())
@@ -248,26 +258,18 @@ def dashboard():
 
         print(f"Erro ao buscar dados da dashboard: {e}")
 
-        escola_cadastrada = None
         total_professores = 0
         total_turmas = 0
         total_disciplinas = 0
-
         turmas_com_matriz = 0
         professores_com_disponibilidade = 0
-
         progresso_geral = 0
         progresso_turmas = []
-
-        pendencias = [
-            "Não foi possível carregar o resumo da escola."
-        ]
-
+        pendencias = ["Não foi possível carregar o resumo da escola."]
         ultimas_grades = []
 
     return render_template(
         "dashboard.html",
-        escola=escola_cadastrada,  # <--- VARIÁVEL DA ESCOLA PASSADA AQUI!
         professores=total_professores,
         turmas=total_turmas,
         disciplinas=total_disciplinas,
@@ -281,7 +283,7 @@ def dashboard():
 
 
 # ------------------------------------------------------------------
-# VER GRADE SALVA (LEITURA PURA DO POSTGRESQL)
+# VER GRADE SALVA
 # ------------------------------------------------------------------
 
 @app.route("/ver-grade")
@@ -295,7 +297,6 @@ def tela_ver_grade():
     grade = Grade.query.get_or_404(grade_id)
     aulas = GradeAula.query.filter_by(grade_id=grade.id).all()
 
-    # Dicionarios de busca rapida para garantir nomes e cores
     turmas_dict = {t.id: t.nome for t in Turma.query.all()}
     profs_dict = {p.id: p.nome for p in Professor.query.all()}
     discs_obj = Disciplina.query.all()
@@ -307,7 +308,6 @@ def tela_ver_grade():
         for d in discs_obj
     }
 
-    # Monta a lista serializável de aulas para o frontend em JS
     aulas_lista = []
     grade_dict = {
         "id": grade.id,
@@ -376,6 +376,7 @@ def tela_ver_grade():
         aulas_json=aulas_lista,
         grade=grade
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
