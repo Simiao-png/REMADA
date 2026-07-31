@@ -108,6 +108,7 @@
                                             type="checkbox"
                                             id="segmentoFundamental1"
                                             data-segmento="fundamental_1"
+                                            {% if "fundamental_1" in segmentos_ativos_codigos %}checked{% endif %}
                                             onclick="event.stopPropagation()">
                                     </div>
                                 </div>
@@ -124,7 +125,7 @@
                                             type="checkbox"
                                             id="segmentoFundamental2"
                                             data-segmento="fundamental_2"
-                                            checked
+                                            {% if "fundamental_2" in segmentos_ativos_codigos %}checked{% endif %}
                                             onclick="event.stopPropagation()">
                                     </div>
                                 </div>
@@ -141,6 +142,7 @@
                                             type="checkbox"
                                             id="segmentoEnsinoMedio"
                                             data-segmento="ensino_medio"
+                                            {% if "ensino_medio" in segmentos_ativos_codigos %}checked{% endif %}
                                             onclick="event.stopPropagation()">
                                     </div>
                                 </div>
@@ -157,6 +159,7 @@
                                             type="checkbox"
                                             id="segmentoCursinho"
                                             data-segmento="cursinho"
+                                            {% if "cursinho" in segmentos_ativos_codigos %}checked{% endif %}
                                             onclick="event.stopPropagation()">
                                     </div>
                                 </div>
@@ -297,27 +300,20 @@
             role="tabpanel">
 
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
-
                 <div>
                     <h4 class="fw-bold mb-1">Matriz Curricular</h4>
                     <p class="text-muted mb-0">
-                        Selecione uma turma e defina a quantidade de aulas semanais de cada disciplina.
+                        Selecione uma turma e distribua a carga semanal entre as disciplinas.
                     </p>
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row align-items-sm-end gap-2">
-
                     <div style="min-width: 280px;">
-                        <label
-                            for="turmaMatrizCurricular"
-                            class="form-label fw-semibold">
+                        <label for="turmaMatrizCurricular" class="form-label fw-semibold">
                             Turma
                         </label>
 
-                        <select
-                            id="turmaMatrizCurricular"
-                            class="form-select">
-
+                        <select id="turmaMatrizCurricular" class="form-select">
                             <option value="">Selecione uma turma</option>
 
                             {% for turma in turmas %}
@@ -328,135 +324,128 @@
                                     {{ turma.nome }} — {{ turma.turno }}
                                 </option>
                             {% endfor %}
-
                         </select>
                     </div>
 
                     <button
+                        type="button"
                         class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
-                        onclick="abrirModalCadastroDisciplina()">
+                        onclick="abrirModalCadastroDisciplinaComAutosave()">
                         <i class="bi bi-plus-circle"></i>
                         Nova Disciplina
                     </button>
-
                 </div>
-
             </div>
 
             <div class="card-remada" id="secaoMatrizCurricular">
-
                 {% if disciplinas %}
+                    <div id="painelResumoMatriz" class="matriz-resumo mb-4 d-none">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                            <div>
+                                <div class="text-muted small">Carga semanal da turma</div>
+                                <div class="fw-bold fs-4">
+                                    <span id="totalAulasMatriz">0</span>
+                                    <span class="text-muted fw-normal">/</span>
+                                    <span id="capacidadeAulasMatriz">0</span>
+                                    <span class="fs-6 fw-normal text-muted">aulas</span>
+                                </div>
+                            </div>
 
-                    <div class="table-responsive">
+                            <div id="statusCargaMatriz" class="matriz-status matriz-status-neutro">
+                                Selecione uma turma
+                            </div>
+                        </div>
 
-                        <table class="table table-hover align-middle mb-0">
+                        <div class="progress matriz-progresso" role="progressbar" aria-label="Carga semanal da matriz">
+                            <div
+                                id="barraProgressoMatriz"
+                                class="progress-bar"
+                                style="width: 0%;"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow="0">
+                            </div>
+                        </div>
+                    </div>
 
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Disciplina</th>
-                                    <th style="width: 220px;">
-                                        Aulas por semana
-                                    </th>
-                                    <th
-                                        class="text-end"
-                                        style="width: 130px;">
-                                        Ações
-                                    </th>
-                                </tr>
-                            </thead>
+                    <div id="gradeDisciplinasMatriz" class="row g-3">
+                        {% for disciplina in disciplinas %}
+                            <div class="col-12 col-lg-6">
+                                <div
+                                    class="matriz-disciplina-card"
+                                    data-card-disciplina-id="{{ disciplina.id }}">
 
-                            <tbody>
-
-                                {% for disciplina in disciplinas %}
-
-                                <tr>
-                                    <td class="fw-semibold">
-
+                                    <div class="d-flex align-items-center gap-2 min-width-0">
                                         <span
-                                            class="disciplina-cor-bolinha me-2"
+                                            class="disciplina-cor-bolinha flex-shrink-0"
                                             data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
                                         </span>
 
-                                        <span
-                                            class="badge badge-disciplina-colorida"
-                                            data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
+                                        <span class="fw-semibold text-truncate">
                                             {{ disciplina.nome }}
                                         </span>
+                                    </div>
 
-                                    </td>
+                                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary matriz-controle-botao"
+                                            data-acao="diminuir"
+                                            data-disciplina-id="{{ disciplina.id }}"
+                                            disabled
+                                            aria-label="Diminuir aulas de {{ disciplina.nome }}">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
 
-                                    <td>
                                         <input
                                             type="number"
                                             class="form-control carga-matriz-curricular"
                                             min="0"
                                             max="20"
+                                            step="1"
                                             value="0"
                                             data-disciplina-id="{{ disciplina.id }}"
+                                            disabled
                                             aria-label="Aulas semanais de {{ disciplina.nome }}">
-                                    </td>
-
-                                    <td class="text-end">
 
                                         <button
-                                            class="btn btn-sm btn-outline-primary"
-                                            title="Editar disciplina"
-                                            data-id="{{ disciplina.id }}"
-                                            data-nome="{{ disciplina.nome }}"
-                                            data-cor="{{ disciplina.cor or '#2563EB' }}"
-                                            onclick="abrirModalEdicaoDisciplina(this)">
-                                            <i class="bi bi-pencil"></i>
+                                            type="button"
+                                            class="btn btn-sm btn-outline-primary matriz-controle-botao"
+                                            data-acao="aumentar"
+                                            data-disciplina-id="{{ disciplina.id }}"
+                                            disabled
+                                            aria-label="Aumentar aulas de {{ disciplina.nome }}">
+                                            <i class="bi bi-plus-lg"></i>
                                         </button>
-
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="Excluir disciplina"
-                                            onclick="deletarDisciplina('{{ disciplina.id }}','{{ disciplina.nome }}')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-
-                                    </td>
-                                </tr>
-
-                                {% endfor %}
-
-                            </tbody>
-
-                        </table>
-
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
 
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 pt-4 border-top">
+                        <div id="avisoMatrizCurricular" class="alert alert-info mb-0 flex-grow-1">
+                            Selecione uma turma para configurar a matriz curricular.
+                        </div>
 
-                        <div>
-                            <div class="text-muted small">
-                                Total da turma
-                            </div>
-
-                            <div class="fw-bold fs-5">
-                                <span id="totalAulasMatriz">0</span>
-                                aulas semanais
-                            </div>
+                        <div
+                            id="statusAutosaveMatriz"
+                            class="small text-muted d-inline-flex align-items-center gap-2 flex-shrink-0">
+                            <i class="bi bi-cloud-check"></i>
+                            Salvamento automático ativo
                         </div>
 
                         <button
                             type="button"
                             id="btnSalvarMatrizCurricular"
-                            class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+                            class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0"
                             disabled>
                             <i class="bi bi-check-circle"></i>
                             Salvar Matriz Curricular
                         </button>
-
                     </div>
 
-                    <div
-                        id="avisoMatrizCurricular"
-                        class="alert alert-info mt-4 mb-0">
-                        Selecione uma turma para configurar a matriz curricular.
-                    </div>
-
-                    <div id="matrizesCurricularesSalvas" class="mt-4">
+                    <div id="matrizesCurricularesSalvas" class="mt-4 pt-4 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1">Matrizes cadastradas</h5>
@@ -474,33 +463,22 @@
                             </div>
                         </div>
                     </div>
-
                 {% else %}
-
                     <div class="text-center py-5">
-
                         <i class="bi bi-book fs-1 text-secondary d-block mb-3"></i>
-
-                        <h5 class="mb-2">
-                            Nenhuma disciplina cadastrada
-                        </h5>
-
+                        <h5 class="mb-2">Nenhuma disciplina cadastrada</h5>
                         <p class="text-muted mb-3">
                             Cadastre as disciplinas para montar a matriz curricular.
                         </p>
-
                         <button
+                            type="button"
                             class="btn btn-primary"
-                            onclick="abrirModalCadastroDisciplina()">
+                            onclick="abrirModalCadastroDisciplinaComAutosave()">
                             Nova Disciplina
                         </button>
-
                     </div>
-
                 {% endif %}
-
             </div>
-
         </div>
 
         <div
@@ -569,9 +547,9 @@
                                     {% if prof.segmentos %}
                                         <div class="d-flex flex-wrap gap-1">
                                             {% for vinculo in prof.segmentos %}
-                                                {% if vinculo.segmento == "fundamental_i" %}
+                                                {% if vinculo.segmento == "fundamental_1" %}
                                                     <span class="segmento-badge badge-fundamental-1 px-2 py-1">Fundamental I</span>
-                                                {% elif vinculo.segmento == "fundamental_ii" %}
+                                                {% elif vinculo.segmento == "fundamental_2" %}
                                                     <span class="segmento-badge badge-fundamental-2 px-2 py-1">Fundamental II</span>
                                                 {% elif vinculo.segmento == "ensino_medio" %}
                                                     <span class="segmento-badge badge-ensino-medio px-2 py-1">Ensino Médio</span>
@@ -661,15 +639,32 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">Turmas</h4>
-                    <p class="text-muted mb-0">
+                    <p class="text-muted mb-2">
                         Cadastre as turmas que farão parte da grade horária.
                     </p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="small fw-semibold text-muted">Segmentos ativos:</span>
+                        {% if segmentos_ativos %}
+                            {% for segmento in segmentos_ativos %}
+                                <span class="segmento-badge {{ segmento.classe_cor }} px-2 py-1">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ segmento.nome }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                Nenhum segmento ativo
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2">
                     <button
                         class="btn btn-primary d-inline-flex align-items-center gap-2"
-                        onclick="abrirModalCadastroTurma()">
+                        onclick="abrirModalCadastroTurma()"
+                        {% if not possui_segmentos_ativos %}disabled title="Ative um segmento nos Parâmetros"{% endif %}>
                         <i class="bi bi-people"></i>
                         Nova Turma
                     </button>
@@ -683,6 +678,16 @@
                     </button>
                 </div>
             </div>
+
+            {% if not possui_segmentos_ativos %}
+                <div class="alert alert-warning d-flex align-items-start gap-2">
+                    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                    <div>
+                        <strong>Nenhum segmento está ativo.</strong><br>
+                        Ative pelo menos um segmento na aba Parâmetros antes de cadastrar turmas.
+                    </div>
+                </div>
+            {% endif %}
 
             <div class="card-remada">
                 <div class="table-responsive">
@@ -711,9 +716,9 @@
                                 </td>
 
                                 <td>
-                                    {% if turma.segmento == "fundamental_i" %}
+                                    {% if turma.segmento == "fundamental_1" %}
                                         <span class="segmento-badge badge-fundamental-1 px-2 py-1">Fundamental I</span>
-                                    {% elif turma.segmento == "fundamental_ii" %}
+                                    {% elif turma.segmento == "fundamental_2" %}
                                         <span class="segmento-badge badge-fundamental-2 px-2 py-1">Fundamental II</span>
                                     {% elif turma.segmento == "ensino_medio" %}
                                         <span class="segmento-badge badge-ensino-medio px-2 py-1">Ensino Médio</span>
@@ -982,12 +987,12 @@
                         <label class="form-label d-block">Segmentos de atuação</label>
 
                         <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_i" id="segmentoProfessorFundamentalI">
+                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_1" id="segmentoProfessorFundamentalI">
                             <label class="form-check-label" for="segmentoProfessorFundamentalI">Fundamental I</label>
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_ii" id="segmentoProfessorFundamentalII">
+                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_2" id="segmentoProfessorFundamentalII">
                             <label class="form-check-label" for="segmentoProfessorFundamentalII">Fundamental II</label>
                         </div>
 
@@ -1119,12 +1124,18 @@
                             required>
 
                             <option value="">Selecione</option>
-                            <option value="fundamental_i">Fundamental I</option>
-                            <option value="fundamental_ii">Fundamental II</option>
-                            <option value="ensino_medio">Ensino Médio</option>
-                            <option value="cursinho">Cursinho</option>
+
+                            {% for segmento in segmentos_ativos %}
+                                <option value="{{ segmento.codigo }}">
+                                    {{ segmento.nome }}
+                                </option>
+                            {% endfor %}
 
                         </select>
+
+                        <div class="form-text">
+                            Apenas os segmentos ativos nos Parâmetros aparecem aqui.
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -1326,16 +1337,91 @@
     #btnMaisCores i {
         margin-right: 6px;
     }
-    #secaoMatrizCurricular { scroll-margin-top: 24px; }
-    .carga-matriz-curricular {
-        max-width: 140px;
-        text-align: center;
-        font-weight: 700;
+    #secaoMatrizCurricular {
+        scroll-margin-top: 24px;
     }
 
-    #secaoMatrizCurricular .table td,
-    #secaoMatrizCurricular .table th {
-        vertical-align: middle;
+    .matriz-resumo {
+        border: 1px solid #dee2e6;
+        border-radius: 14px;
+        padding: 18px;
+        background: #f8f9fa;
+    }
+
+    .matriz-progresso {
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .matriz-status {
+        border-radius: 999px;
+        padding: .45rem .8rem;
+        font-size: .8rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .matriz-status-neutro {
+        color: #495057;
+        background: #e9ecef;
+    }
+
+    .matriz-status-incompleta {
+        color: #084298;
+        background: #cfe2ff;
+    }
+
+    .matriz-status-completa {
+        color: #0f5132;
+        background: #d1e7dd;
+    }
+
+    .matriz-status-excedida {
+        color: #842029;
+        background: #f8d7da;
+    }
+
+    .matriz-disciplina-card {
+        min-height: 76px;
+        border: 1px solid #dee2e6;
+        border-left: 5px solid #ced4da;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        transition: all .15s ease-in-out;
+    }
+
+    .matriz-disciplina-card.ativa {
+        border-left-color: #0d6efd;
+        background: #f8fbff;
+        box-shadow: 0 4px 14px rgba(13, 110, 253, .08);
+    }
+
+    .matriz-disciplina-card.excedida {
+        border-left-color: #dc3545;
+        background: #fff8f8;
+    }
+
+    .carga-matriz-curricular {
+        width: 70px;
+        min-width: 70px;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    .matriz-controle-botao {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
     }
 
     .matriz-salva-card {
@@ -1367,6 +1453,13 @@
         font-weight: 700;
         white-space: nowrap;
     }
+
+    @media (max-width: 575.98px) {
+        .matriz-disciplina-card {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
 </style>
 
 <script>
@@ -1384,38 +1477,9 @@
         cursinho: "badge-cursinho"
     };
 
-    const parametrosPorSegmento = {
-        fundamental_1: {
-            ativo: false,
-            aulas_por_dia: 5,
-            duracao_aula: 50,
-            duracao_intervalo: 15,
-            tem_aula_sabado: false
-        },
-        fundamental_2: {
-            ativo: true,
-            aulas_por_dia: 6,
-            duracao_aula: 50,
-            duracao_intervalo: 15,
-            tem_aula_sabado: false
-        },
-        ensino_medio: {
-            ativo: false,
-            aulas_por_dia: 7,
-            duracao_aula: 50,
-            duracao_intervalo: 15,
-            tem_aula_sabado: false
-        },
-        cursinho: {
-            ativo: false,
-            aulas_por_dia: 6,
-            duracao_aula: 50,
-            duracao_intervalo: 15,
-            tem_aula_sabado: false
-        }
-    };
+    const parametrosPorSegmento = {{ parametros_segmentos | tojson }};
 
-    let segmentoAtualParametro = "fundamental_2";
+    let segmentoAtualParametro = {{ segmento_inicial | tojson }};
 
     function salvarFormularioSegmentoAtual() {
         if (!segmentoAtualParametro) return;
@@ -1453,6 +1517,7 @@
 
         if(resposta.ok){
             alert("Parâmetros salvos com sucesso!");
+            window.location.reload();
         }else{
         alert(await resposta.text());
     }
@@ -1725,21 +1790,57 @@
         }
 
         setTimeout(function () {
-            const secao = document.getElementById("secaoMatrizCurricular");
-
-            if (secao) {
-                secao.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }
+            document.getElementById("secaoMatrizCurricular")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
         }, 200);
     }
 
+    let capacidadeSemanalMatriz = 0;
+    let carregandoMatrizCurricular = false;
+    let temporizadorAutosaveMatriz = null;
+    let salvandoAutomaticamenteMatriz = false;
+    let autosaveMatrizPendente = false;
+    let ultimaAssinaturaMatrizSalva = "";
+
     function obterCamposMatrizCurricular() {
-        return Array.from(
-            document.querySelectorAll(".carga-matriz-curricular")
-        );
+        return Array.from(document.querySelectorAll(".carga-matriz-curricular"));
+    }
+
+    function obterBotoesMatrizCurricular() {
+        return Array.from(document.querySelectorAll(".matriz-controle-botao"));
+    }
+
+    function normalizarValorMatriz(campo) {
+        let valor = Number.parseInt(campo.value, 10);
+
+        if (!Number.isInteger(valor) || valor < 0) {
+            valor = 0;
+        }
+
+        if (valor > 20) {
+            valor = 20;
+        }
+
+        campo.value = valor;
+        return valor;
+    }
+
+    function calcularTotalMatrizCurricular() {
+        return obterCamposMatrizCurricular().reduce(function (total, campo) {
+            return total + normalizarValorMatriz(campo);
+        }, 0);
+    }
+
+    function bloquearCamposMatrizCurricular(bloquear) {
+        obterCamposMatrizCurricular().forEach(function (campo) {
+            campo.disabled = bloquear;
+        });
+
+        obterBotoesMatrizCurricular().forEach(function (botao) {
+            botao.disabled = bloquear;
+        });
     }
 
     function limparMatrizCurricular() {
@@ -1747,28 +1848,8 @@
             campo.value = 0;
         });
 
-        atualizarTotalMatrizCurricular();
-    }
-
-    function bloquearCamposMatrizCurricular(bloquear) {
-        obterCamposMatrizCurricular().forEach(function (campo) {
-            campo.disabled = bloquear;
-        });
-    }
-
-    function atualizarTotalMatrizCurricular() {
-        const total = obterCamposMatrizCurricular().reduce(
-            function (soma, campo) {
-                return soma + (Number(campo.value) || 0);
-            },
-            0
-        );
-
-        const elemento = document.getElementById("totalAulasMatriz");
-
-        if (elemento) {
-            elemento.innerText = total;
-        }
+        capacidadeSemanalMatriz = 0;
+        atualizarResumoMatrizCurricular();
     }
 
     function mostrarAvisoMatrizCurricular(tipo, mensagem) {
@@ -1778,62 +1859,255 @@
             return;
         }
 
-        aviso.className = `alert alert-${tipo} mt-4 mb-0`;
+        aviso.className = `alert alert-${tipo} mb-0 flex-grow-1`;
         aviso.innerText = mensagem;
     }
 
-    function atualizarEstadoMatrizCurricular() {
-        const turma = document.getElementById("turmaMatrizCurricular");
-        const botao = document.getElementById("btnSalvarMatrizCurricular");
+    function atualizarCardsDisciplinas(totalUltrapassou) {
+        obterCamposMatrizCurricular().forEach(function (campo) {
+            const card = document.querySelector(
+                `[data-card-disciplina-id="${campo.dataset.disciplinaId}"]`
+            );
 
-        if (!turma || !botao) {
+            if (!card) {
+                return;
+            }
+
+            const valor = Number(campo.value) || 0;
+            card.classList.toggle("ativa", valor > 0);
+            card.classList.toggle("excedida", totalUltrapassou && valor > 0);
+        });
+    }
+
+    function atualizarResumoMatrizCurricular() {
+        const turma = document.getElementById("turmaMatrizCurricular");
+        const botaoSalvar = document.getElementById("btnSalvarMatrizCurricular");
+        const painelResumo = document.getElementById("painelResumoMatriz");
+        const totalElemento = document.getElementById("totalAulasMatriz");
+        const capacidadeElemento = document.getElementById("capacidadeAulasMatriz");
+        const status = document.getElementById("statusCargaMatriz");
+        const barra = document.getElementById("barraProgressoMatriz");
+
+        if (!turma || !botaoSalvar) {
             return;
         }
 
-        const turmaSelecionada = turma.value !== "";
+        const turmaSelecionada = Boolean(turma.value);
+        const total = calcularTotalMatrizCurricular();
+        const capacidade = Number(capacidadeSemanalMatriz) || 0;
+        const ultrapassou = capacidade > 0 && total > capacidade;
+        const completa = capacidade > 0 && total === capacidade;
+        const faltam = Math.max(capacidade - total, 0);
+        const excedeu = Math.max(total - capacidade, 0);
 
-        botao.disabled = !turmaSelecionada;
-        bloquearCamposMatrizCurricular(!turmaSelecionada);
+        if (painelResumo) {
+            painelResumo.classList.toggle("d-none", !turmaSelecionada);
+        }
+
+        if (totalElemento) {
+            totalElemento.innerText = total;
+        }
+
+        if (capacidadeElemento) {
+            capacidadeElemento.innerText = capacidade;
+        }
+
+        if (status) {
+            status.className = "matriz-status";
+
+            if (!turmaSelecionada || capacidade === 0) {
+                status.classList.add("matriz-status-neutro");
+                status.innerText = "Aguardando turma";
+            } else if (ultrapassou) {
+                status.classList.add("matriz-status-excedida");
+                status.innerText = `Excedeu ${excedeu} aula(s)`;
+            } else if (completa) {
+                status.classList.add("matriz-status-completa");
+                status.innerText = "Carga completa";
+            } else {
+                status.classList.add("matriz-status-incompleta");
+                status.innerText = `Faltam ${faltam} aula(s)`;
+            }
+        }
+
+        if (barra) {
+            const percentual = capacidade > 0
+                ? Math.min((total / capacidade) * 100, 100)
+                : 0;
+
+            barra.style.width = `${percentual}%`;
+            barra.setAttribute("aria-valuenow", String(Math.round(percentual)));
+            barra.className = "progress-bar";
+
+            if (ultrapassou) {
+                barra.classList.add("bg-danger");
+            } else if (completa) {
+                barra.classList.add("bg-success");
+            } else {
+                barra.classList.add("bg-primary");
+            }
+        }
+
+        atualizarCardsDisciplinas(ultrapassou);
+
+        botaoSalvar.disabled = (
+            !turmaSelecionada ||
+            carregandoMatrizCurricular ||
+            capacidade === 0 ||
+            ultrapassou
+        );
 
         if (!turmaSelecionada) {
-            limparMatrizCurricular();
             mostrarAvisoMatrizCurricular(
                 "info",
                 "Selecione uma turma para configurar a matriz curricular."
             );
+        } else if (ultrapassou) {
+            mostrarAvisoMatrizCurricular(
+                "danger",
+                `A matriz ultrapassou a carga da turma em ${excedeu} aula(s). Reduza a quantidade antes de salvar.`
+            );
+        } else if (completa) {
+            mostrarAvisoMatrizCurricular(
+                "success",
+                "A carga semanal está completa. A matriz já pode ser salva."
+            );
+        } else if (capacidade > 0) {
+            mostrarAvisoMatrizCurricular(
+                "warning",
+                `Ainda faltam ${faltam} aula(s) para completar a carga semanal da turma.`
+            );
         }
+    }
+
+    function atualizarStatusAutosaveMatriz(tipo, mensagem) {
+        const status = document.getElementById("statusAutosaveMatriz");
+
+        if (!status) {
+            return;
+        }
+
+        const configuracoes = {
+            neutro: ["text-muted", "bi-cloud-check"],
+            alterado: ["text-warning", "bi-pencil-square"],
+            salvando: ["text-primary", "bi-arrow-repeat"],
+            salvo: ["text-success", "bi-check-circle-fill"],
+            erro: ["text-danger", "bi-exclamation-circle-fill"]
+        };
+
+        const configuracao = configuracoes[tipo] || configuracoes.neutro;
+        status.className = `small ${configuracao[0]} d-inline-flex align-items-center gap-2 flex-shrink-0`;
+        status.innerHTML = `<i class="bi ${configuracao[1]}"></i>${mensagem}`;
+    }
+
+    function montarPayloadMatrizCurricular() {
+        return obterCamposMatrizCurricular().map(function (campo) {
+            return {
+                disciplina_id: Number(campo.dataset.disciplinaId),
+                aulas_por_semana: normalizarValorMatriz(campo)
+            };
+        });
+    }
+
+    function obterAssinaturaMatrizAtual() {
+        const turma = document.getElementById("turmaMatrizCurricular");
+
+        if (!turma || !turma.value) {
+            return "";
+        }
+
+        return JSON.stringify({
+            turma_id: String(turma.value),
+            disciplinas: montarPayloadMatrizCurricular()
+        });
+    }
+
+    function agendarAutosaveMatriz() {
+        const turma = document.getElementById("turmaMatrizCurricular");
+        const total = calcularTotalMatrizCurricular();
+
+        if (!turma || !turma.value || carregandoMatrizCurricular) {
+            return;
+        }
+
+        if (capacidadeSemanalMatriz > 0 && total > capacidadeSemanalMatriz) {
+            window.clearTimeout(temporizadorAutosaveMatriz);
+            atualizarStatusAutosaveMatriz("erro", "Corrija o excesso para salvar");
+            return;
+        }
+
+        const assinaturaAtual = obterAssinaturaMatrizAtual();
+
+        if (!assinaturaAtual || assinaturaAtual === ultimaAssinaturaMatrizSalva) {
+            return;
+        }
+
+        window.clearTimeout(temporizadorAutosaveMatriz);
+        autosaveMatrizPendente = true;
+        atualizarStatusAutosaveMatriz("alterado", "Alterações pendentes");
+
+        temporizadorAutosaveMatriz = window.setTimeout(function () {
+            salvarMatrizCurricular({ automatico: true });
+        }, 700);
+    }
+
+    async function abrirModalCadastroDisciplinaComAutosave() {
+        window.clearTimeout(temporizadorAutosaveMatriz);
+
+        const assinaturaAtual = obterAssinaturaMatrizAtual();
+
+        if (
+            assinaturaAtual &&
+            assinaturaAtual !== ultimaAssinaturaMatrizSalva
+        ) {
+            const salvou = await salvarMatrizCurricular({ automatico: true });
+
+            if (!salvou) {
+                return;
+            }
+        }
+
+        abrirModalCadastroDisciplina();
+    }
+
+    function alterarCargaDisciplina(disciplinaId, variacao) {
+        const campo = document.querySelector(
+            `.carga-matriz-curricular[data-disciplina-id="${disciplinaId}"]`
+        );
+
+        if (!campo || campo.disabled) {
+            return;
+        }
+
+        const valorAtual = normalizarValorMatriz(campo);
+        campo.value = Math.min(20, Math.max(0, valorAtual + variacao));
+        atualizarResumoMatrizCurricular();
+        agendarAutosaveMatriz();
     }
 
     async function carregarMatrizCurricular() {
         const turma = document.getElementById("turmaMatrizCurricular");
-        const botao = document.getElementById("btnSalvarMatrizCurricular");
 
-        if (!turma || !botao) {
+        if (!turma) {
             return;
         }
 
         const turmaId = turma.value;
-
-        atualizarEstadoMatrizCurricular();
+        limparMatrizCurricular();
 
         if (!turmaId) {
+            bloquearCamposMatrizCurricular(true);
+            atualizarResumoMatrizCurricular();
             return;
         }
 
-        limparMatrizCurricular();
+        carregandoMatrizCurricular = true;
         bloquearCamposMatrizCurricular(true);
-        botao.disabled = true;
-
-        mostrarAvisoMatrizCurricular(
-            "info",
-            "Carregando a matriz curricular da turma..."
-        );
+        mostrarAvisoMatrizCurricular("info", "Carregando a matriz curricular da turma...");
+        atualizarResumoMatrizCurricular();
 
         try {
-            const response = await fetch(
-                `/turmas/${turmaId}/matriz-curricular`
-            );
-
+            const response = await fetch(`/turmas/${turmaId}/matriz-curricular`);
             const dados = await response.json().catch(function () {
                 return {};
             });
@@ -1844,8 +2118,20 @@
                 );
             }
 
+            capacidadeSemanalMatriz = Number(
+                dados.configuracao?.capacidade_semanal ||
+                dados.resumo?.capacidade_semanal ||
+                0
+            );
+
+            const disciplinas = Array.isArray(dados.disciplinas)
+                ? dados.disciplinas
+                : Array.isArray(dados)
+                    ? dados
+                    : [];
+
             const cargasPorDisciplina = new Map(
-                dados.map(function (item) {
+                disciplinas.map(function (item) {
                     return [
                         String(item.disciplina_id),
                         Number(item.aulas_por_semana) || 0
@@ -1859,31 +2145,27 @@
                 ) || 0;
             });
 
-            atualizarTotalMatrizCurricular();
-            bloquearCamposMatrizCurricular(false);
-            botao.disabled = false;
+            ultimaAssinaturaMatrizSalva = obterAssinaturaMatrizAtual();
+            autosaveMatrizPendente = false;
+            atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
 
             mostrarAvisoMatrizCurricular(
-                "success",
-                "Matriz curricular carregada. Faça as alterações e clique em Salvar Matriz Curricular."
+                "info",
+                "Matriz carregada. As alterações serão salvas automaticamente."
             );
         } catch (erro) {
+            capacidadeSemanalMatriz = 0;
             limparMatrizCurricular();
+            mostrarAvisoMatrizCurricular("danger", erro.message);
+        } finally {
+            carregandoMatrizCurricular = false;
             bloquearCamposMatrizCurricular(false);
-            botao.disabled = false;
-
-            mostrarAvisoMatrizCurricular(
-                "danger",
-                erro.message
-            );
+            atualizarResumoMatrizCurricular();
         }
     }
 
-
     function nomeSegmentoMatriz(segmento) {
         const nomes = {
-            fundamental_i: "Fundamental I",
-            fundamental_ii: "Fundamental II",
             fundamental_1: "Fundamental I",
             fundamental_2: "Fundamental II",
             ensino_medio: "Ensino Médio",
@@ -1914,15 +2196,10 @@
 
         turma.value = String(turmaId);
         turma.dispatchEvent(new Event("change"));
-
-        const secao = document.getElementById("secaoMatrizCurricular");
-
-        if (secao) {
-            secao.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
+        document.getElementById("secaoMatrizCurricular")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
     async function carregarListaMatrizesCurriculares() {
@@ -1950,9 +2227,7 @@
 
         lista.innerHTML = `
             <div class="col-12">
-                <div class="text-muted small">
-                    Carregando matrizes cadastradas...
-                </div>
+                <div class="text-muted small">Carregando matrizes cadastradas...</div>
             </div>
         `;
 
@@ -1968,34 +2243,38 @@
                     }
 
                     const dados = await response.json();
+                    const disciplinas = Array.isArray(dados.disciplinas)
+                        ? dados.disciplinas
+                        : Array.isArray(dados)
+                            ? dados
+                            : [];
 
-                    const disciplinasPreenchidas = Array.isArray(dados)
-                        ? dados.filter(function (item) {
-                            return Number(item.aulas_por_semana) > 0;
-                        })
-                        : [];
+                    const preenchidas = disciplinas.filter(function (item) {
+                        return Number(item.aulas_por_semana) > 0;
+                    });
 
-                    if (disciplinasPreenchidas.length === 0) {
+                    if (preenchidas.length === 0) {
                         return null;
                     }
 
-                    const totalAulas = disciplinasPreenchidas.reduce(
-                        function (total, item) {
-                            return total + (Number(item.aulas_por_semana) || 0);
-                        },
+                    const totalAulas = preenchidas.reduce(function (total, item) {
+                        return total + (Number(item.aulas_por_semana) || 0);
+                    }, 0);
+
+                    const capacidade = Number(
+                        dados.configuracao?.capacidade_semanal ||
+                        dados.resumo?.capacidade_semanal ||
                         0
                     );
 
-                    const nomeCompleto = opcao.textContent.trim();
-                    const nomeTurma = nomeCompleto.split("—")[0].trim();
-
                     return {
                         turmaId: opcao.value,
-                        nome: nomeTurma,
+                        nome: opcao.textContent.trim().split("—")[0].trim(),
                         turno: opcao.dataset.turno || "",
                         segmento: opcao.dataset.segmento || "",
                         totalAulas: totalAulas,
-                        totalDisciplinas: disciplinasPreenchidas.length
+                        capacidade: capacidade,
+                        totalDisciplinas: preenchidas.length
                     };
                 } catch (erro) {
                     return null;
@@ -2021,9 +2300,10 @@
                 ? "1 disciplina"
                 : `${matriz.totalDisciplinas} disciplinas`;
 
-            const textoTurno = matriz.turno
-                ? ` · ${matriz.turno}`
-                : "";
+            const textoTurno = matriz.turno ? ` · ${matriz.turno}` : "";
+            const textoCarga = matriz.capacidade > 0
+                ? `${matriz.totalAulas}/${matriz.capacidade} aulas`
+                : `${matriz.totalAulas} aulas`;
 
             return `
                 <div class="col-12 col-lg-6">
@@ -2050,7 +2330,7 @@
                             </div>
 
                             <div class="matriz-salva-total text-primary">
-                                ${matriz.totalAulas} aulas
+                                ${textoCarga}
                             </div>
                         </div>
                     </button>
@@ -2061,37 +2341,57 @@
         destacarMatrizSelecionada();
     }
 
-    async function salvarMatrizCurricular() {
+    async function salvarMatrizCurricular(opcoes = {}) {
+        const automatico = Boolean(opcoes.automatico);
         const turma = document.getElementById("turmaMatrizCurricular");
         const botao = document.getElementById("btnSalvarMatrizCurricular");
 
         if (!turma || !botao || !turma.value) {
-            mostrarAvisoMatrizCurricular(
-                "warning",
-                "Selecione uma turma antes de salvar."
-            );
-            return;
+            if (!automatico) {
+                mostrarAvisoMatrizCurricular("warning", "Selecione uma turma antes de salvar.");
+            }
+            return false;
         }
 
-        const disciplinas = obterCamposMatrizCurricular().map(
-            function (campo) {
-                return {
-                    disciplina_id: Number(campo.dataset.disciplinaId),
-                    aulas_por_semana: Math.max(
-                        0,
-                        Number.parseInt(campo.value, 10) || 0
-                    )
-                };
-            }
-        );
+        const total = calcularTotalMatrizCurricular();
 
-        botao.disabled = true;
+        if (capacidadeSemanalMatriz > 0 && total > capacidadeSemanalMatriz) {
+            mostrarAvisoMatrizCurricular(
+                "danger",
+                `A matriz ultrapassou a carga da turma em ${total - capacidadeSemanalMatriz} aula(s).`
+            );
+            atualizarStatusAutosaveMatriz("erro", "Corrija o excesso para salvar");
+            return false;
+        }
+
+        const disciplinas = montarPayloadMatrizCurricular();
+        const assinaturaEnviada = obterAssinaturaMatrizAtual();
+
+        if (
+            automatico &&
+            assinaturaEnviada &&
+            assinaturaEnviada === ultimaAssinaturaMatrizSalva
+        ) {
+            autosaveMatrizPendente = false;
+            atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
+            return true;
+        }
+
+        if (automatico && salvandoAutomaticamenteMatriz) {
+            autosaveMatrizPendente = true;
+            return true;
+        }
+
+        carregandoMatrizCurricular = true;
+        salvandoAutomaticamenteMatriz = automatico;
+        autosaveMatrizPendente = false;
         bloquearCamposMatrizCurricular(true);
-
-        mostrarAvisoMatrizCurricular(
-            "info",
-            "Salvando a matriz curricular..."
-        );
+        atualizarResumoMatrizCurricular();
+        if (automatico) {
+            atualizarStatusAutosaveMatriz("salvando", "Salvando...");
+        } else {
+            mostrarAvisoMatrizCurricular("info", "Salvando a matriz curricular...");
+        }
 
         try {
             const response = await fetch(
@@ -2101,9 +2401,7 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        disciplinas: disciplinas
-                    })
+                    body: JSON.stringify({ disciplinas: disciplinas })
                 }
             );
 
@@ -2117,21 +2415,32 @@
                 );
             }
 
-            mostrarAvisoMatrizCurricular(
-                "success",
-                dados.mensagem || "Matriz curricular salva com sucesso!"
-            );
+            ultimaAssinaturaMatrizSalva = assinaturaEnviada;
+            atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
+
+            if (!automatico) {
+                mostrarAvisoMatrizCurricular(
+                    "success",
+                    dados.mensagem || "Matriz curricular salva com sucesso!"
+                );
+            }
 
             await carregarListaMatrizesCurriculares();
             destacarMatrizSelecionada();
+            return true;
         } catch (erro) {
-            mostrarAvisoMatrizCurricular(
-                "danger",
-                erro.message
-            );
+            atualizarStatusAutosaveMatriz("erro", "Erro ao salvar");
+            mostrarAvisoMatrizCurricular("danger", erro.message);
+            return false;
         } finally {
+            carregandoMatrizCurricular = false;
+            salvandoAutomaticamenteMatriz = false;
             bloquearCamposMatrizCurricular(false);
-            botao.disabled = false;
+            atualizarResumoMatrizCurricular();
+
+            if (autosaveMatrizPendente) {
+                agendarAutosaveMatriz();
+            }
         }
     }
 
@@ -2140,31 +2449,38 @@
         const botao = document.getElementById("btnSalvarMatrizCurricular");
 
         if (turma) {
-            turma.addEventListener(
-                "change",
-                async function () {
-                    await carregarMatrizCurricular();
-                    destacarMatrizSelecionada();
-                }
-            );
+            turma.addEventListener("change", async function () {
+                await carregarMatrizCurricular();
+                destacarMatrizSelecionada();
+            });
         }
 
         if (botao) {
-            botao.addEventListener(
-                "click",
-                salvarMatrizCurricular
-            );
+            botao.addEventListener("click", salvarMatrizCurricular);
         }
 
         obterCamposMatrizCurricular().forEach(function (campo) {
-            campo.addEventListener(
-                "input",
-                atualizarTotalMatrizCurricular
-            );
+            campo.addEventListener("input", function () {
+                atualizarResumoMatrizCurricular();
+                agendarAutosaveMatriz();
+            });
+
+            campo.addEventListener("change", function () {
+                atualizarResumoMatrizCurricular();
+                agendarAutosaveMatriz();
+            });
         });
 
-        atualizarTotalMatrizCurricular();
-        atualizarEstadoMatrizCurricular();
+        obterBotoesMatrizCurricular().forEach(function (botaoControle) {
+            botaoControle.addEventListener("click", function () {
+                const variacao = botaoControle.dataset.acao === "aumentar" ? 1 : -1;
+                alterarCargaDisciplina(botaoControle.dataset.disciplinaId, variacao);
+            });
+        });
+
+        bloquearCamposMatrizCurricular(true);
+        atualizarResumoMatrizCurricular();
+        atualizarStatusAutosaveMatriz("neutro", "Salvamento automático ativo");
         carregarListaMatrizesCurriculares();
     });
 

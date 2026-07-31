@@ -18,8 +18,8 @@ from models.disponibilidade_professor import (
 
 
 SEGMENTOS_VALIDOS = {
-    "fundamental_i",
-    "fundamental_ii",
+    "fundamental_1",
+    "fundamental_2",
     "ensino_medio",
     "cursinho"
 }
