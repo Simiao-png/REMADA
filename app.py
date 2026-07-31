@@ -26,6 +26,7 @@ from models.grade_aula import GradeAula
 from models.professor import Professor
 from models.turma import Turma
 from models.disciplina import Disciplina
+from models.escola import Escola  # <--- IMPORT ADICIONADO AQUI!
 
 from models.usuario import Usuario
 from routes.auth_routes import auth_bp
@@ -70,6 +71,8 @@ app.register_blueprint(gerar_grade_bp)
 def dashboard():
 
     try:
+        # Busca a escola cadastrada no sistema
+        escola_cadastrada = db.session.query(Escola).first()
 
         total_professores = db.session.query(Professor).count()
         total_turmas = db.session.query(Turma).count()
@@ -245,6 +248,7 @@ def dashboard():
 
         print(f"Erro ao buscar dados da dashboard: {e}")
 
+        escola_cadastrada = None
         total_professores = 0
         total_turmas = 0
         total_disciplinas = 0
@@ -263,6 +267,7 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
+        escola=escola_cadastrada,  # <--- VARIÁVEL DA ESCOLA PASSADA AQUI!
         professores=total_professores,
         turmas=total_turmas,
         disciplinas=total_disciplinas,
@@ -368,7 +373,7 @@ def tela_ver_grade():
     return render_template(
         "ver_grade.html", 
         grade_json=grade_dict, 
-        aulas_json=aulas_lista,  # <--- Variável essencial adicionada aqui!
+        aulas_json=aulas_lista,
         grade=grade
     )
 

@@ -1,39 +1,71 @@
 <aside class="sidebar">
 
-    <div class="logo">
-        <h2>REMADA</h2>
-        <span>Sistema Inteligente</span>
-    </div>
+    <a href="/" class="sidebar-brand">
+        <div class="brand-symbol">
+            <span>R</span>
+            <div class="brand-grid">
+                <i></i><i></i><i></i><i></i>
+            </div>
+        </div>
+        <div class="brand-text">
+            <strong>REMADA</strong>
+            <span>Gestão de horários</span>
+        </div>
+    </a>
 
-    <hr>
+    <div class="sidebar-divider"></div>
 
-    <nav>
+    <nav class="sidebar-nav">
 
-        <a href="/">
-            <i class="bi bi-grid-fill"></i>
-            Dashboard
+        <span class="sidebar-section-title">
+            VISÃO GERAL
+        </span>
+
+        <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
         </a>
 
-        <a href="{{ url_for('cadastro.tela_cadastros') }}">
-            <i class="bi bi-folder-plus"></i>
-            Cadastros
+        <span class="sidebar-section-title sidebar-section-space">
+            GESTÃO ESCOLAR
+        </span>
+
+        <a href="{{ url_for('cadastro.tela_cadastros') }}" class="{% if '/cadastros' in request.path %}active{% endif %}">
+            <i class="bi bi-folder2-open"></i>
+            <span>Cadastros</span>
         </a>
 
-        <a href="/planejamento/tela">
-            <i class="bi bi-calendar-week"></i>
-            Planejamento
+        <a href="/planejamento/tela" class="{% if '/planejamento' in request.path %}active{% endif %}">
+            <i class="bi bi-calendar3"></i>
+            <span>Planejamento</span>
         </a>
 
-        <a href="{{ url_for('gerar_grade.tela_gerar_grade') }}">
-            <i class="bi bi-cpu"></i>
-            Gerar Grade
+        <!-- NOME ATUALIZADO AQUI -->
+        <span class="sidebar-section-title sidebar-section-space">
+            OTIMIZAÇÃO
+        </span>
+
+        <a href="{{ url_for('gerar_grade.tela_gerar_grade') }}" class="{% if '/gerar-grade' in request.path or '/gerar_grade' in request.path %}active{% endif %}">
+            <i class="bi bi-stars"></i>
+            <span>Gerar grade</span>
         </a>
 
-        <a href="/motor/diagnostico/tela">
-            <i class="bi bi-exclamation-triangle"></i>
-            Diagnóstico
+        <a href="/motor/diagnostico/tela" class="{% if '/diagnostico' in request.path %}active{% endif %}">
+            <i class="bi bi-activity"></i>
+            <span>Diagnóstico</span>
         </a>
 
     </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-footer-icon">
+            <i class="bi bi-cpu"></i>
+        </div>
+
+        <div>
+            <strong>REMADA</strong>
+            <span>Painel Administrativo</span>
+        </div>
+    </div>
 
 </aside>

@@ -1,24 +1,115 @@
-<header class="topbar d-flex justify-content-between align-items-center">
+<header class="topbar">
 
-    <div>
+    <div class="topbar-school">
 
-        <h4 class="mb-0">
-            {% block page_title %}
-                Central de Controle
-            {% endblock %}
-        </h4>
+        <div class="school-icon">
+            <i class="bi bi-buildings"></i>
+        </div>
 
-        <small class="text-muted">
-            {% block page_subtitle %}
-                Resumo da configuração da escola
-            {% endblock %}
-        </small>
+        <div class="school-information">
+
+            <div class="school-title-row">
+
+                <h4>
+                    {% block page_title %}
+                        {{ escola.nome if escola else 'Colégio Remada Integrado' }}
+                    {% endblock %}
+                </h4>
+
+                <span class="school-year-badge">
+                    2026
+                </span>
+
+            </div>
+
+            <div class="school-details">
+
+                {% block page_subtitle %}
+                    <span>
+                        <i class="bi bi-geo-alt"></i>
+                        São Paulo / SP
+                    </span>
+
+                    <span class="school-detail-divider"></span>
+
+                    <span>
+                        <i class="bi bi-mortarboard"></i>
+                        Fundamental II e Ensino Médio
+                    </span>
+                {% endblock %}
+
+            </div>
+
+        </div>
 
     </div>
 
-    <div>
+    <div class="dropdown">
 
-        <i class="bi bi-person-circle fs-2"></i>
+        <button
+            class="user-menu-button"
+            type="button"
+            id="userDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+        >
+
+            <div class="user-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="user-summary d-none d-md-block">
+                <strong>Administrador</strong>
+                <span>Conta principal</span>
+            </div>
+
+            <i class="bi bi-chevron-down user-menu-arrow"></i>
+
+        </button>
+
+        <ul
+            class="dropdown-menu dropdown-menu-end user-dropdown"
+            aria-labelledby="userDropdown"
+        >
+
+            <li class="user-dropdown-header">
+                <span class="user-dropdown-label">
+                    CONTA CONECTADA
+                </span>
+
+                <strong>Usuário Administrador</strong>
+                <small>admin@remada.com.br</small>
+            </li>
+
+            <li>
+                <a class="dropdown-item" href="#">
+                    <i class="bi bi-key"></i>
+                    Alterar senha
+                </a>
+            </li>
+
+            <li>
+                <a
+                    class="dropdown-item"
+                    href="{{ url_for('cadastro.tela_cadastros') }}"
+                >
+                    <i class="bi bi-sliders"></i>
+                    Configurações da escola
+                </a>
+            </li>
+
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+
+            <li>
+                <a class="dropdown-item dropdown-logout" href="/logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Sair do sistema
+                </a>
+            </li>
+
+        </ul>
 
     </div>
 
