@@ -48,7 +48,7 @@ SEGMENTOS = {
 
 
 def _valor_configuracao(configuracao, campo, padrao):
-    """Lê o valor da configuração sem quebrar caso o registro ainda não exista."""
+    """Lê o valor da configuração sem quebrar se o registro não existir."""
     if configuracao is None:
         return padrao
 
@@ -56,44 +56,12 @@ def _valor_configuracao(configuracao, campo, padrao):
     return padrao if valor is None else valor
 
 
-@cadastro_bp.route("/cadastros/tela", methods=["GET"])
-def tela_cadastros():
-    escola_id = session.get("escola_id")
-
-    escola = db.session.get(Escola, escola_id) if escola_id else None
-
-    if escola:
-        professores = (
-            Professor.query
-            .filter_by(escola_id=escola.id)
-            .order_by(Professor.nome)
-            .all()
-        )
-
-        disciplinas = (
-            Disciplina.query
-            .filter_by(escola_id=escola.id)
-            .order_by(Disciplina.nome)
-            .all()
-        )
-
-        turmas = (
-            Turma.query
-            .filter_by(escola_id=escola.id)
-            .order_by(Turma.nome)
-            .all()
-        )
-
-        configuracoes = (
-            ConfiguracaoHoraria.query
-            .filter_by(escola_id=escola.id)
-            .all()
-        )
-    else:
-        professores = []
-        disciplinas = []
-        turmas = []
-        configuracoes = []
+def _montar_dados_segmentos(escola_id):
+    configuracoes = (
+        ConfiguracaoHoraria.query
+        .filter_by(escola_id=escola_id)
+        .all()
+    )
 
     configuracoes_por_segmento = {
         configuracao.segmento: configuracao
@@ -122,12 +90,12 @@ def tela_cadastros():
             ),
             "duracao_aula": _valor_configuracao(
                 configuracao,
-                "duracao_aula",
+                "duracao_aula_minutos",
                 padrao["duracao_aula"],
             ),
             "duracao_intervalo": _valor_configuracao(
                 configuracao,
-                "duracao_intervalo",
+                "duracao_intervalo_minutos",
                 padrao["duracao_intervalo"],
             ),
             "tem_aula_sabado": bool(
@@ -165,16 +133,88 @@ def tela_cadastros():
         else "fundamental_2"
     )
 
+    return {
+        "segmentos_ativos": segmentos_ativos,
+        "segmentos_inativos": segmentos_inativos,
+        "segmentos_ativos_codigos": segmentos_ativos_codigos,
+        "possui_segmentos_ativos": bool(segmentos_ativos),
+        "parametros_segmentos": parametros_segmentos,
+        "segmento_inicial": segmento_inicial,
+    }
+
+
+@cadastro_bp.route("/cadastros/tela", methods=["GET"])
+def tela_cadastros():
+    escola_id = session.get("escola_id")
+    escola = db.session.get(Escola, escola_id) if escola_id else None
+
+    if escola:
+        professores = (
+            Professor.query
+            .filter_by(escola_id=escola.id)
+            .order_by(Professor.nome)
+            .all()
+        )
+
+        disciplinas = (
+            Disciplina.query
+            .filter_by(escola_id=escola.id)
+            .order_by(Disciplina.nome)
+            .all()
+        )
+
+        turmas = (
+            Turma.query
+            .filter_by(escola_id=escola.id)
+            .order_by(Turma.nome)
+            .all()
+        )
+
+        dados_segmentos = _montar_dados_segmentos(escola.id)
+    else:
+        professores = []
+        disciplinas = []
+        turmas = []
+        dados_segmentos = {
+            "segmentos_ativos": [],
+            "segmentos_inativos": [],
+            "segmentos_ativos_codigos": set(),
+            "possui_segmentos_ativos": False,
+            "parametros_segmentos": {
+                codigo: {
+                    "ativo": False,
+                    "aulas_por_dia": padrao["aulas_por_dia"],
+                    "duracao_aula": padrao["duracao_aula"],
+                    "duracao_intervalo": padrao["duracao_intervalo"],
+                    "tem_aula_sabado": padrao["tem_aula_sabado"],
+                }
+                for codigo, padrao in SEGMENTOS.items()
+            },
+            "segmento_inicial": "fundamental_2",
+        }
+
     return render_template(
         "cadastros.html",
         escola=escola,
         professores=professores,
         disciplinas=disciplinas,
         turmas=turmas,
-        segmentos_ativos=segmentos_ativos,
-        segmentos_inativos=segmentos_inativos,
-        segmentos_ativos_codigos=segmentos_ativos_codigos,
-        possui_segmentos_ativos=bool(segmentos_ativos),
-        parametros_segmentos=parametros_segmentos,
-        segmento_inicial=segmento_inicial,
+        **dados_segmentos,
+    )
+
+
+@cadastro_bp.route("/configuracao-escola", methods=["GET"])
+def tela_configuracao_escola():
+    escola_id = session.get("escola_id")
+    escola = db.session.get(Escola, escola_id) if escola_id else None
+
+    if not escola:
+        return "Nenhuma escola selecionada.", 400
+
+    dados_segmentos = _montar_dados_segmentos(escola.id)
+
+    return render_template(
+        "configuracao_escola.html",
+        escola=escola,
+        **dados_segmentos,
     )

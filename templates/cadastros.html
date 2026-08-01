@@ -2,303 +2,43 @@
 
 {% block content %}
 
+{% set aba_ativa = request.args.get("aba", "turmas") %}
+{% if aba_ativa not in ["turmas", "disciplinas", "professores"] %}
+    {% set aba_ativa = "turmas" %}
+{% endif %}
+
 <div class="container-fluid p-0">
 
     <div class="mb-4">
         <h2 class="fw-bold mb-1">Cadastros</h2>
         <p class="text-muted mb-0">
-            Configure os parâmetros da escola, disciplinas, professores e turmas em um só lugar.
+            Gerencie as turmas, as disciplinas e os professores.
         </p>
     </div>
 
+    <!-- Navegação por Abas sincronizada com a URL -->
     <ul class="nav nav-tabs mb-4" id="cadastrosTabs" role="tablist">
-
-<li class="nav-item" role="presentation">
-            <button
-                class="nav-link active"
-                id="parametros-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#parametros"
-                type="button"
-                role="tab">
-                Parâmetros
-            </button>
-        </li>
-
-<li class="nav-item" role="presentation">
-            <button
-                class="nav-link"
-                id="turmas-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#turmas"
-                type="button"
-                role="tab">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if aba_ativa == 'turmas' %}active{% endif %}" id="turmas-tab" type="button" role="tab" onclick="trocarAba('turmas')">
                 Turmas
             </button>
         </li>
-
-<li class="nav-item" role="presentation">
-            <button
-                class="nav-link"
-                id="disciplinas-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#disciplinas"
-                type="button"
-                role="tab">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if aba_ativa == 'disciplinas' %}active{% endif %}" id="disciplinas-tab" type="button" role="tab" onclick="trocarAba('disciplinas')">
                 Disciplinas
             </button>
         </li>
-
-<li class="nav-item" role="presentation">
-            <button
-                class="nav-link"
-                id="professores-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#professores"
-                type="button"
-                role="tab">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if aba_ativa == 'professores' %}active{% endif %}" id="professores-tab" type="button" role="tab" onclick="trocarAba('professores')">
                 Professores
             </button>
         </li>
-
     </ul>
 
     <div class="tab-content">
 
-        <div
-            class="tab-pane fade show active"
-            id="parametros"
-            role="tabpanel">
-
-            <div class="card-remada">
-
-                <div class="mb-4">
-                    <h4 class="fw-bold mb-1">Parâmetros da Escola</h4>
-                    <p class="text-muted mb-0">
-                        Defina os segmentos atendidos e a estrutura específica de aulas usada em cada segmento.
-                    </p>
-                </div>
-
-                <form id="formParametros">
-
-                    <input type="hidden" id="segmentoSelecionado" value="fundamental_2">
-                    <input type="hidden" id="segmentosParametrosJson" name="segmentos_parametros_json" value="">
-
-                    <div class="row g-4">
-
-                        <div class="col-lg-4">
-                            <div class="border rounded-4 p-3 h-100 bg-light-subtle">
-
-                                <div class="mb-3">
-                                    <h5 class="fw-bold mb-1">Segmentos Atendidos</h5>
-                                    <p class="text-muted small mb-0">
-                                        Marque os segmentos em que a escola atua. Clique no segmento para configurar a estrutura dele.
-                                    </p>
-                                </div>
-
-                                <div class="segmento-item segmento-fundamental-1" data-segmento="fundamental_1" data-cor="fundamental_1" onclick="selecionarSegmentoParametro('fundamental_1')">
-                                    <div>
-                                        <strong>Fundamental I</strong>
-                                        <div class="text-muted small">1º ao 5º ano</div>
-                                    </div>
-
-                                    <div class="form-check form-switch m-0">
-                                        <input
-                                            class="form-check-input segmento-switch"
-                                            type="checkbox"
-                                            id="segmentoFundamental1"
-                                            data-segmento="fundamental_1"
-                                            {% if "fundamental_1" in segmentos_ativos_codigos %}checked{% endif %}
-                                            onclick="event.stopPropagation()">
-                                    </div>
-                                </div>
-
-                                <div class="segmento-item segmento-fundamental-2 selected" data-segmento="fundamental_2" data-cor="fundamental_2" onclick="selecionarSegmentoParametro('fundamental_2')">
-                                    <div>
-                                        <strong>Fundamental II</strong>
-                                        <div class="text-muted small">6º ao 9º ano</div>
-                                    </div>
-
-                                    <div class="form-check form-switch m-0">
-                                        <input
-                                            class="form-check-input segmento-switch"
-                                            type="checkbox"
-                                            id="segmentoFundamental2"
-                                            data-segmento="fundamental_2"
-                                            {% if "fundamental_2" in segmentos_ativos_codigos %}checked{% endif %}
-                                            onclick="event.stopPropagation()">
-                                    </div>
-                                </div>
-
-                                <div class="segmento-item segmento-ensino-medio" data-segmento="ensino_medio" data-cor="ensino_medio" onclick="selecionarSegmentoParametro('ensino_medio')">
-                                    <div>
-                                        <strong>Ensino Médio</strong>
-                                        <div class="text-muted small">1º ao 3º ano</div>
-                                    </div>
-
-                                    <div class="form-check form-switch m-0">
-                                        <input
-                                            class="form-check-input segmento-switch"
-                                            type="checkbox"
-                                            id="segmentoEnsinoMedio"
-                                            data-segmento="ensino_medio"
-                                            {% if "ensino_medio" in segmentos_ativos_codigos %}checked{% endif %}
-                                            onclick="event.stopPropagation()">
-                                    </div>
-                                </div>
-
-                                <div class="segmento-item segmento-cursinho" data-segmento="cursinho" data-cor="cursinho" onclick="selecionarSegmentoParametro('cursinho')">
-                                    <div>
-                                        <strong>Cursinho</strong>
-                                        <div class="text-muted small">Pré-vestibular</div>
-                                    </div>
-
-                                    <div class="form-check form-switch m-0">
-                                        <input
-                                            class="form-check-input segmento-switch"
-                                            type="checkbox"
-                                            id="segmentoCursinho"
-                                            data-segmento="cursinho"
-                                            {% if "cursinho" in segmentos_ativos_codigos %}checked{% endif %}
-                                            onclick="event.stopPropagation()">
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="col-lg-8">
-                            <div class="border rounded-4 p-3 h-100">
-
-                                <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                                    <div>
-                                        <h5 class="fw-bold mb-1">Estrutura do Segmento</h5>
-                                        <p class="text-muted small mb-0">
-                                            Configure aulas, duração e dias letivos do segmento selecionado.
-                                        </p>
-                                    </div>
-
-                                    <span class="segmento-badge badge-fundamental-2 px-3 py-2" id="badgeSegmentoSelecionado">
-                                        Fundamental II
-                                    </span>
-                                </div>
-
-                                <div id="avisoSegmentoInativo" class="alert alert-warning d-none">
-                                    Este segmento ainda não está marcado como atendido. Ative o segmento à esquerda para usar esta configuração.
-                                </div>
-
-                                <div class="row">
-
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">
-                                            Aulas por dia
-                                        </label>
-
-                                        <select
-                                            id="aulasPorDia"
-                                            class="form-select"
-                                            required>
-
-                                            <option value="5">5 aulas</option>
-                                            <option value="6" selected>6 aulas</option>
-                                            <option value="7">7 aulas</option>
-                                            <option value="8">8 aulas</option>
-
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">
-                                            Duração da aula
-                                        </label>
-
-                                        <input
-                                            type="number"
-                                            id="duracaoAula"
-                                            class="form-control"
-                                            value="50"
-                                            min="1"
-                                            required>
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">
-                                            Duração do intervalo
-                                        </label>
-
-                                        <input
-                                            type="number"
-                                            id="duracaoIntervalo"
-                                            class="form-control"
-                                            value="15"
-                                            min="0"
-                                            required>
-                                    </div>
-
-                                </div>
-
-                                <div class="mt-3">
-
-                                    <label class="form-label">
-                                        Dias letivos
-                                    </label>
-
-                                    <div class="border rounded-3 p-3">
-
-                                        <div class="d-flex align-items-start gap-2 mb-3">
-                                            <i class="bi bi-calendar-week text-primary mt-1"></i>
-                                            <div>
-                                                <div class="fw-semibold">Segunda a sexta-feira</div>
-                                                <div class="text-muted small">Padrão usado automaticamente pelo sistema.</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-check form-switch mb-0">
-                                            <input
-                                                class="form-check-input"
-                                                type="checkbox"
-                                                id="temAulaSabado">
-
-                                            <label class="form-check-label fw-semibold" for="temAulaSabado">
-                                                Este segmento possui aulas aos sábados
-                                            </label>
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                                <div class="mt-4">
-                                    <div class="small text-muted mb-2">
-                                        Segmentos configurados nesta tela:
-                                    </div>
-                                    <div id="resumoSegmentosParametros" class="d-flex flex-wrap gap-2"></div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <button
-                            type="submit"
-                            class="btn btn-primary">
-                            Salvar Parâmetros
-                        </button>
-                    </div>
-
-                </form>
-
-            </div>
-
-        </div>
-
-        <div
-            class="tab-pane fade"
-            id="disciplinas"
-            role="tabpanel">
-
+        <!-- ABA DISCIPLINAS & MATRIZ CURRICULAR -->
+        <div class="tab-pane fade {% if aba_ativa == 'disciplinas' %}show active{% endif %}" id="disciplinas" role="tabpanel">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">Matriz Curricular</h4>
@@ -309,30 +49,19 @@
 
                 <div class="d-flex flex-column flex-sm-row align-items-sm-end gap-2">
                     <div style="min-width: 280px;">
-                        <label for="turmaMatrizCurricular" class="form-label fw-semibold">
-                            Turma
-                        </label>
-
+                        <label for="turmaMatrizCurricular" class="form-label fw-semibold">Turma</label>
                         <select id="turmaMatrizCurricular" class="form-select">
                             <option value="">Selecione uma turma</option>
-
                             {% for turma in turmas %}
-                                <option
-                                    value="{{ turma.id }}"
-                                    data-segmento="{{ turma.segmento }}"
-                                    data-turno="{{ turma.turno }}">
+                                <option value="{{ turma.id }}" data-segmento="{{ turma.segmento }}" data-turno="{{ turma.turno }}">
                                     {{ turma.nome }} — {{ turma.turno }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <button
-                        type="button"
-                        class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
-                        onclick="abrirModalCadastroDisciplinaComAutosave()">
-                        <i class="bi bi-plus-circle"></i>
-                        Nova Disciplina
+                    <button type="button" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2" onclick="abrirModalCadastroDisciplinaComAutosave()">
+                        <i class="bi bi-plus-circle"></i> Nova Disciplina
                     </button>
                 </div>
             </div>
@@ -350,71 +79,30 @@
                                     <span class="fs-6 fw-normal text-muted">aulas</span>
                                 </div>
                             </div>
-
                             <div id="statusCargaMatriz" class="matriz-status matriz-status-neutro">
                                 Selecione uma turma
                             </div>
                         </div>
 
                         <div class="progress matriz-progresso" role="progressbar" aria-label="Carga semanal da matriz">
-                            <div
-                                id="barraProgressoMatriz"
-                                class="progress-bar"
-                                style="width: 0%;"
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                                aria-valuenow="0">
-                            </div>
+                            <div id="barraProgressoMatriz" class="progress-bar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
                         </div>
                     </div>
 
                     <div id="gradeDisciplinasMatriz" class="row g-3">
                         {% for disciplina in disciplinas %}
                             <div class="col-12 col-lg-6">
-                                <div
-                                    class="matriz-disciplina-card"
-                                    data-card-disciplina-id="{{ disciplina.id }}">
-
+                                <div class="matriz-disciplina-card" data-card-disciplina-id="{{ disciplina.id }}">
                                     <div class="d-flex align-items-center gap-2 min-width-0">
-                                        <span
-                                            class="disciplina-cor-bolinha flex-shrink-0"
-                                            data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
-                                        </span>
-
-                                        <span class="fw-semibold text-truncate">
-                                            {{ disciplina.nome }}
-                                        </span>
+                                        <span class="disciplina-cor-bolinha flex-shrink-0" data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}"></span>
+                                        <span class="fw-semibold text-truncate">{{ disciplina.nome }}</span>
                                     </div>
-
                                     <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-secondary matriz-controle-botao"
-                                            data-acao="diminuir"
-                                            data-disciplina-id="{{ disciplina.id }}"
-                                            disabled
-                                            aria-label="Diminuir aulas de {{ disciplina.nome }}">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary matriz-controle-botao" data-acao="diminuir" data-disciplina-id="{{ disciplina.id }}" disabled aria-label="Diminuir aulas de {{ disciplina.nome }}">
                                             <i class="bi bi-dash-lg"></i>
                                         </button>
-
-                                        <input
-                                            type="number"
-                                            class="form-control carga-matriz-curricular"
-                                            min="0"
-                                            max="20"
-                                            step="1"
-                                            value="0"
-                                            data-disciplina-id="{{ disciplina.id }}"
-                                            disabled
-                                            aria-label="Aulas semanais de {{ disciplina.nome }}">
-
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-primary matriz-controle-botao"
-                                            data-acao="aumentar"
-                                            data-disciplina-id="{{ disciplina.id }}"
-                                            disabled
-                                            aria-label="Aumentar aulas de {{ disciplina.nome }}">
+                                        <input type="number" class="form-control carga-matriz-curricular" min="0" max="20" step="1" value="0" data-disciplina-id="{{ disciplina.id }}" disabled aria-label="Aulas semanais de {{ disciplina.nome }}">
+                                        <button type="button" class="btn btn-sm btn-outline-primary matriz-controle-botao" data-acao="aumentar" data-disciplina-id="{{ disciplina.id }}" disabled aria-label="Aumentar aulas de {{ disciplina.nome }}">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
@@ -427,21 +115,11 @@
                         <div id="avisoMatrizCurricular" class="alert alert-info mb-0 flex-grow-1">
                             Selecione uma turma para configurar a matriz curricular.
                         </div>
-
-                        <div
-                            id="statusAutosaveMatriz"
-                            class="small text-muted d-inline-flex align-items-center gap-2 flex-shrink-0">
-                            <i class="bi bi-cloud-check"></i>
-                            Salvamento automático ativo
+                        <div id="statusAutosaveMatriz" class="small text-muted d-inline-flex align-items-center gap-2 flex-shrink-0">
+                            <i class="bi bi-cloud-check"></i> Salvamento automático ativo
                         </div>
-
-                        <button
-                            type="button"
-                            id="btnSalvarMatrizCurricular"
-                            class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0"
-                            disabled>
-                            <i class="bi bi-check-circle"></i>
-                            Salvar Matriz Curricular
+                        <button type="button" id="btnSalvarMatrizCurricular" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0" disabled>
+                            <i class="bi bi-check-circle"></i> Salvar Matriz Curricular
                         </button>
                     </div>
 
@@ -449,17 +127,12 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1">Matrizes cadastradas</h5>
-                                <p class="text-muted small mb-0">
-                                    Clique em uma turma para conferir ou alterar a matriz curricular.
-                                </p>
+                                <p class="text-muted small mb-0">Clique em uma turma para conferir ou alterar a matriz curricular.</p>
                             </div>
                         </div>
-
                         <div id="listaMatrizesCurriculares" class="row g-3">
                             <div class="col-12">
-                                <div class="text-muted small">
-                                    Carregando matrizes cadastradas...
-                                </div>
+                                <div class="text-muted small">Carregando matrizes cadastradas...</div>
                             </div>
                         </div>
                     </div>
@@ -467,13 +140,8 @@
                     <div class="text-center py-5">
                         <i class="bi bi-book fs-1 text-secondary d-block mb-3"></i>
                         <h5 class="mb-2">Nenhuma disciplina cadastrada</h5>
-                        <p class="text-muted mb-3">
-                            Cadastre as disciplinas para montar a matriz curricular.
-                        </p>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            onclick="abrirModalCadastroDisciplinaComAutosave()">
+                        <p class="text-muted mb-3">Cadastre as disciplinas para montar a matriz curricular.</p>
+                        <button type="button" class="btn btn-primary" onclick="abrirModalCadastroDisciplinaComAutosave()">
                             Nova Disciplina
                         </button>
                     </div>
@@ -481,24 +149,15 @@
             </div>
         </div>
 
-        <div
-            class="tab-pane fade"
-            id="professores"
-            role="tabpanel">
-
+        <!-- ABA PROFESSORES -->
+        <div class="tab-pane fade {% if aba_ativa == 'professores' %}show active{% endif %}" id="professores" role="tabpanel">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">Professores</h4>
-                    <p class="text-muted mb-0">
-                        Cadastre professores e relacione seus segmentos e disciplinas.
-                    </p>
+                    <p class="text-muted mb-0">Cadastre professores e relacione seus segmentos e disciplinas.</p>
                 </div>
-
-                <button
-                    class="btn btn-primary d-inline-flex align-items-center gap-2"
-                    onclick="abrirModalCadastro()">
-                    <i class="bi bi-person-plus"></i>
-                    Novo Professor
+                <button class="btn btn-primary d-inline-flex align-items-center gap-2" onclick="abrirModalCadastro()">
+                    <i class="bi bi-person-plus"></i> Novo Professor
                 </button>
             </div>
 
@@ -515,34 +174,22 @@
                                 <th class="text-end" style="width:150px;">Ações</th>
                             </tr>
                         </thead>
-
                         <tbody>
                         {% if professores %}
                             {% for prof in professores %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <div
-                                            class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center"
-                                            style="width:40px;height:40px;">
+                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
                                             <i class="bi bi-person fs-5"></i>
                                         </div>
-
-                                        <span class="fw-semibold">
-                                            {{ prof.nome }}
-                                        </span>
+                                        <span class="fw-semibold">{{ prof.nome }}</span>
                                     </div>
                                 </td>
-
                                 <td>
-                                    <span class="fw-bold">
-                                        {{ prof.carga_horaria_semanal or 0 }}
-                                    </span>
-                                    <span class="text-muted small">
-                                        aulas
-                                    </span>
+                                    <span class="fw-bold">{{ prof.carga_horaria_semanal or 0 }}</span>
+                                    <span class="text-muted small">aulas</span>
                                 </td>
-
                                 <td>
                                     {% if prof.segmentos %}
                                         <div class="d-flex flex-wrap gap-1">
@@ -562,14 +209,11 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-
                                 <td>
                                     {% if prof.disciplinas %}
                                         <div class="d-flex flex-wrap gap-1">
                                             {% for disciplina in prof.disciplinas %}
-                                                <span
-                                                    class="badge badge-disciplina-colorida"
-                                                    data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
+                                                <span class="badge badge-disciplina-colorida" data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
                                                     {{ disciplina.nome }}
                                                 </span>
                                             {% endfor %}
@@ -578,7 +222,6 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-
                                 <td>
                                     {% if prof.trabalha_outra_escola %}
                                         <span class="badge bg-warning text-dark">Sim</span>
@@ -586,28 +229,12 @@
                                         <span class="text-muted">Não</span>
                                     {% endif %}
                                 </td>
-
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
-                                        <button
-                                            class="btn btn-sm btn-outline-primary"
-                                            title="Editar"
-                                            data-id="{{ prof.id }}"
-                                            data-nome="{{ prof.nome }}"
-                                            data-escola="{{ prof.escola_id or 1 }}"
-                                            data-carga-horaria="{{ prof.carga_horaria_semanal or 0 }}"
-                                            data-disciplinas="{% for disciplina in prof.disciplinas %}{{ disciplina.id }}{% if not loop.last %},{% endif %}{% endfor %}"
-                                            data-segmentos="{% for vinculo in prof.segmentos %}{{ vinculo.segmento }}{% if not loop.last %},{% endif %}{% endfor %}"
-                                            data-outra-escola="{{ 'true' if prof.trabalha_outra_escola else 'false' }}"
-                                            data-observacoes="{{ prof.observacoes or '' }}"
-                                            onclick="abrirModalEdicao(this)">
+                                        <button class="btn btn-sm btn-outline-primary" title="Editar" data-id="{{ prof.id }}" data-nome="{{ prof.nome }}" data-escola="{{ prof.escola_id or 1 }}" data-carga-horaria="{{ prof.carga_horaria_semanal or 0 }}" data-disciplinas="{% for disciplina in prof.disciplinas %}{{ disciplina.id }}{% if not loop.last %},{% endif %}{% endfor %}" data-segmentos="{% for vinculo in prof.segmentos %}{{ vinculo.segmento }}{% if not loop.last %},{% endif %}{% endfor %}" data-outra-escola="{{ 'true' if prof.trabalha_outra_escola else 'false' }}" data-observacoes="{{ prof.observacoes or '' }}" onclick="abrirModalEdicao(this)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="Excluir"
-                                            onclick="deletarProfessor('{{ prof.id }}','{{ prof.nome }}')">
+                                        <button class="btn btn-sm btn-outline-danger" title="Excluir" onclick="deletarProfessor('{{ prof.id }}','{{ prof.nome }}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -619,9 +246,7 @@
                                 <td colspan="6" class="text-center py-5">
                                     <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
                                     <h5 class="mb-2">Nenhum professor cadastrado</h5>
-                                    <p class="text-muted">
-                                        Clique em <strong>Novo Professor</strong> para começar.
-                                    </p>
+                                    <p class="text-muted">Clique em <strong>Novo Professor</strong> para começar.</p>
                                 </td>
                             </tr>
                         {% endif %}
@@ -631,25 +256,18 @@
             </div>
         </div>
 
-        <div
-            class="tab-pane fade"
-            id="turmas"
-            role="tabpanel">
-
+        <!-- ABA TURMAS -->
+        <div class="tab-pane fade {% if aba_ativa == 'turmas' %}show active{% endif %}" id="turmas" role="tabpanel">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">Turmas</h4>
-                    <p class="text-muted mb-2">
-                        Cadastre as turmas que farão parte da grade horária.
-                    </p>
-
+                    <p class="text-muted mb-2">Cadastre as turmas que farão parte da grade horária.</p>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <span class="small fw-semibold text-muted">Segmentos ativos:</span>
                         {% if segmentos_ativos %}
                             {% for segmento in segmentos_ativos %}
                                 <span class="segmento-badge {{ segmento.classe_cor }} px-2 py-1">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    {{ segmento.nome }}
+                                    <i class="bi bi-check-circle me-1"></i> {{ segmento.nome }}
                                 </span>
                             {% endfor %}
                         {% else %}
@@ -660,21 +278,17 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-2">
-                    <button
-                        class="btn btn-primary d-inline-flex align-items-center gap-2"
-                        onclick="abrirModalCadastroTurma()"
-                        {% if not possui_segmentos_ativos %}disabled title="Ative um segmento nos Parâmetros"{% endif %}>
-                        <i class="bi bi-people"></i>
-                        Nova Turma
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button"
+                            class="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
+                            onclick="abrirConfiguracaoEscola()">
+                        <i class="bi bi-gear"></i> Configurar escola
                     </button>
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary d-inline-flex align-items-center gap-2"
-                        onclick="abrirMatrizCurricular()">
-                        <i class="bi bi-journal-check"></i>
-                        Matriz Curricular
+                    <button class="btn btn-primary d-inline-flex align-items-center gap-2" onclick="abrirModalCadastroTurma()" {% if not possui_segmentos_ativos %}disabled title="Configure pelo menos um segmento da escola"{% endif %}>
+                        <i class="bi bi-people"></i> Nova Turma
+                    </button>
+                    <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-2" onclick="abrirMatrizCurricular()">
+                        <i class="bi bi-journal-check"></i> Matriz Curricular
                     </button>
                 </div>
             </div>
@@ -684,16 +298,14 @@
                     <i class="bi bi-exclamation-triangle-fill mt-1"></i>
                     <div>
                         <strong>Nenhum segmento está ativo.</strong><br>
-                        Ative pelo menos um segmento na aba Parâmetros antes de cadastrar turmas.
+                        Configure pelo menos um segmento da escola antes de cadastrar turmas.
                     </div>
                 </div>
             {% endif %}
 
             <div class="card-remada">
                 <div class="table-responsive">
-
                     <table class="table table-hover align-middle mb-0">
-
                         <thead class="table-light">
                             <tr>
                                 <th>Turma</th>
@@ -703,18 +315,11 @@
                                 <th class="text-end">Ações</th>
                             </tr>
                         </thead>
-
                         <tbody>
-
                         {% if turmas %}
-
                             {% for turma in turmas %}
-
                             <tr>
-                                <td class="fw-semibold">
-                                    {{ turma.nome }}
-                                </td>
-
+                                <td class="fw-semibold">{{ turma.nome }}</td>
                                 <td>
                                     {% if turma.segmento == "fundamental_1" %}
                                         <span class="segmento-badge badge-fundamental-1 px-2 py-1">Fundamental I</span>
@@ -728,135 +333,63 @@
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-
-                                <td>
-                                    {{ turma.turno }}
-                                </td>
-
+                                <td>{{ turma.turno }}</td>
                                 <td>
                                     {% if turma.ativo %}
-                                        <span class="badge bg-success">
-                                            Ativa
-                                        </span>
+                                        <span class="badge bg-success">Ativa</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">
-                                            Inativa
-                                        </span>
+                                        <span class="badge bg-secondary">Inativa</span>
                                     {% endif %}
                                 </td>
-
                                 <td class="text-end">
-
-                                    <button
-                                        class="btn btn-sm btn-outline-primary"
-                                        title="Editar"
-                                        data-id="{{ turma.id }}"
-                                        data-nome="{{ turma.nome }}"
-                                        data-serie="{{ turma.serie }}"
-                                        data-segmento="{{ turma.segmento }}"
-                                        data-turno="{{ turma.turno }}"
-                                        onclick="abrirModalEdicaoTurma(this)">
+                                    <button class="btn btn-sm btn-outline-primary" title="Editar" data-id="{{ turma.id }}" data-nome="{{ turma.nome }}" data-serie="{{ turma.serie }}" data-segmento="{{ turma.segmento }}" data-turno="{{ turma.turno }}" onclick="abrirModalEdicaoTurma(this)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-
-                                    <button
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="Excluir"
-                                        onclick="deletarTurma('{{ turma.id }}','{{ turma.nome }}')">
+                                    <button class="btn btn-sm btn-outline-danger" title="Excluir" onclick="deletarTurma('{{ turma.id }}','{{ turma.nome }}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
-
                                 </td>
                             </tr>
-
                             {% endfor %}
-
                         {% else %}
-
                             <tr>
                                 <td colspan="5" class="text-center py-5">
                                     <i class="bi bi-people fs-1 text-secondary d-block mb-3"></i>
-
-                                    <h5 class="mb-2">
-                                        Nenhuma turma cadastrada
-                                    </h5>
-
-                                    <p class="text-muted mb-0">
-                                        Clique em <strong>Nova Turma</strong> para começar.
-                                    </p>
+                                    <h5 class="mb-2">Nenhuma turma cadastrada</h5>
+                                    <p class="text-muted mb-0">Clique em <strong>Nova Turma</strong> para começar.</p>
                                 </td>
                             </tr>
-
                         {% endif %}
-
                         </tbody>
-
                     </table>
-
                 </div>
             </div>
-
         </div>
 
     </div>
 
 </div>
 
-<div
-    class="modal fade"
-    id="modalDisciplina"
-    tabindex="-1">
+<!-- MODAIS -->
 
+<!-- Modal Disciplina -->
+<div class="modal fade" id="modalDisciplina" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-
         <div class="modal-content">
-
             <div class="modal-header">
-
-                <h5
-                    class="modal-title"
-                    id="modalDisciplinaLabel">
-                    Cadastrar Disciplina
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title" id="modalDisciplinaLabel">Cadastrar Disciplina</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <form id="formDisciplina">
-
                 <input type="hidden" id="disciplinaId">
-
                 <div class="modal-body">
-
                     <div class="mb-3">
-
-                        <label class="form-label">
-                            Nome da Disciplina
-                        </label>
-
-                        <input
-                            type="text"
-                            id="nomeDisciplina"
-                            class="form-control"
-                            required>
-
+                        <label class="form-label">Nome da Disciplina</label>
+                        <input type="text" id="nomeDisciplina" class="form-control" required>
                     </div>
-
                     <div class="mb-3">
-
-                        <label class="form-label">
-                            Cor da Disciplina
-                        </label>
-
-                        <input
-                            type="hidden"
-                            id="corDisciplina"
-                            value="#2563EB">
+                        <label class="form-label">Cor da Disciplina</label>
+                        <input type="hidden" id="corDisciplina" value="#2563EB">
 
                         <div class="paleta-disciplinas" id="paletaDisciplinas">
                             <button type="button" class="cor-disciplina-opcao selected" data-cor="#2563EB" style="background-color:#2563EB;" title="Azul"></button>
@@ -872,135 +405,68 @@
                         </div>
 
                         <div class="mt-3">
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                id="btnMaisCores">
-                                <i class="bi bi-palette"></i>
-                                Mais cores...
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnMaisCores">
+                                <i class="bi bi-palette"></i> Mais cores...
                             </button>
-
-                            <input
-                                type="color"
-                                id="corPersonalizada"
-                                value="#2563EB"
-                                style="display:none;">
+                            <input type="color" id="corPersonalizada" value="#2563EB" style="display:none;">
                         </div>
 
                         <div class="mt-3">
-                            <span
-                                class="badge badge-disciplina-preview"
-                                id="previewDisciplinaCor"
-                                style="background-color:#2563EB22;color:#2563EB;border-color:#2563EB55;">
+                            <span class="badge badge-disciplina-preview" id="previewDisciplinaCor" style="background-color:#2563EB22;color:#2563EB;border-color:#2563EB55;">
                                 Prévia da disciplina
                             </span>
                         </div>
-
                     </div>
-
                 </div>
-
                 <div class="modal-footer">
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary">
-                        Salvar
-                    </button>
-
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
-
             </form>
-
         </div>
-
     </div>
-
 </div>
 
-<div
-    class="modal fade"
-    id="modalNovoProfessor"
-    tabindex="-1"
-    aria-hidden="true">
-
+<!-- Modal Professor -->
+<div class="modal fade" id="modalNovoProfessor" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-
             <div class="modal-header">
-                <h5 class="modal-title" id="modalNovoProfessorLabel">
-                    Cadastrar Professor
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
+                <h5 class="modal-title" id="modalNovoProfessorLabel">Cadastrar Professor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <form id="formNovoProfessor">
                 <input type="hidden" id="professorId">
                 <input type="hidden" id="escolaIdProf" value="1">
 
                 <div class="modal-body">
-
                     <div class="mb-3">
                         <label class="form-label">Nome</label>
-                        <input
-                            type="text"
-                            id="nomeProfessor"
-                            class="form-control"
-                            required>
+                        <input type="text" id="nomeProfessor" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label
-                            for="cargaHorariaSemanalProfessor"
-                            class="form-label">
-                            Carga horária semanal
-                        </label>
-
+                        <label for="cargaHorariaSemanalProfessor" class="form-label">Carga horária semanal</label>
                         <div class="input-group">
-                            <input
-                                type="number"
-                                id="cargaHorariaSemanalProfessor"
-                                class="form-control"
-                                min="0"
-                                value="0"
-                                required>
-
-                            <span class="input-group-text">
-                                aulas
-                            </span>
+                            <input type="number" id="cargaHorariaSemanalProfessor" class="form-control" min="0" value="0" required>
+                            <span class="input-group-text">aulas</span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label d-block">Segmentos de atuação</label>
-
                         <div class="form-check">
                             <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_1" id="segmentoProfessorFundamentalI">
                             <label class="form-check-label" for="segmentoProfessorFundamentalI">Fundamental I</label>
                         </div>
-
                         <div class="form-check">
                             <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_2" id="segmentoProfessorFundamentalII">
                             <label class="form-check-label" for="segmentoProfessorFundamentalII">Fundamental II</label>
                         </div>
-
                         <div class="form-check">
                             <input class="form-check-input segmento-professor" type="checkbox" value="ensino_medio" id="segmentoProfessorEnsinoMedio">
                             <label class="form-check-label" for="segmentoProfessorEnsinoMedio">Ensino Médio</label>
                         </div>
-
                         <div class="form-check">
                             <input class="form-check-input segmento-professor" type="checkbox" value="cursinho" id="segmentoProfessorCursinho">
                             <label class="form-check-label" for="segmentoProfessorCursinho">Cursinho</label>
@@ -1009,284 +475,85 @@
 
                     <div class="mb-3">
                         <label class="form-label">Disciplinas</label>
-
-                        <select
-                            id="disciplinasProfessor"
-                            class="form-select"
-                            multiple>
-
+                        <select id="disciplinasProfessor" class="form-select" multiple>
                             {% for disciplina in disciplinas %}
-                                <option value="{{ disciplina.id }}">
-                                    {{ disciplina.nome }}
-                                </option>
+                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
                             {% endfor %}
                         </select>
-
-                        <div class="form-text">
-                            Segure Ctrl para selecionar mais de uma disciplina.
-                        </div>
+                        <div class="form-text">Segure Ctrl para selecionar mais de uma disciplina.</div>
                     </div>
 
                     <div class="form-check form-switch mb-3">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            id="trabalhaOutraEscolaProfessor">
-
-                        <label class="form-check-label" for="trabalhaOutraEscolaProfessor">
-                            Trabalha em outra escola
-                        </label>
+                        <input class="form-check-input" type="checkbox" id="trabalhaOutraEscolaProfessor">
+                        <label class="form-check-label" for="trabalhaOutraEscolaProfessor">Trabalha em outra escola</label>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Observações</label>
-
-                        <textarea
-                            id="observacoesProfessor"
-                            class="form-control"
-                            rows="3"></textarea>
+                        <textarea id="observacoesProfessor" class="form-control" rows="3"></textarea>
                     </div>
                 </div>
-
                 <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary">
-                        Salvar
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>
 
-<div
-    class="modal fade"
-    id="modalTurma"
-    tabindex="-1"
-    aria-hidden="true">
-
+<!-- Modal Turma -->
+<div class="modal fade" id="modalTurma" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-
         <div class="modal-content">
-
             <div class="modal-header">
-
-                <h5
-                    class="modal-title"
-                    id="modalTurmaLabel">
-                    Cadastrar Turma
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title" id="modalTurmaLabel">Cadastrar Turma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <form id="formTurma">
-
                 <input type="hidden" id="turmaId">
-
                 <div class="modal-body">
-
                     <div class="mb-3">
-                        <label class="form-label">
-                            Nome da Turma
-                        </label>
-
-                        <input
-                            type="text"
-                            id="nomeTurma"
-                            class="form-control"
-                            placeholder="Ex.: 6º A"
-                            required>
+                        <label class="form-label">Nome da Turma</label>
+                        <input type="text" id="nomeTurma" class="form-control" placeholder="Ex.: 6º A" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">
-                            Segmento
-                        </label>
-
-                        <select
-                            id="segmentoTurma"
-                            class="form-select"
-                            required>
-
+                        <label class="form-label">Segmento</label>
+                        <select id="segmentoTurma" class="form-select" required>
                             <option value="">Selecione</option>
-
                             {% for segmento in segmentos_ativos %}
-                                <option value="{{ segmento.codigo }}">
-                                    {{ segmento.nome }}
-                                </option>
+                                <option value="{{ segmento.codigo }}">{{ segmento.nome }}</option>
                             {% endfor %}
-
                         </select>
-
-                        <div class="form-text">
-                            Apenas os segmentos ativos nos Parâmetros aparecem aqui.
-                        </div>
+                        <div class="form-text">Apenas os segmentos configurados para esta escola aparecem aqui.</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">
-                            Turno
-                        </label>
-
-                        <select
-                            id="turnoTurma"
-                            class="form-select"
-                            required>
-
+                        <label class="form-label">Turno</label>
+                        <select id="turnoTurma" class="form-select" required>
                             <option value="">Selecione</option>
                             <option value="Manhã">Manhã</option>
                             <option value="Tarde">Tarde</option>
                             <option value="Noite">Noite</option>
-
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">
-                            Série
-                        </label>
-
-                        <input
-                            type="text"
-                            id="serieTurma"
-                            class="form-control"
-                            placeholder="Ex.: 6º ano"
-                            required>
+                        <label class="form-label">Série</label>
+                        <input type="text" id="serieTurma" class="form-control" placeholder="Ex.: 6º ano" required>
                     </div>
-
                 </div>
-
                 <div class="modal-footer">
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary">
-                        Salvar
-                    </button>
-
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
-
             </form>
-
         </div>
-
     </div>
-
 </div>
 
-
 <style>
-    .segmento-item {
-        --segmento-cor: #6c757d;
-        --segmento-bg: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        border: 1px solid #dee2e6;
-        border-left: 5px solid transparent;
-        border-radius: 10px;
-        padding: 14px 12px;
-        margin-bottom: 12px;
-        background: #fff;
-        cursor: pointer;
-        transition: all .15s ease-in-out;
-    }
-
-    .segmento-fundamental-1 {
-        --segmento-cor: #198754;
-        --segmento-bg: #eefaf3;
-    }
-
-    .segmento-fundamental-2 {
-        --segmento-cor: #0d6efd;
-        --segmento-bg: #f0f6ff;
-    }
-
-    .segmento-ensino-medio {
-        --segmento-cor: #6f42c1;
-        --segmento-bg: #f5f0ff;
-    }
-
-    .segmento-cursinho {
-        --segmento-cor: #fd7e14;
-        --segmento-bg: #fff4e8;
-    }
-
-    .segmento-item:hover {
-        border-color: var(--segmento-cor);
-        border-left-color: var(--segmento-cor);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
-    }
-
-    .segmento-item.segmento-ativo {
-        border-left-color: var(--segmento-cor);
-        background: var(--segmento-bg);
-    }
-
-    .segmento-item.selected {
-        border-color: var(--segmento-cor);
-        border-left-color: var(--segmento-cor);
-        background: var(--segmento-bg);
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--segmento-cor) 18%, transparent);
-    }
-
-    .segmento-item .form-check-input:checked {
-        background-color: var(--segmento-cor);
-        border-color: var(--segmento-cor);
-    }
-
-    .segmento-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: .75rem;
-    }
-
-    .badge-fundamental-1 {
-        color: #146c43;
-        background: #d1e7dd;
-    }
-
-    .badge-fundamental-2 {
-        color: #084298;
-        background: #cfe2ff;
-    }
-
-    .badge-ensino-medio {
-        color: #432874;
-        background: #e2d9f3;
-    }
-
-    .badge-cursinho {
-        color: #984c0c;
-        background: #ffe5d0;
-    }
-
-
     .disciplina-cor-bolinha {
         display: inline-block;
         width: 12px;
@@ -1320,26 +587,16 @@
         transition: transform .12s ease-in-out, box-shadow .12s ease-in-out;
     }
 
-    .cor-disciplina-opcao:hover {
-        transform: scale(1.08);
-    }
-
-    .cor-disciplina-opcao.selected {
-        box-shadow: 0 0 0 3px #111827;
-    }
-
+    .cor-disciplina-opcao:hover { transform: scale(1.08); }
+    .cor-disciplina-opcao.selected { box-shadow: 0 0 0 3px #111827; }
 
     #btnMaisCores {
         border-radius: 10px;
         font-weight: 600;
     }
+    #btnMaisCores i { margin-right: 6px; }
 
-    #btnMaisCores i {
-        margin-right: 6px;
-    }
-    #secaoMatrizCurricular {
-        scroll-margin-top: 24px;
-    }
+    #secaoMatrizCurricular { scroll-margin-top: 24px; }
 
     .matriz-resumo {
         border: 1px solid #dee2e6;
@@ -1362,25 +619,10 @@
         white-space: nowrap;
     }
 
-    .matriz-status-neutro {
-        color: #495057;
-        background: #e9ecef;
-    }
-
-    .matriz-status-incompleta {
-        color: #084298;
-        background: #cfe2ff;
-    }
-
-    .matriz-status-completa {
-        color: #0f5132;
-        background: #d1e7dd;
-    }
-
-    .matriz-status-excedida {
-        color: #842029;
-        background: #f8d7da;
-    }
+    .matriz-status-neutro { color: #495057; background: #e9ecef; }
+    .matriz-status-incompleta { color: #084298; background: #cfe2ff; }
+    .matriz-status-completa { color: #0f5132; background: #d1e7dd; }
+    .matriz-status-excedida { color: #842029; background: #f8d7da; }
 
     .matriz-disciplina-card {
         min-height: 76px;
@@ -1421,7 +663,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 9px;
+        border-radius: 99px;
     }
 
     .matriz-salva-card {
@@ -1463,200 +705,12 @@
 </style>
 
 <script>
-    const nomesSegmentosParametros = {
-        fundamental_1: "Fundamental I",
-        fundamental_2: "Fundamental II",
-        ensino_medio: "Ensino Médio",
-        cursinho: "Cursinho"
-    };
-
-    const classesCoresSegmentos = {
-        fundamental_1: "badge-fundamental-1",
-        fundamental_2: "badge-fundamental-2",
-        ensino_medio: "badge-ensino-medio",
-        cursinho: "badge-cursinho"
-    };
-
-    const parametrosPorSegmento = {{ parametros_segmentos | tojson }};
-
-    let segmentoAtualParametro = {{ segmento_inicial | tojson }};
-
-    function salvarFormularioSegmentoAtual() {
-        if (!segmentoAtualParametro) return;
-
-        parametrosPorSegmento[segmentoAtualParametro].aulas_por_dia = parseInt(document.getElementById("aulasPorDia").value);
-        parametrosPorSegmento[segmentoAtualParametro].duracao_aula = parseInt(document.getElementById("duracaoAula").value);
-        parametrosPorSegmento[segmentoAtualParametro].duracao_intervalo = parseInt(document.getElementById("duracaoIntervalo").value);
-        parametrosPorSegmento[segmentoAtualParametro].tem_aula_sabado = document.getElementById("temAulaSabado").checked;
-
-        atualizarResumoSegmentosParametros();
-        atualizarJsonSegmentosParametros();
+    // --- LÓGICA DE GERENCIAMENTO DE ABAS 100% GARANTIDA PELA URL ---
+    function trocarAba(nomeAba) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("aba", nomeAba);
+        window.location.href = url.toString();
     }
-    const formParametros = document.getElementById("formParametros");
-
-        formParametros.addEventListener("submit", async function(e){
-
-        e.preventDefault();
-
-        salvarFormularioSegmentoAtual();
-
-    const payload = {
-        segmentos: parametrosPorSegmento
-    };
-
-    const resposta = await fetch(
-        "/configuracoes-horarias/parametros",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify(payload)
-        }
-    );
-
-        if(resposta.ok){
-            alert("Parâmetros salvos com sucesso!");
-            window.location.reload();
-        }else{
-        alert(await resposta.text());
-    }
-
-});
-    function carregarFormularioSegmento(segmento) {
-        const dados = parametrosPorSegmento[segmento];
-
-        document.getElementById("aulasPorDia").value = dados.aulas_por_dia;
-        document.getElementById("duracaoAula").value = dados.duracao_aula;
-        document.getElementById("duracaoIntervalo").value = dados.duracao_intervalo;
-        document.getElementById("temAulaSabado").checked = dados.tem_aula_sabado;
-        document.getElementById("segmentoSelecionado").value = segmento;
-
-        const badge = document.getElementById("badgeSegmentoSelecionado");
-        badge.innerText = nomesSegmentosParametros[segmento];
-        badge.className = `segmento-badge ${classesCoresSegmentos[segmento]} px-3 py-2`;
-
-        const aviso = document.getElementById("avisoSegmentoInativo");
-        if (dados.ativo) {
-            aviso.classList.add("d-none");
-        } else {
-            aviso.classList.remove("d-none");
-        }
-    }
-
-    function selecionarSegmentoParametro(segmento) {
-        salvarFormularioSegmentoAtual();
-        segmentoAtualParametro = segmento;
-
-        document.querySelectorAll(".segmento-item").forEach(item => {
-            item.classList.remove("selected");
-        });
-
-        const itemSelecionado = document.querySelector(`[data-segmento="${segmento}"]`);
-        if (itemSelecionado) {
-            itemSelecionado.classList.add("selected");
-        }
-
-        carregarFormularioSegmento(segmento);
-        atualizarCoresSegmentos();
-    }
-
-    function atualizarResumoSegmentosParametros() {
-        const resumo = document.getElementById("resumoSegmentosParametros");
-        if (!resumo) return;
-
-        resumo.innerHTML = "";
-
-        Object.keys(parametrosPorSegmento).forEach(segmento => {
-            const dados = parametrosPorSegmento[segmento];
-
-            if (!dados.ativo) return;
-
-            const span = document.createElement("span");
-            span.className = `segmento-badge ${classesCoresSegmentos[segmento]} px-3 py-2`;
-            span.innerText = `${nomesSegmentosParametros[segmento]}: ${dados.aulas_por_dia} aulas/dia`;
-            resumo.appendChild(span);
-        });
-
-        if (resumo.innerHTML === "") {
-            resumo.innerHTML = '<span class="text-muted small">Nenhum segmento ativo.</span>';
-        }
-    }
-
-    function atualizarJsonSegmentosParametros() {
-        const campoJson = document.getElementById("segmentosParametrosJson");
-        if (!campoJson) return;
-
-        campoJson.value = JSON.stringify(parametrosPorSegmento);
-    }
-
-    function atualizarCoresSegmentos() {
-        document.querySelectorAll(".segmento-item").forEach(item => {
-            const segmento = item.dataset.segmento;
-            const ativo = parametrosPorSegmento[segmento].ativo;
-
-            item.classList.toggle("segmento-ativo", ativo);
-        });
-    }
-
-    function aplicarCoresDasDisciplinas() {
-        document.querySelectorAll(".disciplina-cor-bolinha").forEach(elemento => {
-            const cor = elemento.dataset.corDisciplina || "#2563EB";
-            elemento.style.backgroundColor = cor;
-        });
-
-        document.querySelectorAll(".badge-disciplina-colorida").forEach(elemento => {
-            const cor = elemento.dataset.corDisciplina || "#2563EB";
-            elemento.style.backgroundColor = `${cor}22`;
-            elemento.style.color = cor;
-            elemento.style.borderColor = `${cor}55`;
-        });
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".segmento-switch").forEach(input => {
-            const segmento = input.dataset.segmento;
-            parametrosPorSegmento[segmento].ativo = input.checked;
-
-            input.addEventListener("change", function () {
-                parametrosPorSegmento[segmento].ativo = input.checked;
-
-                if (input.checked) {
-                    selecionarSegmentoParametro(segmento);
-                } else if (segmentoAtualParametro === segmento) {
-                    carregarFormularioSegmento(segmento);
-                }
-
-                atualizarCoresSegmentos();
-                atualizarResumoSegmentosParametros();
-                atualizarJsonSegmentosParametros();
-            });
-        });
-
-        ["aulasPorDia", "duracaoAula", "duracaoIntervalo", "temAulaSabado"].forEach(id => {
-            const elemento = document.getElementById(id);
-            if (elemento) {
-                elemento.addEventListener("change", salvarFormularioSegmentoAtual);
-                elemento.addEventListener("input", salvarFormularioSegmentoAtual);
-            }
-        });
-
-        const formParametros = document.getElementById("formParametros");
-        if (formParametros) {
-            formParametros.addEventListener("submit", function () {
-                salvarFormularioSegmentoAtual();
-                atualizarJsonSegmentosParametros();
-            });
-        }
-
-        carregarFormularioSegmento(segmentoAtualParametro);
-        atualizarCoresSegmentos();
-        atualizarResumoSegmentosParametros();
-        atualizarJsonSegmentosParametros();
-        aplicarCoresDasDisciplinas();
-    });
-
 
     function definirCorDisciplina(cor) {
         const campoCor = document.getElementById("corDisciplina");
@@ -1664,13 +718,8 @@
         const nome = document.getElementById("nomeDisciplina");
         const inputColor = document.getElementById("corPersonalizada");
 
-        if (campoCor) {
-            campoCor.value = cor;
-        }
-
-        if (inputColor) {
-            inputColor.value = cor;
-        }
+        if (campoCor) campoCor.value = cor;
+        if (inputColor) inputColor.value = cor;
 
         document.querySelectorAll(".cor-disciplina-opcao").forEach(botao => {
             botao.classList.toggle("selected", botao.dataset.cor === cor);
@@ -1715,9 +764,7 @@
     function prepararCadastroDisciplinaComCor() {
         const form = document.getElementById("formDisciplina");
 
-        if (!form || form.dataset.corListener === "true") {
-            return;
-        }
+        if (!form || form.dataset.corListener === "true") return;
 
         form.dataset.corListener = "true";
 
@@ -1755,10 +802,10 @@
         document.getElementById("modalDisciplinaLabel").innerText = "Cadastrar Disciplina";
         definirCorDisciplina("#2563EB");
 
+        let modalDisciplina = bootstrap.Modal.getInstance(document.getElementById("modalDisciplina"));
         if (!modalDisciplina) {
             modalDisciplina = new bootstrap.Modal(document.getElementById("modalDisciplina"));
         }
-
         modalDisciplina.show();
     };
 
@@ -1768,10 +815,10 @@
         document.getElementById("modalDisciplinaLabel").innerText = "Editar Disciplina";
         definirCorDisciplina(botao.dataset.cor || "#2563EB");
 
+        let modalDisciplina = bootstrap.Modal.getInstance(document.getElementById("modalDisciplina"));
         if (!modalDisciplina) {
             modalDisciplina = new bootstrap.Modal(document.getElementById("modalDisciplina"));
         }
-
         modalDisciplina.show();
     };
 
@@ -1779,22 +826,10 @@
         inicializarPaletaDisciplinas();
         prepararCadastroDisciplinaComCor();
         definirCorDisciplina(document.getElementById("corDisciplina")?.value || "#2563EB");
-        aplicarCoresDasDisciplinas();
     });
 
     function abrirMatrizCurricular() {
-        const botaoAba = document.getElementById("disciplinas-tab");
-
-        if (botaoAba) {
-            new bootstrap.Tab(botaoAba).show();
-        }
-
-        setTimeout(function () {
-            document.getElementById("secaoMatrizCurricular")?.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }, 200);
+        trocarAba('disciplinas');
     }
 
     let capacidadeSemanalMatriz = 0;
@@ -1814,14 +849,8 @@
 
     function normalizarValorMatriz(campo) {
         let valor = Number.parseInt(campo.value, 10);
-
-        if (!Number.isInteger(valor) || valor < 0) {
-            valor = 0;
-        }
-
-        if (valor > 20) {
-            valor = 20;
-        }
+        if (!Number.isInteger(valor) || valor < 0) valor = 0;
+        if (valor > 20) valor = 20;
 
         campo.value = valor;
         return valor;
@@ -1834,30 +863,19 @@
     }
 
     function bloquearCamposMatrizCurricular(bloquear) {
-        obterCamposMatrizCurricular().forEach(function (campo) {
-            campo.disabled = bloquear;
-        });
-
-        obterBotoesMatrizCurricular().forEach(function (botao) {
-            botao.disabled = bloquear;
-        });
+        obterCamposMatrizCurricular().forEach(campo => campo.disabled = bloquear);
+        obterBotoesMatrizCurricular().forEach(botao => botao.disabled = bloquear);
     }
 
     function limparMatrizCurricular() {
-        obterCamposMatrizCurricular().forEach(function (campo) {
-            campo.value = 0;
-        });
-
+        obterCamposMatrizCurricular().forEach(campo => campo.value = 0);
         capacidadeSemanalMatriz = 0;
         atualizarResumoMatrizCurricular();
     }
 
     function mostrarAvisoMatrizCurricular(tipo, mensagem) {
         const aviso = document.getElementById("avisoMatrizCurricular");
-
-        if (!aviso) {
-            return;
-        }
+        if (!aviso) return;
 
         aviso.className = `alert alert-${tipo} mb-0 flex-grow-1`;
         aviso.innerText = mensagem;
@@ -1865,13 +883,8 @@
 
     function atualizarCardsDisciplinas(totalUltrapassou) {
         obterCamposMatrizCurricular().forEach(function (campo) {
-            const card = document.querySelector(
-                `[data-card-disciplina-id="${campo.dataset.disciplinaId}"]`
-            );
-
-            if (!card) {
-                return;
-            }
+            const card = document.querySelector(`[data-card-disciplina-id="${campo.dataset.disciplinaId}"]`);
+            if (!card) return;
 
             const valor = Number(campo.value) || 0;
             card.classList.toggle("ativa", valor > 0);
@@ -1888,9 +901,7 @@
         const status = document.getElementById("statusCargaMatriz");
         const barra = document.getElementById("barraProgressoMatriz");
 
-        if (!turma || !botaoSalvar) {
-            return;
-        }
+        if (!turma || !botaoSalvar) return;
 
         const turmaSelecionada = Boolean(turma.value);
         const total = calcularTotalMatrizCurricular();
@@ -1900,21 +911,12 @@
         const faltam = Math.max(capacidade - total, 0);
         const excedeu = Math.max(total - capacidade, 0);
 
-        if (painelResumo) {
-            painelResumo.classList.toggle("d-none", !turmaSelecionada);
-        }
-
-        if (totalElemento) {
-            totalElemento.innerText = total;
-        }
-
-        if (capacidadeElemento) {
-            capacidadeElemento.innerText = capacidade;
-        }
+        if (painelResumo) painelResumo.classList.toggle("d-none", !turmaSelecionada);
+        if (totalElemento) totalElemento.innerText = total;
+        if (capacidadeElemento) capacidadeElemento.innerText = capacidade;
 
         if (status) {
             status.className = "matriz-status";
-
             if (!turmaSelecionada || capacidade === 0) {
                 status.classList.add("matriz-status-neutro");
                 status.innerText = "Aguardando turma";
@@ -1931,21 +933,14 @@
         }
 
         if (barra) {
-            const percentual = capacidade > 0
-                ? Math.min((total / capacidade) * 100, 100)
-                : 0;
-
+            const percentual = capacidade > 0 ? Math.min((total / capacidade) * 100, 100) : 0;
             barra.style.width = `${percentual}%`;
             barra.setAttribute("aria-valuenow", String(Math.round(percentual)));
             barra.className = "progress-bar";
 
-            if (ultrapassou) {
-                barra.classList.add("bg-danger");
-            } else if (completa) {
-                barra.classList.add("bg-success");
-            } else {
-                barra.classList.add("bg-primary");
-            }
+            if (ultrapassou) barra.classList.add("bg-danger");
+            else if (completa) barra.classList.add("bg-success");
+            else barra.classList.add("bg-primary");
         }
 
         atualizarCardsDisciplinas(ultrapassou);
@@ -1958,34 +953,19 @@
         );
 
         if (!turmaSelecionada) {
-            mostrarAvisoMatrizCurricular(
-                "info",
-                "Selecione uma turma para configurar a matriz curricular."
-            );
+            mostrarAvisoMatrizCurricular("info", "Selecione uma turma para configurar a matriz curricular.");
         } else if (ultrapassou) {
-            mostrarAvisoMatrizCurricular(
-                "danger",
-                `A matriz ultrapassou a carga da turma em ${excedeu} aula(s). Reduza a quantidade antes de salvar.`
-            );
+            mostrarAvisoMatrizCurricular("danger", `A matriz ultrapassou a carga da turma em ${excedeu} aula(s). Reduza a quantidade antes de salvar.`);
         } else if (completa) {
-            mostrarAvisoMatrizCurricular(
-                "success",
-                "A carga semanal está completa. A matriz já pode ser salva."
-            );
+            mostrarAvisoMatrizCurricular("success", "A carga semanal está completa. A matriz já pode ser salva.");
         } else if (capacidade > 0) {
-            mostrarAvisoMatrizCurricular(
-                "warning",
-                `Ainda faltam ${faltam} aula(s) para completar a carga semanal da turma.`
-            );
+            mostrarAvisoMatrizCurricular("warning", `Ainda faltam ${faltam} aula(s) para completar a carga semanal da turma.`);
         }
     }
 
     function atualizarStatusAutosaveMatriz(tipo, mensagem) {
         const status = document.getElementById("statusAutosaveMatriz");
-
-        if (!status) {
-            return;
-        }
+        if (!status) return;
 
         const configuracoes = {
             neutro: ["text-muted", "bi-cloud-check"],
@@ -2011,10 +991,7 @@
 
     function obterAssinaturaMatrizAtual() {
         const turma = document.getElementById("turmaMatrizCurricular");
-
-        if (!turma || !turma.value) {
-            return "";
-        }
+        if (!turma || !turma.value) return "";
 
         return JSON.stringify({
             turma_id: String(turma.value),
@@ -2026,9 +1003,7 @@
         const turma = document.getElementById("turmaMatrizCurricular");
         const total = calcularTotalMatrizCurricular();
 
-        if (!turma || !turma.value || carregandoMatrizCurricular) {
-            return;
-        }
+        if (!turma || !turma.value || carregandoMatrizCurricular) return;
 
         if (capacidadeSemanalMatriz > 0 && total > capacidadeSemanalMatriz) {
             window.clearTimeout(temporizadorAutosaveMatriz);
@@ -2037,10 +1012,7 @@
         }
 
         const assinaturaAtual = obterAssinaturaMatrizAtual();
-
-        if (!assinaturaAtual || assinaturaAtual === ultimaAssinaturaMatrizSalva) {
-            return;
-        }
+        if (!assinaturaAtual || assinaturaAtual === ultimaAssinaturaMatrizSalva) return;
 
         window.clearTimeout(temporizadorAutosaveMatriz);
         autosaveMatrizPendente = true;
@@ -2053,31 +1025,19 @@
 
     async function abrirModalCadastroDisciplinaComAutosave() {
         window.clearTimeout(temporizadorAutosaveMatriz);
-
         const assinaturaAtual = obterAssinaturaMatrizAtual();
 
-        if (
-            assinaturaAtual &&
-            assinaturaAtual !== ultimaAssinaturaMatrizSalva
-        ) {
+        if (assinaturaAtual && assinaturaAtual !== ultimaAssinaturaMatrizSalva) {
             const salvou = await salvarMatrizCurricular({ automatico: true });
-
-            if (!salvou) {
-                return;
-            }
+            if (!salvou) return;
         }
 
         abrirModalCadastroDisciplina();
     }
 
     function alterarCargaDisciplina(disciplinaId, variacao) {
-        const campo = document.querySelector(
-            `.carga-matriz-curricular[data-disciplina-id="${disciplinaId}"]`
-        );
-
-        if (!campo || campo.disabled) {
-            return;
-        }
+        const campo = document.querySelector(`.carga-matriz-curricular[data-disciplina-id="${disciplinaId}"]`);
+        if (!campo || campo.disabled) return;
 
         const valorAtual = normalizarValorMatriz(campo);
         campo.value = Math.min(20, Math.max(0, valorAtual + variacao));
@@ -2087,10 +1047,7 @@
 
     async function carregarMatrizCurricular() {
         const turma = document.getElementById("turmaMatrizCurricular");
-
-        if (!turma) {
-            return;
-        }
+        if (!turma) return;
 
         const turmaId = turma.value;
         limparMatrizCurricular();
@@ -2108,51 +1065,31 @@
 
         try {
             const response = await fetch(`/turmas/${turmaId}/matriz-curricular`);
-            const dados = await response.json().catch(function () {
-                return {};
-            });
+            const dados = await response.json().catch(() => ({}));
 
             if (!response.ok) {
-                throw new Error(
-                    dados.erro || "Não foi possível carregar a matriz curricular."
-                );
+                throw new Error(dados.erro || "Não foi possível carregar a matriz curricular.");
             }
 
             capacidadeSemanalMatriz = Number(
                 dados.configuracao?.capacidade_semanal ||
-                dados.resumo?.capacidade_semanal ||
-                0
+                dados.resumo?.capacidade_semanal || 0
             );
 
-            const disciplinas = Array.isArray(dados.disciplinas)
-                ? dados.disciplinas
-                : Array.isArray(dados)
-                    ? dados
-                    : [];
+            const disciplinas = Array.isArray(dados.disciplinas) ? dados.disciplinas : Array.isArray(dados) ? dados : [];
 
             const cargasPorDisciplina = new Map(
-                disciplinas.map(function (item) {
-                    return [
-                        String(item.disciplina_id),
-                        Number(item.aulas_por_semana) || 0
-                    ];
-                })
+                disciplinas.map(item => [String(item.disciplina_id), Number(item.aulas_por_semana) || 0])
             );
 
-            obterCamposMatrizCurricular().forEach(function (campo) {
-                campo.value = cargasPorDisciplina.get(
-                    String(campo.dataset.disciplinaId)
-                ) || 0;
+            obterCamposMatrizCurricular().forEach(campo => {
+                campo.value = cargasPorDisciplina.get(String(campo.dataset.disciplinaId)) || 0;
             });
 
             ultimaAssinaturaMatrizSalva = obterAssinaturaMatrizAtual();
             autosaveMatrizPendente = false;
             atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
-
-            mostrarAvisoMatrizCurricular(
-                "info",
-                "Matriz carregada. As alterações serão salvas automaticamente."
-            );
+            mostrarAvisoMatrizCurricular("info", "Matriz carregada. As alterações serão salvas automaticamente.");
         } catch (erro) {
             capacidadeSemanalMatriz = 0;
             limparMatrizCurricular();
@@ -2171,7 +1108,6 @@
             ensino_medio: "Ensino Médio",
             cursinho: "Cursinho"
         };
-
         return nomes[segmento] || segmento || "Segmento não informado";
     }
 
@@ -2179,20 +1115,14 @@
         const turma = document.getElementById("turmaMatrizCurricular");
         const turmaId = turma ? String(turma.value) : "";
 
-        document.querySelectorAll(".matriz-salva-card").forEach(function (card) {
-            card.classList.toggle(
-                "selecionada",
-                String(card.dataset.turmaId) === turmaId
-            );
+        document.querySelectorAll(".matriz-salva-card").forEach(card => {
+            card.classList.toggle("selecionada", String(card.dataset.turmaId) === turmaId);
         });
     }
 
     function abrirMatrizSalva(turmaId) {
         const turma = document.getElementById("turmaMatrizCurricular");
-
-        if (!turma) {
-            return;
-        }
+        if (!turma) return;
 
         turma.value = String(turmaId);
         turma.dispatchEvent(new Event("change"));
@@ -2205,67 +1135,31 @@
     async function carregarListaMatrizesCurriculares() {
         const lista = document.getElementById("listaMatrizesCurriculares");
         const turma = document.getElementById("turmaMatrizCurricular");
+        if (!lista || !turma) return;
 
-        if (!lista || !turma) {
-            return;
-        }
-
-        const opcoesTurmas = Array.from(turma.options).filter(function (opcao) {
-            return opcao.value !== "";
-        });
+        const opcoesTurmas = Array.from(turma.options).filter(opcao => opcao.value !== "");
 
         if (opcoesTurmas.length === 0) {
-            lista.innerHTML = `
-                <div class="col-12">
-                    <div class="alert alert-light border mb-0">
-                        Nenhuma turma cadastrada.
-                    </div>
-                </div>
-            `;
+            lista.innerHTML = `<div class="col-12"><div class="alert alert-light border mb-0">Nenhuma turma cadastrada.</div></div>`;
             return;
         }
 
-        lista.innerHTML = `
-            <div class="col-12">
-                <div class="text-muted small">Carregando matrizes cadastradas...</div>
-            </div>
-        `;
+        lista.innerHTML = `<div class="col-12"><div class="text-muted small">Carregando matrizes cadastradas...</div></div>`;
 
         const matrizes = await Promise.all(
             opcoesTurmas.map(async function (opcao) {
                 try {
-                    const response = await fetch(
-                        `/turmas/${opcao.value}/matriz-curricular`
-                    );
-
-                    if (!response.ok) {
-                        return null;
-                    }
+                    const response = await fetch(`/turmas/${opcao.value}/matriz-curricular`);
+                    if (!response.ok) return null;
 
                     const dados = await response.json();
-                    const disciplinas = Array.isArray(dados.disciplinas)
-                        ? dados.disciplinas
-                        : Array.isArray(dados)
-                            ? dados
-                            : [];
+                    const disciplinas = Array.isArray(dados.disciplinas) ? dados.disciplinas : Array.isArray(dados) ? dados : [];
+                    const preenchidas = disciplinas.filter(item => Number(item.aulas_por_semana) > 0);
 
-                    const preenchidas = disciplinas.filter(function (item) {
-                        return Number(item.aulas_por_semana) > 0;
-                    });
+                    if (preenchidas.length === 0) return null;
 
-                    if (preenchidas.length === 0) {
-                        return null;
-                    }
-
-                    const totalAulas = preenchidas.reduce(function (total, item) {
-                        return total + (Number(item.aulas_por_semana) || 0);
-                    }, 0);
-
-                    const capacidade = Number(
-                        dados.configuracao?.capacidade_semanal ||
-                        dados.resumo?.capacidade_semanal ||
-                        0
-                    );
+                    const totalAulas = preenchidas.reduce((total, item) => total + (Number(item.aulas_por_semana) || 0), 0);
+                    const capacidade = Number(dados.configuracao?.capacidade_semanal || dados.resumo?.capacidade_semanal || 0);
 
                     return {
                         turmaId: opcao.value,
@@ -2285,53 +1179,28 @@
         const matrizesValidas = matrizes.filter(Boolean);
 
         if (matrizesValidas.length === 0) {
-            lista.innerHTML = `
-                <div class="col-12">
-                    <div class="alert alert-light border mb-0">
-                        Nenhuma matriz curricular cadastrada ainda.
-                    </div>
-                </div>
-            `;
+            lista.innerHTML = `<div class="col-12"><div class="alert alert-light border mb-0">Nenhuma matriz curricular cadastrada ainda.</div></div>`;
             return;
         }
 
         lista.innerHTML = matrizesValidas.map(function (matriz) {
-            const textoDisciplinas = matriz.totalDisciplinas === 1
-                ? "1 disciplina"
-                : `${matriz.totalDisciplinas} disciplinas`;
-
+            const textoDisciplinas = matriz.totalDisciplinas === 1 ? "1 disciplina" : `${matriz.totalDisciplinas} disciplinas`;
             const textoTurno = matriz.turno ? ` · ${matriz.turno}` : "";
-            const textoCarga = matriz.capacidade > 0
-                ? `${matriz.totalAulas}/${matriz.capacidade} aulas`
-                : `${matriz.totalAulas} aulas`;
+            const textoCarga = matriz.capacidade > 0 ? `${matriz.totalAulas}/${matriz.capacidade} aulas` : `${matriz.totalAulas} aulas`;
 
             return `
                 <div class="col-12 col-lg-6">
-                    <button
-                        type="button"
-                        class="matriz-salva-card"
-                        data-turma-id="${matriz.turmaId}"
-                        onclick="abrirMatrizSalva('${matriz.turmaId}')">
-
+                    <button type="button" class="matriz-salva-card" data-turma-id="${matriz.turmaId}" onclick="abrirMatrizSalva('${matriz.turmaId}')">
                         <div class="d-flex justify-content-between align-items-start gap-3">
                             <div>
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <i class="bi bi-check-circle-fill text-success"></i>
                                     <strong>${matriz.nome}</strong>
                                 </div>
-
-                                <div class="text-muted small">
-                                    ${nomeSegmentoMatriz(matriz.segmento)}${textoTurno}
-                                </div>
-
-                                <div class="text-muted small mt-1">
-                                    ${textoDisciplinas}
-                                </div>
+                                <div class="text-muted small">${nomeSegmentoMatriz(matriz.segmento)}${textoTurno}</div>
+                                <div class="text-muted small mt-1">${textoDisciplinas}</div>
                             </div>
-
-                            <div class="matriz-salva-total text-primary">
-                                ${textoCarga}
-                            </div>
+                            <div class="matriz-salva-total text-primary">${textoCarga}</div>
                         </div>
                     </button>
                 </div>
@@ -2347,19 +1216,14 @@
         const botao = document.getElementById("btnSalvarMatrizCurricular");
 
         if (!turma || !botao || !turma.value) {
-            if (!automatico) {
-                mostrarAvisoMatrizCurricular("warning", "Selecione uma turma antes de salvar.");
-            }
+            if (!automatico) mostrarAvisoMatrizCurricular("warning", "Selecione uma turma antes de salvar.");
             return false;
         }
 
         const total = calcularTotalMatrizCurricular();
 
         if (capacidadeSemanalMatriz > 0 && total > capacidadeSemanalMatriz) {
-            mostrarAvisoMatrizCurricular(
-                "danger",
-                `A matriz ultrapassou a carga da turma em ${total - capacidadeSemanalMatriz} aula(s).`
-            );
+            mostrarAvisoMatrizCurricular("danger", `A matriz ultrapassou a carga da turma em ${total - capacidadeSemanalMatriz} aula(s).`);
             atualizarStatusAutosaveMatriz("erro", "Corrija o excesso para salvar");
             return false;
         }
@@ -2367,11 +1231,7 @@
         const disciplinas = montarPayloadMatrizCurricular();
         const assinaturaEnviada = obterAssinaturaMatrizAtual();
 
-        if (
-            automatico &&
-            assinaturaEnviada &&
-            assinaturaEnviada === ultimaAssinaturaMatrizSalva
-        ) {
+        if (automatico && assinaturaEnviada && assinaturaEnviada === ultimaAssinaturaMatrizSalva) {
             autosaveMatrizPendente = false;
             atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
             return true;
@@ -2387,6 +1247,7 @@
         autosaveMatrizPendente = false;
         bloquearCamposMatrizCurricular(true);
         atualizarResumoMatrizCurricular();
+
         if (automatico) {
             atualizarStatusAutosaveMatriz("salvando", "Salvando...");
         } else {
@@ -2394,35 +1255,23 @@
         }
 
         try {
-            const response = await fetch(
-                `/turmas/${turma.value}/matriz-curricular`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ disciplinas: disciplinas })
-                }
-            );
-
-            const dados = await response.json().catch(function () {
-                return {};
+            const response = await fetch(`/turmas/${turma.value}/matriz-curricular`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ disciplinas: disciplinas })
             });
 
+            const dados = await response.json().catch(() => ({}));
+
             if (!response.ok) {
-                throw new Error(
-                    dados.erro || "Não foi possível salvar a matriz curricular."
-                );
+                throw new Error(dados.erro || "Não foi possível salvar a matriz curricular.");
             }
 
             ultimaAssinaturaMatrizSalva = assinaturaEnviada;
             atualizarStatusAutosaveMatriz("salvo", "Tudo salvo");
 
             if (!automatico) {
-                mostrarAvisoMatrizCurricular(
-                    "success",
-                    dados.mensagem || "Matriz curricular salva com sucesso!"
-                );
+                mostrarAvisoMatrizCurricular("success", dados.mensagem || "Matriz curricular salva com sucesso!");
             }
 
             await carregarListaMatrizesCurriculares();
@@ -2438,9 +1287,7 @@
             bloquearCamposMatrizCurricular(false);
             atualizarResumoMatrizCurricular();
 
-            if (autosaveMatrizPendente) {
-                agendarAutosaveMatriz();
-            }
+            if (autosaveMatrizPendente) agendarAutosaveMatriz();
         }
     }
 
@@ -2459,7 +1306,7 @@
             botao.addEventListener("click", salvarMatrizCurricular);
         }
 
-        obterCamposMatrizCurricular().forEach(function (campo) {
+        obterCamposMatrizCurricular().forEach(campo => {
             campo.addEventListener("input", function () {
                 atualizarResumoMatrizCurricular();
                 agendarAutosaveMatriz();
@@ -2471,7 +1318,7 @@
             });
         });
 
-        obterBotoesMatrizCurricular().forEach(function (botaoControle) {
+        obterBotoesMatrizCurricular().forEach(botaoControle => {
             botaoControle.addEventListener("click", function () {
                 const variacao = botaoControle.dataset.acao === "aumentar" ? 1 : -1;
                 alterarCargaDisciplina(botaoControle.dataset.disciplinaId, variacao);
@@ -2484,7 +1331,9 @@
         carregarListaMatrizesCurriculares();
     });
 
-
+    function abrirConfiguracaoEscola() {
+        window.location.href = "{{ url_for('cadastro.tela_configuracao_escola') }}";
+    }
 </script>
 
 {% endblock %}

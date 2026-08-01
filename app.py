@@ -247,8 +247,17 @@ def dashboard():
                 f"{disponibilidades_pendentes} professor(es) sem disponibilidade."
             )
 
+        grades_da_escola = (
+            db.session.query(GradeAula.grade_id)
+            .join(Turma, Turma.id == GradeAula.turma_id)
+            .filter(Turma.escola_id == escola_id)
+            .distinct()
+            .subquery()
+        )
+
         ultimas_grades = (
             db.session.query(Grade)
+            .filter(Grade.id.in_(db.session.query(grades_da_escola.c.grade_id)))
             .order_by(Grade.criado_em.desc())
             .limit(10)
             .all()

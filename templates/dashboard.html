@@ -31,8 +31,8 @@
     </section>
 
 
-    <!-- RESUMO DA CONFIGURAÇÃO -->
-    <section class="setup-card">
+    <!-- ASSISTENTE DE CONFIGURAÇÃO -->
+    <section class="setup-card setup-assistant-card">
 
         <div class="setup-content">
 
@@ -40,32 +40,25 @@
                 {% if progresso_geral == 100 %}
                     <i class="bi bi-check-lg"></i>
                 {% else %}
-                    <i class="bi bi-gear"></i>
+                    <i class="bi bi-list-check"></i>
                 {% endif %}
             </div>
 
             <div class="setup-information">
 
                 <div class="setup-title-row">
-
                     <div>
-                        <span class="setup-label">
-                            CONFIGURAÇÃO DO AMBIENTE
-                        </span>
-
+                        <span class="setup-label">ASSISTENTE DE CONFIGURAÇÃO</span>
                         <h2>
                             {% if progresso_geral == 100 %}
                                 Escola pronta para gerar grades
                             {% else %}
-                                Finalize a configuração da escola
+                                Próximos passos para gerar a grade
                             {% endif %}
                         </h2>
                     </div>
 
-                    <strong class="setup-percentage">
-                        {{ progresso_geral }}%
-                    </strong>
-
+                    <strong class="setup-percentage">{{ progresso_geral }}%</strong>
                 </div>
 
                 <div
@@ -81,25 +74,101 @@
                     ></div>
                 </div>
 
+                <div class="setup-checklist">
+
+                    <a href="{{ url_for('cadastro.tela_configuracao_escola') }}"
+                       class="setup-step {% if escola %}is-complete{% else %}is-pending{% endif %}">
+                        <span class="setup-step-icon">
+                            <i class="bi {% if escola %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                        </span>
+                        <span>
+                            <strong>Escola e segmentos</strong>
+                            <small>Dados da escola e estrutura das aulas</small>
+                        </span>
+                        <i class="bi bi-chevron-right setup-step-arrow"></i>
+                    </a>
+
+                    <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=turmas"
+                       class="setup-step {% if turmas > 0 %}is-complete{% else %}is-pending{% endif %}">
+                        <span class="setup-step-icon">
+                            <i class="bi {% if turmas > 0 %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                        </span>
+                        <span>
+                            <strong>Turmas</strong>
+                            <small>{{ turmas }} turma(s) cadastrada(s)</small>
+                        </span>
+                        <i class="bi bi-chevron-right setup-step-arrow"></i>
+                    </a>
+
+                    <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=disciplinas"
+                       class="setup-step {% if disciplinas > 0 %}is-complete{% else %}is-pending{% endif %}">
+                        <span class="setup-step-icon">
+                            <i class="bi {% if disciplinas > 0 %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                        </span>
+                        <span>
+                            <strong>Disciplinas e matrizes</strong>
+                            <small>{{ matrizes }} de {{ turmas }} matriz(es) pronta(s)</small>
+                        </span>
+                        <i class="bi bi-chevron-right setup-step-arrow"></i>
+                    </a>
+
+                    <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores"
+                       class="setup-step {% if professores > 0 %}is-complete{% else %}is-pending{% endif %}">
+                        <span class="setup-step-icon">
+                            <i class="bi {% if professores > 0 %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                        </span>
+                        <span>
+                            <strong>Professores</strong>
+                            <small>{{ professores }} professor(es) cadastrado(s)</small>
+                        </span>
+                        <i class="bi bi-chevron-right setup-step-arrow"></i>
+                    </a>
+
+                    <a href="/disponibilidades/tela"
+                       class="setup-step {% if professores > 0 and professores_com_disponibilidade == professores %}is-complete{% else %}is-pending{% endif %}">
+                        <span class="setup-step-icon">
+                            <i class="bi {% if professores > 0 and professores_com_disponibilidade == professores %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                        </span>
+                        <span>
+                            <strong>Horários disponíveis</strong>
+                            <small>{{ professores_com_disponibilidade }} de {{ professores }} professor(es) configurado(s)</small>
+                        </span>
+                        <i class="bi bi-chevron-right setup-step-arrow"></i>
+                    </a>
+
+                </div>
+
                 <div class="setup-footer">
-
-                    <span>
-                        {% if progresso_geral == 100 %}
+                    {% if progresso_geral == 100 %}
+                        <span>
                             <i class="bi bi-shield-check"></i>
-                            Professores, turmas, disciplinas e matrizes configurados.
-                        {% else %}
-                            <i class="bi bi-info-circle"></i>
-                            Complete os itens pendentes antes de gerar a grade.
-                        {% endif %}
-                    </span>
-
-                    {% if progresso_geral != 100 %}
-                        <a href="{{ url_for('cadastro.tela_cadastros') }}">
-                            Continuar configuração
+                            Tudo pronto para gerar a grade.
+                        </span>
+                        <a href="{{ url_for('gerar_grade.tela_gerar_grade') }}">
+                            Gerar grade
                             <i class="bi bi-arrow-right"></i>
                         </a>
-                    {% endif %}
+                    {% else %}
+                        <span>
+                            <i class="bi bi-info-circle"></i>
+                            Continue pelo primeiro item pendente.
+                        </span>
 
+                        {% if not escola %}
+                            <a href="{{ url_for('cadastro.tela_configuracao_escola') }}">
+                        {% elif turmas == 0 %}
+                            <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=turmas">
+                        {% elif disciplinas == 0 or matrizes < turmas %}
+                            <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=disciplinas">
+                        {% elif professores == 0 %}
+                            <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores">
+                        {% else %}
+                            <a href="/disponibilidades/tela">
+                        {% endif %}
+                                Continuar configuração
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                    {% endif %}
                 </div>
 
             </div>
@@ -113,7 +182,7 @@
     <section class="dashboard-stats">
 
         <a
-            href="{{ url_for('cadastro.tela_cadastros') }}"
+            href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores"
             class="stat-card"
         >
             <div class="stat-card-content">
@@ -129,7 +198,7 @@
 
 
         <a
-            href="{{ url_for('cadastro.tela_cadastros') }}"
+            href="{{ url_for('cadastro.tela_cadastros') }}?aba=turmas"
             class="stat-card"
         >
             <div class="stat-card-content">
@@ -145,7 +214,7 @@
 
 
         <a
-            href="{{ url_for('cadastro.tela_cadastros') }}"
+            href="{{ url_for('cadastro.tela_cadastros') }}?aba=disciplinas"
             class="stat-card"
         >
             <div class="stat-card-content">
@@ -303,7 +372,7 @@
                     </p>
 
                     <a
-                        href="{{ url_for('cadastro.tela_cadastros') }}"
+                        href="{{ url_for('cadastro.tela_cadastros') }}?aba=turmas"
                         class="btn-remada-secondary"
                     >
                         Cadastrar turma
@@ -518,6 +587,82 @@
 
 </div>
 
+
+
+<style>
+.setup-assistant-card .setup-information {
+    width: 100%;
+}
+
+.setup-checklist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.setup-step {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 12px;
+    min-height: 74px;
+    padding: 14px;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #ffffff;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.setup-step:hover {
+    color: inherit;
+    border-color: #2563eb;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, .10);
+    transform: translateY(-1px);
+}
+
+.setup-step-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+}
+
+.setup-step.is-complete .setup-step-icon {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.setup-step.is-pending .setup-step-icon {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.setup-step strong,
+.setup-step small {
+    display: block;
+}
+
+.setup-step small {
+    margin-top: 3px;
+    color: #6b7280;
+}
+
+.setup-step-arrow {
+    color: #9ca3af;
+}
+
+@media (max-width: 767.98px) {
+    .setup-checklist {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 
 <script>
 async function excluirGrade(gradeId, versao) {
