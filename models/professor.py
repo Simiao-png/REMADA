@@ -4,15 +4,30 @@ from models.db import db
 class Professor(db.Model):
     __tablename__ = "professores"
 
-    id = db.Column(db.Integer, primary_key=True)
-    escola_id = db.Column(db.Integer, nullable=False)
-
-    nome = db.Column(db.String(150), nullable=False)
-
-    carga_horaria_semanal = db.Column(
+    id = db.Column(
         db.Integer,
-        nullable=False,
-        default=0
+        primary_key=True
+    )
+
+    escola_id = db.Column(
+        db.Integer,
+        nullable=False
+    )
+
+    nome = db.Column(
+        db.String(150),
+        nullable=False
+    )
+
+    disciplina_principal_id = db.Column(
+        db.Integer,
+        db.ForeignKey("disciplinas.id"),
+        nullable=True
+    )
+
+    limite_aulas_semana = db.Column(
+        db.Integer,
+        nullable=True
     )
 
     ativo = db.Column(
@@ -27,11 +42,19 @@ class Professor(db.Model):
         nullable=False
     )
 
-    observacoes = db.Column(db.Text)
+    observacoes = db.Column(
+        db.Text
+    )
 
     criado_em = db.Column(
         db.DateTime,
         server_default=db.func.current_timestamp()
+    )
+
+    disciplina_principal = db.relationship(
+        "Disciplina",
+        foreign_keys=[disciplina_principal_id],
+        lazy="joined"
     )
 
     disciplinas = db.relationship(

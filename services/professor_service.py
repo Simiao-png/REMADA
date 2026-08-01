@@ -1,73 +1,115 @@
-from flask import jsonify
+from flask import jsonify, session
 
 from models.db import db
 from models.professor import Professor
 from models.escola import Escola
-from models.professor_disciplina import (
-    ProfessorDisciplina
-)
-from models.professor_segmento import (
-    ProfessorSegmento
-)
-from models.professor_turma import (
-    ProfessorTurma
-)
-from models.disponibilidade_professor import (
-    DisponibilidadeProfessor
-)
+from models.disciplina import Disciplina
+from models.professor_disciplina import ProfessorDisciplina
+from models.professor_segmento import ProfessorSegmento
+from models.professor_turma import ProfessorTurma
+from models.disponibilidade_professor import DisponibilidadeProfessor
 
 
-SEGMENTOS_VALIDOS = {
-    "fundamental_1",
-    "fundamental_2",
-    "ensino_medio",
-    "cursinho"
-}
+def obter_escola_id(dados=None):
+    escola_id = session.get("escola_id")
 
+    if escola_id:
+        return int(escola_id)
 
-def normalizar_segmentos(segmentos):
-    if not isinstance(segmentos, list):
-        return []
-
-    segmentos_normalizados = []
-
-    for segmento in segmentos:
-        if not isinstance(segmento, str):
-            continue
-
-        segmento = segmento.strip().lower()
-
-        if (
-            segmento in SEGMENTOS_VALIDOS
-            and segmento not in segmentos_normalizados
-        ):
-            segmentos_normalizados.append(
-                segmento
+    if isinstance(dados, dict):
+        try:
+            escola_id_dados = int(
+                dados.get("escola_id")
             )
+        except (TypeError, ValueError):
+            escola_id_dados = None
 
-    return segmentos_normalizados
+        if escola_id_dados:
+            return escola_id_dados
+
+    escola = (
+        db.session.query(Escola)
+        .order_by(Escola.id)
+        .first()
+    )
+
+    return escola.id if escola else None
 
 
-def normalizar_carga_horaria(valor):
+def normalizar_inteiro_positivo(
+    valor,
+    permitir_none=True
+):
+    if valor in (None, ""):
+        return None if permitir_none else 0
+
     try:
-        carga_horaria = int(valor)
+        valor_normalizado = int(valor)
     except (TypeError, ValueError):
-        carga_horaria = 0
+        return None if permitir_none else 0
 
-    if carga_horaria < 0:
-        carga_horaria = 0
+    if valor_normalizado <= 0:
+        return None if permitir_none else 0
 
-    return carga_horaria
+    return valor_normalizado
+
+
+def buscar_disciplina_da_escola(
+    disciplina_id,
+    escola_id
+):
+    disciplina_id = normalizar_inteiro_positivo(
+        disciplina_id
+    )
+
+    if not disciplina_id:
+        return None
+
+    return (
+        Disciplina.query
+        .filter_by(
+            id=disciplina_id,
+            escola_id=escola_id
+        )
+        .first()
+    )
 
 
 def professor_para_dict(professor):
+    limite = professor.limite_aulas_semana
+
+    disciplina_principal = getattr(
+        professor,
+        "disciplina_principal",
+        None
+    )
+
+    disciplina_principal_id = getattr(
+        professor,
+        "disciplina_principal_id",
+        None
+    )
+
     return {
         "id": professor.id,
         "escola_id": professor.escola_id,
         "nome": professor.nome,
         "ativo": professor.ativo,
-        "carga_horaria_semanal": (
-            professor.carga_horaria_semanal or 0
+        "limite_aulas_semana": limite,
+        "carga_horaria_semanal": limite or 0,
+        "disciplina_principal_id": disciplina_principal_id,
+        "disciplina_principal": (
+            {
+                "id": disciplina_principal.id,
+                "nome": disciplina_principal.nome,
+                "cor": getattr(
+                    disciplina_principal,
+                    "cor",
+                    None
+                ),
+            }
+            if disciplina_principal
+            else None
         ),
         "trabalha_outra_escola": (
             professor.trabalha_outra_escola
@@ -80,13 +122,22 @@ def professor_para_dict(professor):
         "segmentos": [
             vinculo.segmento
             for vinculo in professor.segmentos
-        ]
+        ],
     }
 
 
 def listar_professores():
+    escola_id = obter_escola_id()
+
+    query = Professor.query
+
+    if escola_id:
+        query = query.filter_by(
+            escola_id=escola_id
+        )
+
     professores = (
-        db.session.query(Professor)
+        query
         .order_by(Professor.nome)
         .all()
     )
@@ -98,14 +149,22 @@ def listar_professores():
 
 
 def buscar_professor(id):
-    professor = db.session.get(
-        Professor,
-        id
+    escola_id = obter_escola_id()
+
+    query = Professor.query.filter_by(
+        id=id
     )
+
+    if escola_id:
+        query = query.filter_by(
+            escola_id=escola_id
+        )
+
+    professor = query.first()
 
     if not professor:
         return jsonify({
-            "erro": "Professor não encontrado"
+            "erro": "Professor não encontrado."
         }), 404
 
     return jsonify(
@@ -114,15 +173,26 @@ def buscar_professor(id):
 
 
 def criar_professor(dados):
-    escola = (
-        db.session.query(Escola)
-        .first()
+    dados = dados or {}
+
+    escola_id = obter_escola_id(
+        dados
+    )
+
+    if not escola_id:
+        return jsonify({
+            "erro": "Nenhuma escola selecionada."
+        }), 400
+
+    escola = db.session.get(
+        Escola,
+        escola_id
     )
 
     if not escola:
         return jsonify({
-            "erro": "Nenhuma escola cadastrada."
-        }), 400
+            "erro": "Escola não encontrada."
+        }), 404
 
     nome = str(
         dados.get("nome", "")
@@ -135,23 +205,36 @@ def criar_professor(dados):
             )
         }), 400
 
-    segmentos = normalizar_segmentos(
-        dados.get("segmentos", [])
+    disciplina_principal_id = (
+        normalizar_inteiro_positivo(
+            dados.get(
+                "disciplina_principal_id"
+            )
+        )
     )
 
-    if not segmentos:
-        return jsonify({
-            "erro": (
-                "Selecione pelo menos um segmento "
-                "de atuação."
-            )
-        }), 400
+    disciplina_principal = None
 
-    carga_horaria_semanal = (
-        normalizar_carga_horaria(
+    if disciplina_principal_id:
+        disciplina_principal = (
+            buscar_disciplina_da_escola(
+                disciplina_principal_id,
+                escola.id
+            )
+        )
+
+        if not disciplina_principal:
+            return jsonify({
+                "erro": (
+                    "A disciplina principal selecionada "
+                    "não pertence à escola atual."
+                )
+            }), 400
+
+    limite_aulas_semana = (
+        normalizar_inteiro_positivo(
             dados.get(
-                "carga_horaria_semanal",
-                0
+                "limite_aulas_semana"
             )
         )
     )
@@ -159,52 +242,41 @@ def criar_professor(dados):
     professor = Professor(
         escola_id=escola.id,
         nome=nome,
-        ativo=dados.get(
-            "ativo",
-            True
+        ativo=bool(
+            dados.get(
+                "ativo",
+                True
+            )
         ),
-        carga_horaria_semanal=(
-            carga_horaria_semanal
+        disciplina_principal_id=(
+            disciplina_principal.id
+            if disciplina_principal
+            else None
         ),
-        trabalha_outra_escola=dados.get(
-            "trabalha_outra_escola",
-            False
+        limite_aulas_semana=(
+            limite_aulas_semana
+        ),
+        trabalha_outra_escola=bool(
+            dados.get(
+                "trabalha_outra_escola",
+                False
+            )
         ),
         observacoes=dados.get(
             "observacoes"
-        )
+        ),
     )
 
     try:
-        db.session.add(professor)
-        db.session.flush()
-
-        disciplinas = dados.get(
-            "disciplinas_ids",
-            []
+        db.session.add(
+            professor
         )
 
-        for disciplina_id in disciplinas:
-            vinculo = ProfessorDisciplina(
-                professor_id=professor.id,
-                disciplina_id=disciplina_id
-            )
-
-            db.session.add(vinculo)
-
-        for segmento in segmentos:
-            vinculo_segmento = (
-                ProfessorSegmento(
-                    professor_id=professor.id,
-                    segmento=segmento
-                )
-            )
-
-            db.session.add(
-                vinculo_segmento
-            )
-
         db.session.commit()
+
+        db.session.refresh(
+            professor
+        )
 
         return jsonify({
             "mensagem": (
@@ -212,7 +284,7 @@ def criar_professor(dados):
             ),
             "professor": professor_para_dict(
                 professor
-            )
+            ),
         }), 201
 
     except Exception as erro:
@@ -232,14 +304,26 @@ def criar_professor(dados):
 
 
 def atualizar_professor(id, dados):
-    professor = db.session.get(
-        Professor,
-        id
+    dados = dados or {}
+
+    escola_id = obter_escola_id(
+        dados
     )
+
+    query = Professor.query.filter_by(
+        id=id
+    )
+
+    if escola_id:
+        query = query.filter_by(
+            escola_id=escola_id
+        )
+
+    professor = query.first()
 
     if not professor:
         return jsonify({
-            "erro": "Professor não encontrado"
+            "erro": "Professor não encontrado."
         }), 404
 
     nome = str(
@@ -256,99 +340,78 @@ def atualizar_professor(id, dados):
             )
         }), 400
 
-    segmentos = normalizar_segmentos(
-        dados.get(
-            "segmentos",
-            [
-                vinculo.segmento
-                for vinculo in professor.segmentos
-            ]
+    disciplina_principal_id = (
+        normalizar_inteiro_positivo(
+            dados.get(
+                "disciplina_principal_id",
+                professor.disciplina_principal_id
+            )
         )
     )
 
-    if not segmentos:
-        return jsonify({
-            "erro": (
-                "Selecione pelo menos um segmento "
-                "de atuação."
-            )
-        }), 400
+    disciplina_principal = None
 
-    carga_horaria_semanal = (
-        normalizar_carga_horaria(
+    if disciplina_principal_id:
+        disciplina_principal = (
+            buscar_disciplina_da_escola(
+                disciplina_principal_id,
+                professor.escola_id
+            )
+        )
+
+        if not disciplina_principal:
+            return jsonify({
+                "erro": (
+                    "A disciplina principal selecionada "
+                    "não pertence à escola atual."
+                )
+            }), 400
+
+    limite_aulas_semana = (
+        normalizar_inteiro_positivo(
             dados.get(
-                "carga_horaria_semanal",
-                professor.carga_horaria_semanal
+                "limite_aulas_semana",
+                professor.limite_aulas_semana
             )
         )
     )
 
     professor.nome = nome
 
-    professor.ativo = dados.get(
-        "ativo",
-        professor.ativo
+    professor.ativo = bool(
+        dados.get(
+            "ativo",
+            professor.ativo
+        )
     )
 
-    professor.carga_horaria_semanal = (
-        carga_horaria_semanal
+    professor.disciplina_principal_id = (
+        disciplina_principal.id
+        if disciplina_principal
+        else None
     )
 
-    professor.trabalha_outra_escola = (
+    professor.limite_aulas_semana = (
+        limite_aulas_semana
+    )
+
+    professor.trabalha_outra_escola = bool(
         dados.get(
             "trabalha_outra_escola",
-            professor.trabalha_outra_escola
+            professor.trabalha_outra_escola,
         )
     )
 
     professor.observacoes = dados.get(
         "observacoes",
-        professor.observacoes
+        professor.observacoes,
     )
 
     try:
-        ProfessorDisciplina.query.filter_by(
-            professor_id=professor.id
-        ).delete(
-            synchronize_session=False
-        )
-
-        disciplinas = dados.get(
-            "disciplinas_ids",
-            []
-        )
-
-        for disciplina_id in disciplinas:
-            vinculo = ProfessorDisciplina(
-                professor_id=professor.id,
-                disciplina_id=disciplina_id
-            )
-
-            db.session.add(vinculo)
-
-        ProfessorSegmento.query.filter_by(
-            professor_id=professor.id
-        ).delete(
-            synchronize_session=False
-        )
-
-        for segmento in segmentos:
-            vinculo_segmento = (
-                ProfessorSegmento(
-                    professor_id=professor.id,
-                    segmento=segmento
-                )
-            )
-
-            db.session.add(
-                vinculo_segmento
-            )
-
         db.session.commit()
 
-        professor = db.session.get(
-            Professor,
-            id
+        db.session.refresh(
+            professor
         )
 
         return jsonify({
@@ -357,7 +420,7 @@ def atualizar_professor(id, dados):
             ),
             "professor": professor_para_dict(
                 professor
-            )
+            ),
         })
 
     except Exception as erro:
@@ -377,14 +440,22 @@ def atualizar_professor(id, dados):
 
 
 def deletar_professor(id):
-    professor = db.session.get(
-        Professor,
-        id
+    escola_id = obter_escola_id()
+
+    query = Professor.query.filter_by(
+        id=id
     )
+
+    if escola_id:
+        query = query.filter_by(
+            escola_id=escola_id
+        )
+
+    professor = query.first()
 
     if not professor:
         return jsonify({
-            "erro": "Professor não encontrado"
+            "erro": "Professor não encontrado."
         }), 404
 
     try:
@@ -400,18 +471,23 @@ def deletar_professor(id):
             synchronize_session=False
         )
 
-        # Não apagamos ProfessorDisciplina
-        # manualmente aqui. O relacionamento
-        # Professor.disciplinas utiliza a tabela
-        # secundária professor_disciplina, e o
-        # SQLAlchemy remove esses vínculos ao
-        # excluir o professor.
+        # Mantidos temporariamente para limpar vínculos antigos.
+        ProfessorDisciplina.query.filter_by(
+            professor_id=professor.id
+        ).delete(
+            synchronize_session=False
+        )
 
-        # ProfessorSegmento também não precisa
-        # ser apagado manualmente porque possui
-        # cascade="all, delete-orphan" no model.
+        ProfessorSegmento.query.filter_by(
+            professor_id=professor.id
+        ).delete(
+            synchronize_session=False
+        )
 
-        db.session.delete(professor)
+        db.session.delete(
+            professor
+        )
+
         db.session.commit()
 
         return jsonify({

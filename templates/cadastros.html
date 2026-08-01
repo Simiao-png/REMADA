@@ -151,14 +151,36 @@
 
         <!-- ABA PROFESSORES -->
         <div class="tab-pane fade {% if aba_ativa == 'professores' %}show active{% endif %}" id="professores" role="tabpanel">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
                 <div>
-                    <h4 class="fw-bold mb-1">Professores</h4>
-                    <p class="text-muted mb-0">Cadastre professores e relacione seus segmentos e disciplinas.</p>
+                    <h4 class="fw-bold mb-1">Cadastro de Professores</h4>
+                    <p class="text-muted mb-0">
+                        Cadastre os dados básicos e a disciplina principal. Limite semanal, atribuições e disponibilidade são configurados no Planejamento.
+                    </p>
                 </div>
-                <button class="btn btn-primary d-inline-flex align-items-center gap-2" onclick="abrirModalCadastro()">
-                    <i class="bi bi-person-plus"></i> Novo Professor
-                </button>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/planejamento/tela"
+                       class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-check"></i>
+                        Abrir Planejamento
+                    </a>
+
+                    <button type="button"
+                            class="btn btn-primary d-inline-flex align-items-center gap-2"
+                            onclick="abrirModalCadastroProfessorBasico()">
+                        <i class="bi bi-person-plus"></i>
+                        Novo Professor
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-info d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle-fill mt-1"></i>
+                <div>
+                    A disciplina principal identifica o professor e facilita as atribuições. Depois, abra o
+                    <strong>Planejamento</strong> para definir limite semanal, aulas atribuídas e disponibilidade.
+                </div>
             </div>
 
             <div class="card-remada">
@@ -167,89 +189,94 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Nome</th>
-                                <th style="width: 150px;">Carga Horária</th>
-                                <th>Segmentos</th>
-                                <th>Disciplinas</th>
+                                <th>Disciplina principal</th>
                                 <th>Outra escola</th>
-                                <th class="text-end" style="width:150px;">Ações</th>
+                                <th>Observações</th>
+                                <th class="text-end" style="width: 150px;">Ações</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                        {% if professores %}
-                            {% for prof in professores %}
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
-                                            <i class="bi bi-person fs-5"></i>
-                                        </div>
-                                        <span class="fw-semibold">{{ prof.nome }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold">{{ prof.carga_horaria_semanal or 0 }}</span>
-                                    <span class="text-muted small">aulas</span>
-                                </td>
-                                <td>
-                                    {% if prof.segmentos %}
-                                        <div class="d-flex flex-wrap gap-1">
-                                            {% for vinculo in prof.segmentos %}
-                                                {% if vinculo.segmento == "fundamental_1" %}
-                                                    <span class="segmento-badge badge-fundamental-1 px-2 py-1">Fundamental I</span>
-                                                {% elif vinculo.segmento == "fundamental_2" %}
-                                                    <span class="segmento-badge badge-fundamental-2 px-2 py-1">Fundamental II</span>
-                                                {% elif vinculo.segmento == "ensino_medio" %}
-                                                    <span class="segmento-badge badge-ensino-medio px-2 py-1">Ensino Médio</span>
-                                                {% elif vinculo.segmento == "cursinho" %}
-                                                    <span class="segmento-badge badge-cursinho px-2 py-1">Cursinho</span>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if prof.disciplinas %}
-                                        <div class="d-flex flex-wrap gap-1">
-                                            {% for disciplina in prof.disciplinas %}
-                                                <span class="badge badge-disciplina-colorida" data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
-                                                    {{ disciplina.nome }}
+                            {% if professores %}
+                                {% for prof in professores %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center"
+                                                     style="width:40px;height:40px;">
+                                                    <i class="bi bi-person fs-5"></i>
+                                                </div>
+
+                                                <span class="fw-semibold">{{ prof.nome }}</span>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {% if prof.disciplina_principal %}
+                                                <span class="badge badge-disciplina-colorida"
+                                                      data-cor-disciplina="{{ prof.disciplina_principal.cor or '#2563EB' }}">
+                                                    {{ prof.disciplina_principal.nome }}
                                                 </span>
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if prof.trabalha_outra_escola %}
-                                        <span class="badge bg-warning text-dark">Sim</span>
-                                    {% else %}
-                                        <span class="text-muted">Não</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button class="btn btn-sm btn-outline-primary" title="Editar" data-id="{{ prof.id }}" data-nome="{{ prof.nome }}" data-escola="{{ prof.escola_id or 1 }}" data-carga-horaria="{{ prof.carga_horaria_semanal or 0 }}" data-disciplinas="{% for disciplina in prof.disciplinas %}{{ disciplina.id }}{% if not loop.last %},{% endif %}{% endfor %}" data-segmentos="{% for vinculo in prof.segmentos %}{{ vinculo.segmento }}{% if not loop.last %},{% endif %}{% endfor %}" data-outra-escola="{{ 'true' if prof.trabalha_outra_escola else 'false' }}" data-observacoes="{{ prof.observacoes or '' }}" onclick="abrirModalEdicao(this)">
-                                            <i class="bi bi-pencil"></i>
+                                            {% else %}
+                                                <span class="text-muted">Não definida</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if prof.trabalha_outra_escola %}
+                                                <span class="badge bg-warning text-dark">Sim</span>
+                                            {% else %}
+                                                <span class="text-muted">Não</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if prof.observacoes %}
+                                                <span class="text-muted">{{ prof.observacoes }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        title="Editar"
+                                                        data-id="{{ prof.id }}"
+                                                        data-nome="{{ prof.nome }}"
+                                                        data-disciplina-principal-id="{{ prof.disciplina_principal_id or '' }}"
+                                                        data-outra-escola="{{ 'true' if prof.trabalha_outra_escola else 'false' }}"
+                                                        data-observacoes="{{ prof.observacoes or '' }}"
+                                                        onclick="abrirModalEdicaoProfessorBasico(this)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        title="Excluir"
+                                                        onclick="deletarProfessorBasico('{{ prof.id }}', '{{ prof.nome }}')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
+                                        <h5 class="mb-2">Nenhum professor cadastrado</h5>
+                                        <p class="text-muted mb-3">Cadastre o professor e conclua a configuração no Planejamento.</p>
+
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                onclick="abrirModalCadastroProfessorBasico()">
+                                            Novo Professor
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Excluir" onclick="deletarProfessor('{{ prof.id }}','{{ prof.nome }}')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
-                                    <h5 class="mb-2">Nenhum professor cadastrado</h5>
-                                    <p class="text-muted">Clique em <strong>Novo Professor</strong> para começar.</p>
-                                </td>
-                            </tr>
-                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -432,70 +459,83 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalNovoProfessorLabel">Cadastrar Professor</h5>
+                <div>
+                    <h5 class="modal-title" id="modalNovoProfessorLabel">Cadastrar Professor</h5>
+                    <p class="text-muted small mb-0">
+                        Informe os dados básicos e a disciplina principal.
+                    </p>
+                </div>
+
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <form id="formNovoProfessor">
                 <input type="hidden" id="professorId">
-                <input type="hidden" id="escolaIdProf" value="1">
 
                 <div class="modal-body">
+                    <div id="alertaProfessorBasico" class="alert d-none" role="alert"></div>
+
                     <div class="mb-3">
-                        <label class="form-label">Nome</label>
-                        <input type="text" id="nomeProfessor" class="form-control" required>
+                        <label for="nomeProfessor" class="form-label">Nome</label>
+                        <input type="text"
+                               id="nomeProfessor"
+                               class="form-control"
+                               maxlength="150"
+                               required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="cargaHorariaSemanalProfessor" class="form-label">Carga horária semanal</label>
-                        <div class="input-group">
-                            <input type="number" id="cargaHorariaSemanalProfessor" class="form-control" min="0" value="0" required>
-                            <span class="input-group-text">aulas</span>
-                        </div>
-                    </div>
+                        <label for="disciplinaPrincipalProfessor" class="form-label">
+                            Disciplina principal
+                        </label>
 
-                    <div class="mb-3">
-                        <label class="form-label d-block">Segmentos de atuação</label>
-                        <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_1" id="segmentoProfessorFundamentalI">
-                            <label class="form-check-label" for="segmentoProfessorFundamentalI">Fundamental I</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="fundamental_2" id="segmentoProfessorFundamentalII">
-                            <label class="form-check-label" for="segmentoProfessorFundamentalII">Fundamental II</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="ensino_medio" id="segmentoProfessorEnsinoMedio">
-                            <label class="form-check-label" for="segmentoProfessorEnsinoMedio">Ensino Médio</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input segmento-professor" type="checkbox" value="cursinho" id="segmentoProfessorCursinho">
-                            <label class="form-check-label" for="segmentoProfessorCursinho">Cursinho</label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Disciplinas</label>
-                        <select id="disciplinasProfessor" class="form-select" multiple>
+                        <select id="disciplinaPrincipalProfessor"
+                                class="form-select"
+                                required>
+                            <option value="">Selecione uma disciplina</option>
                             {% for disciplina in disciplinas %}
-                                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+                                <option value="{{ disciplina.id }}">
+                                    {{ disciplina.nome }}
+                                </option>
                             {% endfor %}
                         </select>
-                        <div class="form-text">Segure Ctrl para selecionar mais de uma disciplina.</div>
+
+                        <div class="form-text">
+                            Serve para identificar e organizar o professor. Outras disciplinas ainda poderão ser atribuídas no Planejamento.
+                        </div>
                     </div>
 
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="trabalhaOutraEscolaProfessor">
-                        <label class="form-check-label" for="trabalhaOutraEscolaProfessor">Trabalha em outra escola</label>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="trabalhaOutraEscolaProfessor">
+
+                        <label class="form-check-label" for="trabalhaOutraEscolaProfessor">
+                            Trabalha em outra escola
+                        </label>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Observações</label>
-                        <textarea id="observacoesProfessor" class="form-control" rows="3"></textarea>
+                        <label for="observacoesProfessor" class="form-label">Observações</label>
+                        <textarea id="observacoesProfessor"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Informação opcional"></textarea>
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            id="botaoSalvarProfessorBasico">
+                        Salvar
+                    </button>
                 </div>
             </form>
         </div>
@@ -1330,6 +1370,195 @@
         atualizarStatusAutosaveMatriz("neutro", "Salvamento automático ativo");
         carregarListaMatrizesCurriculares();
     });
+
+
+    function obterModalProfessorBasico() {
+        return bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("modalNovoProfessor")
+        );
+    }
+
+
+    function limparAlertaProfessorBasico() {
+        const alerta = document.getElementById("alertaProfessorBasico");
+
+        if (!alerta) return;
+
+        alerta.className = "alert d-none";
+        alerta.textContent = "";
+    }
+
+
+    function mostrarAlertaProfessorBasico(tipo, mensagem) {
+        const alerta = document.getElementById("alertaProfessorBasico");
+
+        if (!alerta) return;
+
+        alerta.className = `alert alert-${tipo}`;
+        alerta.textContent = mensagem;
+    }
+
+
+    window.abrirModalCadastroProfessorBasico = function () {
+        const form = document.getElementById("formNovoProfessor");
+
+        form.reset();
+        document.getElementById("professorId").value = "";
+        document.getElementById("modalNovoProfessorLabel").textContent =
+            "Cadastrar Professor";
+
+        limparAlertaProfessorBasico();
+        obterModalProfessorBasico().show();
+    };
+
+
+    window.abrirModalEdicaoProfessorBasico = function (botao) {
+        document.getElementById("professorId").value =
+            botao.dataset.id || "";
+
+        document.getElementById("nomeProfessor").value =
+            botao.dataset.nome || "";
+
+        document.getElementById("disciplinaPrincipalProfessor").value =
+            botao.dataset.disciplinaPrincipalId || "";
+
+        document.getElementById("trabalhaOutraEscolaProfessor").checked =
+            botao.dataset.outraEscola === "true";
+
+        document.getElementById("observacoesProfessor").value =
+            botao.dataset.observacoes || "";
+
+        document.getElementById("modalNovoProfessorLabel").textContent =
+            "Editar Professor";
+
+        limparAlertaProfessorBasico();
+        obterModalProfessorBasico().show();
+    };
+
+
+    window.deletarProfessorBasico = async function (professorId, nome) {
+        const confirmou = window.confirm(
+            `Excluir o professor "${nome}"? As atribuições e disponibilidades dele também serão removidas.`
+        );
+
+        if (!confirmou) return;
+
+        try {
+            const resposta = await fetch(
+                `/professores/${professorId}`,
+                { method: "DELETE" }
+            );
+
+            const dados = await resposta.json().catch(() => ({}));
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados.erro || "Não foi possível excluir o professor."
+                );
+            }
+
+            window.location.reload();
+        } catch (erro) {
+            window.alert(erro.message);
+        }
+    };
+
+
+    function prepararFormularioProfessorBasico() {
+        const form = document.getElementById("formNovoProfessor");
+
+        if (!form || form.dataset.listenerBasico === "true") return;
+
+        form.dataset.listenerBasico = "true";
+
+        form.addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+            evento.stopImmediatePropagation();
+
+            const professorId =
+                document.getElementById("professorId").value;
+
+            const botaoSalvar =
+                document.getElementById("botaoSalvarProfessorBasico");
+
+            const payload = {
+                nome: document.getElementById("nomeProfessor").value.trim(),
+                disciplina_principal_id:
+                    document.getElementById(
+                        "disciplinaPrincipalProfessor"
+                    ).value || null,
+                trabalha_outra_escola:
+                    document.getElementById(
+                        "trabalhaOutraEscolaProfessor"
+                    ).checked,
+                observacoes:
+                    document.getElementById(
+                        "observacoesProfessor"
+                    ).value.trim()
+            };
+
+            if (!payload.nome) {
+                mostrarAlertaProfessorBasico(
+                    "warning",
+                    "Informe o nome do professor."
+                );
+                return;
+            }
+
+            if (!payload.disciplina_principal_id) {
+                mostrarAlertaProfessorBasico(
+                    "warning",
+                    "Selecione a disciplina principal do professor."
+                );
+                return;
+            }
+
+            botaoSalvar.disabled = true;
+            botaoSalvar.textContent = "Salvando...";
+            limparAlertaProfessorBasico();
+
+            try {
+                const resposta = await fetch(
+                    professorId
+                        ? `/professores/${professorId}`
+                        : "/professores",
+                    {
+                        method: professorId ? "PUT" : "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const dados = await resposta.json().catch(() => ({}));
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        dados.erro ||
+                        "Não foi possível salvar o professor."
+                    );
+                }
+
+                window.location.href =
+                    "{{ url_for('cadastro.tela_cadastros') }}?aba=professores";
+            } catch (erro) {
+                mostrarAlertaProfessorBasico(
+                    "danger",
+                    erro.message
+                );
+            } finally {
+                botaoSalvar.disabled = false;
+                botaoSalvar.textContent = "Salvar";
+            }
+        }, true);
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        prepararFormularioProfessorBasico();
+    });
+
 
     function abrirConfiguracaoEscola() {
         window.location.href = "{{ url_for('cadastro.tela_configuracao_escola') }}";

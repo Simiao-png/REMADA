@@ -4,271 +4,403 @@
 
 <div class="container-fluid p-0">
 
-    <div class="mb-4">
-        <h2 class="fw-bold mb-1">Planejamento</h2>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Planejamento dos Professores</h2>
+            <p class="text-muted mb-0">
+                Distribua as aulas, acompanhe o limite semanal e informe quando cada professor pode lecionar.
+            </p>
+        </div>
 
-        <p class="text-muted mb-0">
-            Configure as disponibilidades e distribua as aulas entre os professores.
-        </p>
+        <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores"
+           class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+            <i class="bi bi-person-plus"></i>
+            Gerenciar cadastro básico
+        </a>
     </div>
 
-    <ul class="nav nav-tabs mb-4" id="planejamentoTabs" role="tablist">
+    {% if professores %}
 
-        <li class="nav-item" role="presentation">
-            <button
-                class="nav-link active"
-                id="disponibilidades-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#disponibilidades"
-                type="button"
-                role="tab">
+        <div class="planejamento-professores-layout">
 
-                Disponibilidades
-            </button>
-        </li>
-
-        <li class="nav-item" role="presentation">
-            <button
-                class="nav-link"
-                id="carga-horaria-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#carga-horaria"
-                type="button"
-                role="tab">
-
-                Carga Horária
-            </button>
-        </li>
-
-    </ul>
-
-    <div class="tab-content">
-
-        <!-- DISPONIBILIDADES -->
-        <div
-            class="tab-pane fade show active"
-            id="disponibilidades"
-            role="tabpanel">
-
-            <div class="card-remada">
-
-                <div class="mb-4">
-                    <h4 class="fw-bold mb-1">
-                        Disponibilidade dos Professores
-                    </h4>
-
-                    <p class="text-muted mb-0">
-                        Selecione um professor e marque os horários disponíveis.
+            <aside class="card-remada painel-lista-professores">
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-1">Professores</h5>
+                    <p class="text-muted small mb-0">
+                        Selecione um professor para configurar.
                     </p>
                 </div>
 
-                {% if professores %}
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="search"
+                           id="buscaProfessorPlanejamento"
+                           class="form-control"
+                           placeholder="Buscar professor">
+                </div>
 
-                    <div class="row mb-4">
+                <div id="listaProfessoresPlanejamento" class="lista-professores-planejamento">
+                    {% for professor in professores %}
+                        <button type="button"
+                                class="professor-planejamento-item"
+                                data-professor-id="{{ professor.id }}"
+                                data-professor-nome="{{ professor.nome }}">
+                            <span class="professor-planejamento-identificacao">
+                                <strong>{{ professor.nome }}</strong>
+                                <small class="professor-lista-disciplina">Sem atribuições</small>
+                            </span>
 
-                        <div class="col-md-6">
-                            <label
-                                for="professorDisponibilidade"
-                                class="form-label">
+                            <span class="professor-lista-carga">0/0</span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </aside>
 
-                                Professor
-                            </label>
+            <main class="d-flex flex-column gap-4 min-width-0">
 
-                            <select
-                                id="professorDisponibilidade"
-                                class="form-select">
+                <section class="card-remada">
+                    <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-start gap-4">
 
-                                {% for professor in professores %}
-                                    <option value="{{ professor.id }}">
-                                        {{ professor.nome }}
-                                    </option>
-                                {% endfor %}
+                        <div class="d-flex align-items-start gap-3 min-width-0">
+                            <div class="professor-detalhe-avatar" id="avatarProfessorPlanejamento">
+                                P
+                            </div>
 
-                            </select>
+                            <div class="min-width-0">
+                                <div class="text-muted small mb-1">Professor selecionado</div>
+                                <h4 class="fw-bold mb-2" id="nomeProfessorPlanejamento">Professor</h4>
+                                <div id="disciplinasProfessorPlanejamento" class="d-flex flex-wrap gap-2"></div>
+                            </div>
                         </div>
 
+                        <div class="resumo-professor-grid">
+                            <div class="resumo-professor-card">
+                                <span>Carga atribuída</span>
+                                <strong id="cargaProfessorPlanejamento">0 / 0</strong>
+                                <small>do limite semanal</small>
+                            </div>
+
+                            <div class="resumo-professor-card">
+                                <span>Turmas</span>
+                                <strong id="quantidadeTurmasProfessorPlanejamento">0</strong>
+                                <small>turmas vinculadas</small>
+                            </div>
+
+                            <div class="resumo-professor-card">
+                                <span>Situação</span>
+                                <strong id="situacaoProfessorPlanejamento">Sem atribuições</strong>
+                                <small id="detalheSituacaoProfessorPlanejamento">Carga não distribuída</small>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 pt-4 border-top">
+                        <div id="turmasProfessorPlanejamento" class="d-flex flex-wrap gap-2">
+                            <span class="text-muted small">Nenhuma turma vinculada.</span>
+                        </div>
+                    </div>
+                </section>
 
-                        <h5
-                            class="fw-bold mb-2"
-                            id="nomeProfessorDisponibilidade">
-                        </h5>
-
-                        <div
-                            id="disciplinasProfessorDisponibilidade"
-                            class="mb-3">
+                <section class="card-remada p-0 overflow-hidden">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 px-3 py-3 border-bottom">
+                        <div>
+                            <h4 class="fw-bold mb-1">
+                                <i class="bi bi-journal-check text-primary me-2"></i>
+                                Atribuição de Turmas e Disciplinas
+                            </h4>
+                            <p class="text-muted small mb-0">
+                                Marque as aulas da matriz curricular que serão assumidas pelo professor. A carga é calculada automaticamente.
+                            </p>
                         </div>
 
+                        <span id="statusSalvamentoAtribuicoes"
+                              class="small text-muted d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-cloud-check"></i>
+                            <span>Salvamento automático</span>
+                        </span>
+                    </div>
+
+                    <div id="alertaEdicaoCargaHoraria"
+                         class="alert d-none m-3"
+                         role="alert"></div>
+
+                    <div id="conteudoEdicaoCargaHoraria"></div>
+                </section>
+
+                <section class="card-remada">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-bold mb-1">Disponibilidade do professor</h4>
+                            <p class="text-muted mb-0">
+                                Marque quando o professor pode lecionar. Clique no nome do dia para marcar ou desmarcar a coluna inteira.
+                            </p>
+                        </div>
+
+                        <span id="statusSalvamentoDisponibilidade"
+                              class="small text-muted d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-cloud-check"></i>
+                            <span>Salvamento automático</span>
+                        </span>
+                    </div>
+
+                    <div class="campo-professor-compatibilidade">
+                        <label for="professorDisponibilidade" class="form-label">
+                            Professor
+                        </label>
+                        <select id="professorDisponibilidade" class="form-select">
+                            {% for professor in professores %}
+                                <option value="{{ professor.id }}">
+                                    {{ professor.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5 class="fw-bold mb-2 d-none" id="nomeProfessorDisponibilidade"></h5>
+                        <div id="disciplinasProfessorDisponibilidade" class="d-none"></div>
                     </div>
 
                     <div class="table-responsive">
-
-                        <table
-                            class="table table-bordered align-middle text-center mb-0">
-
+                        <table class="table table-bordered align-middle text-center mb-0 tabela-disponibilidade-professor">
                             <thead class="table-light">
-
                                 <tr>
-                                    <th style="width: 120px;">
-                                        Aula
-                                    </th>
+                                    <th style="width: 120px;">Aula</th>
 
                                     {% for dia in dias_semana %}
-                                        <th
-                                            class="text-capitalize cabecalho-dia-disponibilidade"
+                                        <th class="text-capitalize cabecalho-dia-disponibilidade"
                                             data-dia="{{ dia.valor }}"
                                             role="button"
-                                            title="Clique para marcar todo o dia"
-                                            style="cursor: pointer;">
-
+                                            title="Clique para marcar todo o dia">
                                             {{ dia.label }}
                                         </th>
                                     {% endfor %}
                                 </tr>
-
                             </thead>
 
-                            <tbody id="corpoTabelaDisponibilidade">
-                            </tbody>
-
+                            <tbody id="corpoTabelaDisponibilidade"></tbody>
                         </table>
-
                     </div>
 
-                    <div
-                        class="d-flex justify-content-between align-items-center mt-4">
-
-                        <div>
-                            <span class="badge bg-success me-2">
-                                Disponível
-                            </span>
-
-                            <span class="badge bg-secondary">
-                                Indisponível
-                            </span>
-                        </div>
-
-                        <span
-                            id="statusSalvamentoDisponibilidade"
-                            class="small text-muted d-inline-flex align-items-center gap-2">
-
-                            <i class="bi bi-cloud-check"></i>
-                            <span>Salvamento automático</span>
-                        </span>
-
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-4">
+                        <span class="badge bg-success">Disponível</span>
+                        <span class="badge bg-secondary">Indisponível</span>
                     </div>
+                </section>
 
-                {% else %}
-
-                    <div class="text-center py-5">
-
-                        <i
-                            class="bi bi-person-workspace fs-1 text-secondary d-block mb-3">
-                        </i>
-
-                        <h5 class="mb-2">
-                            Nenhum professor cadastrado
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Cadastre professores antes de configurar disponibilidades.
-                        </p>
-
-                    </div>
-
-                {% endif %}
-
-            </div>
+            </main>
 
         </div>
 
-        <!-- CARGA HORÁRIA -->
-        <div
-            class="tab-pane fade"
-            id="carga-horaria"
-            role="tabpanel">
+    {% else %}
 
-            <div class="card-remada">
-
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
-                    <div>
-                        <h4 class="fw-bold mb-1">
-                            Carga Horária dos Professores
-                        </h4>
-
-                        <p class="text-muted mb-0">
-                            Confira as disciplinas, turmas, carga atribuída e situação de todos os professores.
-                        </p>
-                    </div>
-                </div>
-
-                {% if professores %}
-
-                    <div
-                        id="alertaCargaHoraria"
-                        class="alert d-none"
-                        role="alert">
-                    </div>
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover align-middle mb-0">
-
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Professor</th>
-                                    <th>Disciplinas</th>
-                                    <th>Turmas</th>
-                                    <th style="width: 150px;">
-                                        Carga Horária
-                                    </th>
-                                    <th style="width: 190px;">
-                                        Situação
-                                    </th>
-                                    <th
-                                        class="text-end"
-                                        style="width: 100px;">
-                                        Ações
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="corpoResumoCargaHoraria">
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                {% else %}
-
-                    <div class="text-center py-5">
-
-                        <i
-                            class="bi bi-person-workspace fs-1 text-secondary d-block mb-3">
-                        </i>
-
-                        <h5 class="mb-2">
-                            Nenhum professor cadastrado
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Cadastre professores antes de distribuir as aulas.
-                        </p>
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
+        <div class="card-remada text-center py-5">
+            <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
+            <h5 class="mb-2">Nenhum professor cadastrado</h5>
+            <p class="text-muted mb-3">
+                Cadastre professores antes de configurar o planejamento.
+            </p>
+            <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores"
+               class="btn btn-primary">
+                Cadastrar professor
+            </a>
         </div>
 
-    </div>
+    {% endif %}
 
 </div>
+
+<style>
+    .planejamento-professores-layout {
+        display: grid;
+        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .painel-lista-professores {
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 150px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .lista-professores-planejamento {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .professor-planejamento-item {
+        width: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+        transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+
+    .professor-planejamento-item:hover {
+        border-color: #93c5fd;
+        background: #f8fbff;
+    }
+
+    .professor-planejamento-item.ativo {
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, .08);
+    }
+
+    .professor-planejamento-avatar,
+    .professor-detalhe-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        color: #1d4ed8;
+        background: #dbeafe;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .professor-planejamento-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .professor-detalhe-avatar {
+        width: 54px;
+        height: 54px;
+        font-size: 1.2rem;
+    }
+
+    .professor-planejamento-identificacao {
+        min-width: 0;
+    }
+
+    .professor-planejamento-identificacao strong,
+    .professor-planejamento-identificacao small {
+        display: block;
+    }
+
+    .professor-planejamento-identificacao strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .professor-planejamento-identificacao small {
+        color: #6b7280;
+        margin-top: 2px;
+    }
+
+    .resumo-professor-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(145px, 1fr));
+        gap: 12px;
+        width: min(100%, 620px);
+    }
+
+    .resumo-professor-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f8fafc;
+    }
+
+    .resumo-professor-card span,
+    .resumo-professor-card small {
+        display: block;
+        color: #64748b;
+    }
+
+    .resumo-professor-card strong {
+        display: block;
+        margin: 5px 0 2px;
+        font-size: 1.05rem;
+    }
+
+    .campo-professor-compatibilidade {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .tabela-disponibilidade-professor th {
+        white-space: nowrap;
+    }
+
+    .min-width-0 {
+        min-width: 0;
+    }
+
+
+    .professor-lista-carga {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        padding: 2px 6px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        background: #ffffff;
+        font-size: .75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .tabela-atribuicoes-planejamento thead th {
+        background: #f8f9fa;
+        white-space: nowrap;
+    }
+
+    .tabela-atribuicoes-planejamento td,
+    .tabela-atribuicoes-planejamento th {
+        vertical-align: middle;
+    }
+
+    .tabela-atribuicoes-planejamento .form-check-input {
+        cursor: pointer;
+    }
+
+    @media (max-width: 991.98px) {
+        .planejamento-professores-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .painel-lista-professores {
+            position: static;
+            max-height: none;
+        }
+
+        .lista-professores-planejamento {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            max-height: 330px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .resumo-professor-grid,
+        .lista-professores-planejamento {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <script type="application/json" id="dadosPlanejamento">
 {
@@ -279,76 +411,6 @@
     "numerosAulas": {{ numeros_aulas | tojson }}
 }
 </script>
-
-<div
-    class="modal fade"
-    id="modalCargaHoraria"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <div>
-                    <h5
-                        class="modal-title fw-bold"
-                        id="tituloModalCargaHoraria">
-                        Editar carga horária
-                    </h5>
-
-                    <div
-                        class="text-muted small"
-                        id="subtituloModalCargaHoraria">
-                    </div>
-                </div>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div
-                    id="alertaEdicaoCargaHoraria"
-                    class="alert d-none"
-                    role="alert">
-                </div>
-
-                <div id="conteudoEdicaoCargaHoraria">
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    id="botaoSalvarCargaHoraria">
-                    Salvar Atribuições
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -369,33 +431,91 @@ document.addEventListener("DOMContentLoaded", function () {
     let atribuicoes = dados.atribuicoes || [];
     let professorEmEdicao = null;
 
-    const corpoResumo = document.getElementById(
-        "corpoResumoCargaHoraria"
-    );
 
     const conteudoEdicao = document.getElementById(
         "conteudoEdicaoCargaHoraria"
     );
 
-    const botaoSalvar = document.getElementById(
-        "botaoSalvarCargaHoraria"
-    );
-
-    const tituloModal = document.getElementById(
-        "tituloModalCargaHoraria"
-    );
-
-    const subtituloModal = document.getElementById(
-        "subtituloModalCargaHoraria"
-    );
-
-    const alertaResumo = document.getElementById(
-        "alertaCargaHoraria"
-    );
-
     const alertaEdicao = document.getElementById(
         "alertaEdicaoCargaHoraria"
     );
+
+    const statusSalvamentoAtribuicoes =
+        document.getElementById("statusSalvamentoAtribuicoes");
+
+    let temporizadorSalvamentoAtribuicoes = null;
+    let salvandoAtribuicoes = false;
+    let salvarNovamente = false;
+    let assinaturaAtribuicoesSalva = "";
+
+
+    const seletorProfessorDisponibilidade =
+        document.getElementById("professorDisponibilidade");
+
+    const listaProfessoresPlanejamento =
+        document.getElementById("listaProfessoresPlanejamento");
+
+    const buscaProfessorPlanejamento =
+        document.getElementById("buscaProfessorPlanejamento");
+
+    const nomeProfessorPlanejamento =
+        document.getElementById("nomeProfessorPlanejamento");
+
+    const avatarProfessorPlanejamento =
+        document.getElementById("avatarProfessorPlanejamento");
+
+    const disciplinasProfessorPlanejamento =
+        document.getElementById("disciplinasProfessorPlanejamento");
+
+    const cargaProfessorPlanejamento =
+        document.getElementById("cargaProfessorPlanejamento");
+
+    const quantidadeTurmasProfessorPlanejamento =
+        document.getElementById("quantidadeTurmasProfessorPlanejamento");
+
+    const situacaoProfessorPlanejamento =
+        document.getElementById("situacaoProfessorPlanejamento");
+
+    const detalheSituacaoProfessorPlanejamento =
+        document.getElementById("detalheSituacaoProfessorPlanejamento");
+
+    const turmasProfessorPlanejamento =
+        document.getElementById("turmasProfessorPlanejamento");
+
+    function atualizarStatusSalvamentoAtribuicoes(tipo, mensagem) {
+        if (!statusSalvamentoAtribuicoes) {
+            return;
+        }
+
+        const configuracoes = {
+            neutro: {
+                classe: "text-muted",
+                icone: "bi-cloud-check"
+            },
+            salvando: {
+                classe: "text-primary",
+                icone: "bi-cloud-arrow-up"
+            },
+            sucesso: {
+                classe: "text-success",
+                icone: "bi-check-circle"
+            },
+            erro: {
+                classe: "text-danger",
+                icone: "bi-exclamation-triangle"
+            }
+        };
+
+        const configuracao =
+            configuracoes[tipo] || configuracoes.neutro;
+
+        statusSalvamentoAtribuicoes.className =
+            `small d-inline-flex align-items-center gap-2 ${configuracao.classe}`;
+
+        statusSalvamentoAtribuicoes.innerHTML =
+            `<i class="bi ${configuracao.icone}"></i>` +
+            `<span>${mensagem}</span>`;
+    }
 
 
     function normalizarTexto(valor) {
@@ -440,18 +560,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-
-    function professorPodeLecionarDisciplina(
-        professor,
-        disciplinaId
-    ) {
-
-        return (professor.disciplinas || []).some(
-            disciplina =>
-                Number(disciplina.id) ===
-                Number(disciplinaId)
-        );
-    }
 
 
     function buscarAtribuicao(
@@ -535,7 +643,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const cargaEsperada = Number(
-            professor.carga_horaria_semanal || 0
+            professor.limite_aulas_semana || 0
         );
 
         let textoSituacao = "Sem atribuições";
@@ -570,20 +678,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function criarBadgesDisciplinas(professor) {
+    function obterDisciplinasAtribuidasProfessor(professorId) {
+        const nomes = new Set();
 
+        obterAtribuicoesProfessor(professorId).forEach(atribuicao => {
+            const detalhes = obterDetalhesAtribuicao(atribuicao);
+
+            if (
+                detalhes &&
+                detalhes.disciplina &&
+                detalhes.disciplina.disciplina_nome
+            ) {
+                nomes.add(
+                    detalhes.disciplina.disciplina_nome
+                );
+            }
+        });
+
+        return Array.from(nomes).sort();
+    }
+
+
+    function criarBadgesDisciplinas(professor) {
         const disciplinas =
-            professor.disciplinas || [];
+            obterDisciplinasAtribuidasProfessor(
+                professor.id
+            );
 
         if (disciplinas.length === 0) {
-            return '<span class="text-muted">-</span>';
+            return '<span class="text-muted">Sem atribuições</span>';
         }
 
         return disciplinas
             .map(
                 disciplina =>
                     `<span class="badge bg-light text-dark border me-1 mb-1">` +
-                    `${disciplina.nome}</span>`
+                    `${disciplina}</span>`
             )
             .join("");
     }
@@ -605,81 +735,153 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function renderizarResumoCargaHoraria() {
+    function obterProfessorSelecionado() {
+        if (!seletorProfessorDisponibilidade) {
+            return null;
+        }
 
-        if (!corpoResumo) {
+        return professores.find(
+            professor =>
+                Number(professor.id) ===
+                Number(seletorProfessorDisponibilidade.value)
+        ) || null;
+    }
+
+
+    function renderizarPainelProfessor(professor) {
+        if (!professor) {
             return;
         }
 
-        corpoResumo.innerHTML = "";
+        const resumo = calcularResumoProfessor(professor);
 
-        professores.forEach(professor => {
+        if (nomeProfessorPlanejamento) {
+            nomeProfessorPlanejamento.textContent = professor.nome;
+        }
 
-            const resumo =
-                calcularResumoProfessor(professor);
+        if (avatarProfessorPlanejamento) {
+            avatarProfessorPlanejamento.textContent =
+                String(professor.nome || "P").trim().charAt(0).toUpperCase();
+        }
 
-            const linha = document.createElement("tr");
+        if (disciplinasProfessorPlanejamento) {
+            disciplinasProfessorPlanejamento.innerHTML =
+                criarBadgesDisciplinas(professor);
+        }
 
-            const cargaTexto =
+        if (cargaProfessorPlanejamento) {
+            cargaProfessorPlanejamento.textContent =
                 resumo.cargaEsperada > 0
                     ? `${resumo.cargaAtribuida} / ${resumo.cargaEsperada}`
                     : `${resumo.cargaAtribuida}`;
+        }
 
-            linha.innerHTML = `
-                <td class="fw-semibold">
-                    ${professor.nome}
-                </td>
+        if (quantidadeTurmasProfessorPlanejamento) {
+            quantidadeTurmasProfessorPlanejamento.textContent =
+                resumo.turmas.length;
+        }
 
-                <td>
-                    ${criarBadgesDisciplinas(professor)}
-                </td>
+        if (situacaoProfessorPlanejamento) {
+            situacaoProfessorPlanejamento.textContent =
+                resumo.textoSituacao;
+        }
 
-                <td>
-                    ${criarTextoTurmas(resumo.turmas)}
-                </td>
+        if (detalheSituacaoProfessorPlanejamento) {
+            if (resumo.cargaEsperada <= 0) {
+                detalheSituacaoProfessorPlanejamento.textContent =
+                    "Limite semanal não definido";
+            } else if (resumo.cargaAtribuida === resumo.cargaEsperada) {
+                detalheSituacaoProfessorPlanejamento.textContent =
+                    "Carga distribuída corretamente";
+            } else {
+                detalheSituacaoProfessorPlanejamento.textContent =
+                    `${resumo.cargaAtribuida} de ${resumo.cargaEsperada} aulas`;
+            }
+        }
 
-                <td>
-                    <span class="fw-bold">
-                        ${cargaTexto}
-                    </span>
+        if (turmasProfessorPlanejamento) {
+            turmasProfessorPlanejamento.innerHTML =
+                resumo.turmas.length > 0
+                    ? criarTextoTurmas(resumo.turmas)
+                    : '<span class="text-muted small">Nenhuma turma vinculada.</span>';
+        }
 
-                    <span class="text-muted small">
-                        ${resumo.cargaAtribuida === 1
-                            ? " aula"
-                            : " aulas"}
-                    </span>
-                </td>
-
-                <td>
-                    <span class="badge ${resumo.classeSituacao}">
-                        ${resumo.textoSituacao}
-                    </span>
-                </td>
-
-                <td class="text-end">
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-primary"
-                        title="Editar carga horária"
-                        data-professor-id="${professor.id}">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                </td>
-            `;
-
-            linha
-                .querySelector("button")
-                .addEventListener(
-                    "click",
-                    function () {
-                        abrirEdicaoCargaHoraria(
-                            Number(this.dataset.professorId)
-                        );
-                    }
+        document
+            .querySelectorAll(".professor-planejamento-item")
+            .forEach(botao => {
+                const professorLista = professores.find(
+                    item =>
+                        Number(item.id) ===
+                        Number(botao.dataset.professorId)
                 );
 
-            corpoResumo.appendChild(linha);
-        });
+                if (!professorLista) {
+                    return;
+                }
+
+                const resumoLista =
+                    calcularResumoProfessor(professorLista);
+
+                const disciplinasAtribuidas =
+                    obterDisciplinasAtribuidasProfessor(
+                        professorLista.id
+                    );
+
+                const disciplinaPrincipal =
+                    disciplinasAtribuidas[0] || null;
+
+                const disciplinaElemento =
+                    botao.querySelector(".professor-lista-disciplina");
+
+                const cargaElemento =
+                    botao.querySelector(".professor-lista-carga");
+
+                if (disciplinaElemento) {
+                    disciplinaElemento.textContent =
+                        disciplinaPrincipal
+                            ? disciplinaPrincipal
+                            : "Sem atribuições";
+                }
+
+                if (cargaElemento) {
+                    cargaElemento.textContent =
+                        `${resumoLista.cargaAtribuida}/` +
+                        `${resumoLista.cargaEsperada}`;
+                }
+
+                botao.classList.toggle(
+                    "ativo",
+                    Number(botao.dataset.professorId) === Number(professor.id)
+                );
+            });
+    }
+
+
+    function selecionarProfessorPlanejamento(professorId) {
+        if (!seletorProfessorDisponibilidade) {
+            return;
+        }
+
+        seletorProfessorDisponibilidade.value = String(professorId);
+
+        seletorProfessorDisponibilidade.dispatchEvent(
+            new Event("change", { bubbles: true })
+        );
+
+        professorEmEdicao = obterProfessorSelecionado();
+
+        renderizarPainelProfessor(
+            professorEmEdicao
+        );
+
+        renderizarEdicaoCargaHoraria(
+            professorEmEdicao
+        );
+
+        atualizarStatusSalvamentoAtribuicoes(
+            "neutro",
+            "Salvamento automático"
+        );
     }
 
 
@@ -810,15 +1012,6 @@ document.addEventListener("DOMContentLoaded", function () {
             (turma.disciplinas || []).forEach(
                 disciplina => {
 
-                    if (
-                        !professorPodeLecionarDisciplina(
-                            professor,
-                            disciplina.disciplina_id
-                        )
-                    ) {
-                        return;
-                    }
-
                     corpo.appendChild(
                         criarLinhaEdicao(
                             professor,
@@ -843,7 +1036,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </h5>
 
                     <p class="text-muted mb-0">
-                        Verifique os segmentos, disciplinas e matrizes curriculares deste professor.
+                        Nenhuma aula da matriz curricular está disponível para os segmentos deste professor.
                     </p>
                 </div>
             `;
@@ -851,85 +1044,110 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        tabela.classList.add("tabela-atribuicoes-planejamento");
+
         tabelaResponsiva.appendChild(tabela);
         conteudoEdicao.appendChild(tabelaResponsiva);
+
+        conteudoEdicao
+            .querySelectorAll(".checkbox-atribuicao")
+            .forEach(checkbox => {
+                checkbox.addEventListener(
+                    "change",
+                    agendarSalvamentoAtribuicoes
+                );
+            });
+
+        assinaturaAtribuicoesSalva =
+            obterAssinaturaAtribuicoesSelecionadas();
     }
 
 
-    function abrirEdicaoCargaHoraria(professorId) {
-
-        professorEmEdicao = professores.find(
-            professor =>
-                Number(professor.id) ===
-                Number(professorId)
-        ) || null;
-
+    function obterAtribuicoesSelecionadas() {
         if (!professorEmEdicao) {
-            return;
+            return [];
         }
 
-        tituloModal.textContent =
-            professorEmEdicao.nome;
-
-        const resumo =
-            calcularResumoProfessor(professorEmEdicao);
-
-        subtituloModal.textContent =
-            `Carga atual: ${resumo.cargaAtribuida}` +
-            (
-                resumo.cargaEsperada > 0
-                    ? ` de ${resumo.cargaEsperada} aulas`
-                    : " aulas"
-            );
-
-        alertaEdicao.classList.add("d-none");
-        alertaEdicao.textContent = "";
-
-        renderizarEdicaoCargaHoraria(
-            professorEmEdicao
-        );
-
-        bootstrap.Modal
-            .getOrCreateInstance(
-                document.getElementById(
-                    "modalCargaHoraria"
-                )
-            )
-            .show();
-    }
-
-
-    async function salvarAtribuicoes() {
-
-        if (!professorEmEdicao) {
-            return;
-        }
-
-        botaoSalvar.disabled = true;
-        botaoSalvar.textContent = "Salvando...";
-
-        alertaEdicao.classList.add("d-none");
-        alertaEdicao.textContent = "";
-
-        const selecionadas = Array.from(
+        return Array.from(
             document.querySelectorAll(
                 "#conteudoEdicaoCargaHoraria " +
                 ".checkbox-atribuicao:checked"
             )
         ).map(checkbox => ({
             professor_id: professorEmEdicao.id,
-            turma_id: Number(
-                checkbox.dataset.turmaId
-            ),
-            disciplina_id: Number(
-                checkbox.dataset.disciplinaId
-            )
+            turma_id: Number(checkbox.dataset.turmaId),
+            disciplina_id: Number(checkbox.dataset.disciplinaId)
         }));
+    }
+
+
+    function obterAssinaturaAtribuicoesSelecionadas() {
+        return obterAtribuicoesSelecionadas()
+            .map(
+                item =>
+                    `${item.turma_id}-${item.disciplina_id}`
+            )
+            .sort()
+            .join("|");
+    }
+
+
+    function agendarSalvamentoAtribuicoes() {
+        clearTimeout(temporizadorSalvamentoAtribuicoes);
+
+        atualizarStatusSalvamentoAtribuicoes(
+            "salvando",
+            "Alterações pendentes..."
+        );
+
+        temporizadorSalvamentoAtribuicoes = setTimeout(
+            salvarAtribuicoes,
+            600
+        );
+    }
+
+
+    function abrirEdicaoCargaHoraria(professorId) {
+        selecionarProfessorPlanejamento(professorId);
+    }
+
+
+    async function salvarAtribuicoes() {
+        if (!professorEmEdicao) {
+            return;
+        }
+
+        const assinaturaAtual =
+            obterAssinaturaAtribuicoesSelecionadas();
+
+        if (assinaturaAtual === assinaturaAtribuicoesSalva) {
+            atualizarStatusSalvamentoAtribuicoes(
+                "sucesso",
+                "Tudo salvo"
+            );
+            return;
+        }
+
+        if (salvandoAtribuicoes) {
+            salvarNovamente = true;
+            return;
+        }
+
+        salvandoAtribuicoes = true;
+
+        atualizarStatusSalvamentoAtribuicoes(
+            "salvando",
+            "Salvando..."
+        );
+
+        alertaEdicao.classList.add("d-none");
+        alertaEdicao.textContent = "";
+
+        const professorId = professorEmEdicao.id;
+        const selecionadas = obterAtribuicoesSelecionadas();
 
         const atuais =
-            obterAtribuicoesProfessor(
-                professorEmEdicao.id
-            );
+            obterAtribuicoesProfessor(professorId);
 
         const chavesSelecionadas = new Set(
             selecionadas.map(
@@ -960,9 +1178,7 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         try {
-
             for (const item of paraExcluir) {
-
                 const resposta = await fetch(
                     `/professor-turmas/` +
                     `${item.professor_id}/` +
@@ -989,7 +1205,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             for (const item of paraCriar) {
-
                 const resposta = await fetch(
                     "/professor-turmas",
                     {
@@ -1020,33 +1235,23 @@ document.addEventListener("DOMContentLoaded", function () {
             atribuicoes = atribuicoes.filter(
                 item =>
                     Number(item.professor_id) !==
-                    Number(professorEmEdicao.id)
+                    Number(professorId)
             );
 
             atribuicoes.push(...selecionadas);
+            assinaturaAtribuicoesSalva = assinaturaAtual;
 
-            renderizarResumoCargaHoraria();
+            renderizarPainelProfessor(professorEmEdicao);
+            renderizarEdicaoCargaHoraria(professorEmEdicao);
 
-            bootstrap.Modal
-                .getInstance(
-                    document.getElementById(
-                        "modalCargaHoraria"
-                    )
-                )
-                .hide();
-
-            alertaResumo.className =
-                "alert alert-success";
-
-            alertaResumo.textContent =
-                "Carga horária atualizada com sucesso.";
-
-            alertaResumo.classList.remove("d-none");
+            atualizarStatusSalvamentoAtribuicoes(
+                "sucesso",
+                "Tudo salvo"
+            );
 
         } catch (erro) {
-
             alertaEdicao.className =
-                "alert alert-danger";
+                "alert alert-danger m-3";
 
             alertaEdicao.textContent =
                 erro.message ||
@@ -1054,63 +1259,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
             alertaEdicao.classList.remove("d-none");
 
-        } finally {
+            atualizarStatusSalvamentoAtribuicoes(
+                "erro",
+                "Erro ao salvar"
+            );
 
-            botaoSalvar.disabled = false;
-            botaoSalvar.textContent =
-                "Salvar Atribuições";
+        } finally {
+            salvandoAtribuicoes = false;
+
+            if (salvarNovamente) {
+                salvarNovamente = false;
+                salvarAtribuicoes();
+            }
         }
     }
 
 
-    if (botaoSalvar) {
-        botaoSalvar.addEventListener(
-            "click",
-            salvarAtribuicoes
-        );
+    if (listaProfessoresPlanejamento) {
+        listaProfessoresPlanejamento
+            .querySelectorAll(".professor-planejamento-item")
+            .forEach(botao => {
+                botao.addEventListener("click", function () {
+                    selecionarProfessorPlanejamento(
+                        Number(this.dataset.professorId)
+                    );
+                });
+            });
     }
 
+    if (buscaProfessorPlanejamento) {
+        buscaProfessorPlanejamento.addEventListener("input", function () {
+            const termo = normalizarTexto(this.value);
 
-    const botoesAbas = document.querySelectorAll(
-        '#planejamentoTabs button[data-bs-toggle="tab"]'
-    );
+            document
+                .querySelectorAll(".professor-planejamento-item")
+                .forEach(botao => {
+                    const nome = normalizarTexto(
+                        botao.dataset.professorNome
+                    );
 
-    botoesAbas.forEach(botao => {
+                    botao.classList.toggle(
+                        "d-none",
+                        termo && !nome.includes(termo)
+                    );
+                });
+        });
+    }
 
-        botao.addEventListener(
-            "shown.bs.tab",
-            function (evento) {
-
-                localStorage.setItem(
-                    "abaPlanejamentoAtiva",
-                    evento.target.id
+    if (seletorProfessorDisponibilidade) {
+        seletorProfessorDisponibilidade.addEventListener(
+            "change",
+            function () {
+                renderizarPainelProfessor(
+                    obterProfessorSelecionado()
                 );
             }
         );
-    });
-
-
-    const abaSalva = localStorage.getItem(
-        "abaPlanejamentoAtiva"
-    );
-
-    if (abaSalva) {
-
-        const botaoAbaSalva =
-            document.getElementById(abaSalva);
-
-        if (
-            botaoAbaSalva &&
-            typeof bootstrap !== "undefined"
-        ) {
-            bootstrap.Tab
-                .getOrCreateInstance(botaoAbaSalva)
-                .show();
-        }
     }
 
+    const professorInicial = obterProfessorSelecionado();
 
-    renderizarResumoCargaHoraria();
+    if (professorInicial) {
+        selecionarProfessorPlanejamento(
+            professorInicial.id
+        );
+    }
 });
 </script>
 

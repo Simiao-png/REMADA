@@ -68,6 +68,12 @@ def montar_diagnostico(
         )
     )
 
+    problemas.extend(
+        diagnosticar_limite_semanal_professor(
+            dados
+        )
+    )
+
     return remover_problemas_duplicados(
         problemas
     )
@@ -151,24 +157,37 @@ def diagnosticar_carga_das_turmas(
             configuracoes
         )
 
-        # Trata dinamicamente turmas de Ensino Médio com 7 aulas por dia
-        segmento = str(obter_valor(turma, "segmento") or "").lower()
-        if "médio" in segmento or "medio" in segmento:
-            aulas_por_dia_padrao = 7
-        else:
-            aulas_por_dia_padrao = 6
+        aulas_por_dia_padrao = (
+            obter_quantidade_aulas_padrao(
+                turma
+            )
+        )
 
         if configuracao:
-            quantidade_dias = contar_dias_ativos(configuracao)
+            quantidade_dias = contar_dias_ativos(
+                configuracao
+            )
+
             aulas_por_dia = int(
-                obter_valor(configuracao, "aulas_por_dia") or aulas_por_dia_padrao
+                obter_valor(
+                    configuracao,
+                    "aulas_por_dia"
+                )
+                or aulas_por_dia_padrao
             )
         else:
             quantidade_dias = 5
             aulas_por_dia = aulas_por_dia_padrao
 
-        total_horarios = quantidade_dias * aulas_por_dia
-        carga_semanal = carga_por_turma.get(turma_id, 0)
+        total_horarios = (
+            quantidade_dias
+            * aulas_por_dia
+        )
+
+        carga_semanal = carga_por_turma.get(
+            turma_id,
+            0
+        )
 
         if carga_semanal <= total_horarios:
             continue
@@ -190,60 +209,51 @@ def diagnosticar_carga_das_turmas(
 def diagnosticar_disciplinas_sem_professor(
     dados
 ):
+    """
+    Verifica se cada item da matriz curricular possui
+    uma atribuição ProfessorTurma correspondente.
+
+    ProfessorTurma representa diretamente:
+    professor + turma + disciplina.
+    """
     matrizes = dados.get(
         "turma_disciplina",
         []
     )
 
-    professor_turma = dados.get(
+    atribuicoes = dados.get(
         "professor_turma",
         []
     )
 
-    professor_disciplina = dados.get(
-        "professor_disciplina",
-        []
-    )
-
-    professores_por_turma = {}
-
-    for vinculo in professor_turma:
-        turma_id = obter_valor(
-            vinculo,
-            "turma_id"
+    turmas = {
+        obter_valor(turma, "id"): turma
+        for turma in dados.get(
+            "turmas",
+            []
         )
+    }
 
-        professor_id = obter_valor(
-            vinculo,
-            "professor_id"
+    disciplinas = {
+        obter_valor(disciplina, "id"): disciplina
+        for disciplina in dados.get(
+            "disciplinas",
+            []
         )
+    }
 
-        professores_por_turma.setdefault(
-            turma_id,
-            set()
-        ).add(
-            professor_id
+    atribuicoes_validas = {
+        (
+            obter_valor(vinculo, "turma_id"),
+            obter_valor(vinculo, "disciplina_id")
         )
-
-    professores_por_disciplina = {}
-
-    for vinculo in professor_disciplina:
-        disciplina_id = obter_valor(
-            vinculo,
-            "disciplina_id"
+        for vinculo in atribuicoes
+        if (
+            obter_valor(vinculo, "turma_id") is not None
+            and obter_valor(vinculo, "disciplina_id") is not None
+            and obter_valor(vinculo, "professor_id") is not None
         )
-
-        professor_id = obter_valor(
-            vinculo,
-            "professor_id"
-        )
-
-        professores_por_disciplina.setdefault(
-            disciplina_id,
-            set()
-        ).add(
-            professor_id
-        )
+    }
 
     problemas = []
 
@@ -269,38 +279,45 @@ def diagnosticar_disciplinas_sem_professor(
         if aulas_por_semana <= 0:
             continue
 
-        professores_turma = (
-            professores_por_turma.get(
-                turma_id,
-                set()
-            )
-        )
-
-        professores_disciplina = (
-            professores_por_disciplina.get(
-                disciplina_id,
-                set()
-            )
-        )
-
-        professores_validos = (
-            professores_turma
-            & professores_disciplina
-        )
-
-        if professores_validos:
+        if (
+            turma_id,
+            disciplina_id
+        ) in atribuicoes_validas:
             continue
+
+        turma = turmas.get(
+            turma_id
+        )
+
+        disciplina = disciplinas.get(
+            disciplina_id
+        )
+
+        nome_turma = (
+            obter_valor(
+                turma,
+                "nome"
+            )
+            or f"ID {turma_id}"
+        )
+
+        nome_disciplina = (
+            obter_valor(
+                disciplina,
+                "nome"
+            )
+            or f"ID {disciplina_id}"
+        )
 
         problemas.append({
             "tipo": "disciplina_sem_professor",
             "turma_id": turma_id,
             "disciplina_id": disciplina_id,
             "mensagem": (
-                f"A turma {turma_id} possui "
-                f"{aulas_por_semana} aula(s) da "
-                f"disciplina {disciplina_id}, mas não "
-                "existe professor vinculado à turma "
-                "e à disciplina simultaneamente."
+                f"A turma '{nome_turma}' possui "
+                f"{aulas_por_semana} aula(s) de "
+                f"'{nome_disciplina}', mas ainda não "
+                "possui professor atribuído."
             )
         })
 
@@ -310,7 +327,7 @@ def diagnosticar_disciplinas_sem_professor(
 def diagnosticar_professores_sem_disponibilidade(
     dados
 ):
-    professor_turma = dados.get(
+    atribuicoes = dados.get(
         "professor_turma",
         []
     )
@@ -320,12 +337,24 @@ def diagnosticar_professores_sem_disponibilidade(
         []
     )
 
+    professores = {
+        obter_valor(professor, "id"): professor
+        for professor in dados.get(
+            "professores",
+            []
+        )
+    }
+
     professores_utilizados = {
         obter_valor(
             vinculo,
             "professor_id"
         )
-        for vinculo in professor_turma
+        for vinculo in atribuicoes
+        if obter_valor(
+            vinculo,
+            "professor_id"
+        ) is not None
     }
 
     professores_disponiveis = {
@@ -334,6 +363,16 @@ def diagnosticar_professores_sem_disponibilidade(
             "professor_id"
         )
         for disponibilidade in disponibilidades
+        if (
+            obter_valor(
+                disponibilidade,
+                "professor_id"
+            ) is not None
+            and obter_valor(
+                disponibilidade,
+                "disponivel"
+            )
+        )
     }
 
     problemas = []
@@ -342,13 +381,25 @@ def diagnosticar_professores_sem_disponibilidade(
         if professor_id in professores_disponiveis:
             continue
 
+        professor = professores.get(
+            professor_id
+        )
+
+        nome_professor = (
+            obter_valor(
+                professor,
+                "nome"
+            )
+            or f"ID {professor_id}"
+        )
+
         problemas.append({
             "tipo": "professor_sem_disponibilidade",
             "professor_id": professor_id,
             "mensagem": (
-                f"O professor {professor_id} está "
-                "vinculado a uma turma, mas não possui "
-                "disponibilidade cadastrada."
+                f"O professor '{nome_professor}' possui "
+                "aulas atribuídas, mas não possui nenhum "
+                "horário disponível cadastrado."
             )
         })
 
@@ -359,57 +410,300 @@ def diagnosticar_insuficiencia_disponibilidade_professor(
     dados
 ):
     """
-    Diagnostica se algum professor possui mais aulas atribuídas na carga horária
-    do que horários marcados como disponíveis na sua grade semanal.
+    Verifica se a quantidade de horários disponíveis do professor
+    é suficiente para acomodar todas as aulas atribuídas a ele.
     """
-    matrizes = dados.get("turma_disciplina", [])
-    professor_turma = dados.get("professor_turma", [])
-    professor_disciplina = dados.get("professor_disciplina", [])
-    disponibilidades = dados.get("disponibilidades", [])
-    professores = {p.id: p for p in dados.get("professores", [])}
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
 
-    professores_por_turma = {}
-    for vinculo in professor_turma:
-        professores_por_turma.setdefault(obter_valor(vinculo, "turma_id"), set()).add(obter_valor(vinculo, "professor_id"))
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
 
-    professores_por_disciplina = {}
-    for vinculo in professor_disciplina:
-        professores_por_disciplina.setdefault(obter_valor(vinculo, "disciplina_id"), set()).add(obter_valor(vinculo, "professor_id"))
+    disponibilidades = dados.get(
+        "disponibilidades",
+        []
+    )
+
+    professores = {
+        obter_valor(professor, "id"): professor
+        for professor in dados.get(
+            "professores",
+            []
+        )
+    }
+
+    carga_por_matriz = {}
+
+    for matriz in matrizes:
+        turma_id = obter_valor(
+            matriz,
+            "turma_id"
+        )
+
+        disciplina_id = obter_valor(
+            matriz,
+            "disciplina_id"
+        )
+
+        aulas = int(
+            obter_valor(
+                matriz,
+                "aulas_por_semana"
+            )
+            or 0
+        )
+
+        carga_por_matriz[
+            (
+                turma_id,
+                disciplina_id
+            )
+        ] = aulas
 
     carga_necessaria_professor = {}
 
-    for matriz in matrizes:
-        t_id = obter_valor(matriz, "turma_id")
-        d_id = obter_valor(matriz, "disciplina_id")
-        aulas = int(obter_valor(matriz, "aulas_por_semana") or 0)
+    for vinculo in atribuicoes:
+        professor_id = obter_valor(
+            vinculo,
+            "professor_id"
+        )
 
-        professores_validos = professores_por_turma.get(t_id, set()) & professores_por_disciplina.get(d_id, set())
-        for p_id in professores_validos:
-            carga_necessaria_professor[p_id] = carga_necessaria_professor.get(p_id, 0) + aulas
+        turma_id = obter_valor(
+            vinculo,
+            "turma_id"
+        )
+
+        disciplina_id = obter_valor(
+            vinculo,
+            "disciplina_id"
+        )
+
+        aulas = carga_por_matriz.get(
+            (
+                turma_id,
+                disciplina_id
+            ),
+            0
+        )
+
+        if (
+            professor_id is None
+            or aulas <= 0
+        ):
+            continue
+
+        carga_necessaria_professor[
+            professor_id
+        ] = (
+            carga_necessaria_professor.get(
+                professor_id,
+                0
+            )
+            + aulas
+        )
 
     horarios_marcados_professor = {}
-    for d in disponibilidades:
-        if obter_valor(d, "disponivel"):
-            p_id = obter_valor(d, "professor_id")
-            horarios_marcados_professor[p_id] = horarios_marcados_professor.get(p_id, 0) + 1
+
+    for disponibilidade in disponibilidades:
+        if not obter_valor(
+            disponibilidade,
+            "disponivel"
+        ):
+            continue
+
+        professor_id = obter_valor(
+            disponibilidade,
+            "professor_id"
+        )
+
+        if professor_id is None:
+            continue
+
+        horarios_marcados_professor[
+            professor_id
+        ] = (
+            horarios_marcados_professor.get(
+                professor_id,
+                0
+            )
+            + 1
+        )
 
     problemas = []
-    for p_id, carga in carga_necessaria_professor.items():
-        # Se o professor tem registro de disponibilidade
-        if p_id in horarios_marcados_professor:
-            marcados = horarios_marcados_professor[p_id]
-            if marcados < carga:
-                prof_obj = professores.get(p_id)
-                prof_nome = obter_valor(prof_obj, "nome") or f"ID {p_id}"
-                problemas.append({
-                    "tipo": "disponibilidade_insuficiente",
-                    "professor_id": p_id,
-                    "mensagem": (
-                        f"O professor '{prof_nome}' precisa ministrar {carga} aula(s) "
-                        f"na semana, mas só possui {marcados} horário(s) marcados "
-                        "como disponíveis."
-                    )
-                })
+
+    for professor_id, carga in (
+        carga_necessaria_professor.items()
+    ):
+        marcados = horarios_marcados_professor.get(
+            professor_id,
+            0
+        )
+
+        if marcados >= carga:
+            continue
+
+        professor = professores.get(
+            professor_id
+        )
+
+        nome_professor = (
+            obter_valor(
+                professor,
+                "nome"
+            )
+            or f"ID {professor_id}"
+        )
+
+        problemas.append({
+            "tipo": "disponibilidade_insuficiente",
+            "professor_id": professor_id,
+            "mensagem": (
+                f"O professor '{nome_professor}' precisa "
+                f"ministrar {carga} aula(s) na semana, "
+                f"mas possui somente {marcados} horário(s) "
+                "marcado(s) como disponível(is)."
+            )
+        })
+
+    return problemas
+
+
+def diagnosticar_limite_semanal_professor(
+    dados
+):
+    """
+    Compara a carga atribuída com o limite semanal cadastrado
+    no professor.
+    """
+    matrizes = dados.get(
+        "turma_disciplina",
+        []
+    )
+
+    atribuicoes = dados.get(
+        "professor_turma",
+        []
+    )
+
+    professores = {
+        obter_valor(professor, "id"): professor
+        for professor in dados.get(
+            "professores",
+            []
+        )
+    }
+
+    carga_por_matriz = {
+        (
+            obter_valor(matriz, "turma_id"),
+            obter_valor(matriz, "disciplina_id")
+        ): int(
+            obter_valor(
+                matriz,
+                "aulas_por_semana"
+            )
+            or 0
+        )
+        for matriz in matrizes
+    }
+
+    carga_atribuida = {}
+
+    for vinculo in atribuicoes:
+        professor_id = obter_valor(
+            vinculo,
+            "professor_id"
+        )
+
+        turma_id = obter_valor(
+            vinculo,
+            "turma_id"
+        )
+
+        disciplina_id = obter_valor(
+            vinculo,
+            "disciplina_id"
+        )
+
+        aulas = carga_por_matriz.get(
+            (
+                turma_id,
+                disciplina_id
+            ),
+            0
+        )
+
+        if professor_id is None:
+            continue
+
+        carga_atribuida[
+            professor_id
+        ] = (
+            carga_atribuida.get(
+                professor_id,
+                0
+            )
+            + aulas
+        )
+
+    problemas = []
+
+    for professor_id, carga in carga_atribuida.items():
+        professor = professores.get(
+            professor_id
+        )
+
+        if not professor:
+            continue
+
+        limite = obter_valor(
+            professor,
+            "limite_aulas_semana"
+        )
+
+        if limite in (
+            None,
+            ""
+        ):
+            continue
+
+        try:
+            limite = int(
+                limite
+            )
+        except (
+            TypeError,
+            ValueError
+        ):
+            continue
+
+        if limite <= 0:
+            continue
+
+        if carga <= limite:
+            continue
+
+        nome_professor = (
+            obter_valor(
+                professor,
+                "nome"
+            )
+            or f"ID {professor_id}"
+        )
+
+        problemas.append({
+            "tipo": "limite_semanal_excedido",
+            "professor_id": professor_id,
+            "mensagem": (
+                f"O professor '{nome_professor}' possui "
+                f"{carga} aula(s) atribuída(s), mas seu "
+                f"limite semanal é de {limite} aula(s)."
+            )
+        })
 
     return problemas
 
@@ -434,6 +728,27 @@ def contar_dias_ativos(
             atributo
         )
     )
+
+
+def obter_quantidade_aulas_padrao(
+    turma
+):
+    segmento = str(
+        obter_valor(
+            turma,
+            "segmento"
+        )
+        or ""
+    ).lower()
+
+    if (
+        "médio" in segmento
+        or "medio" in segmento
+        or "ensino_medio" in segmento
+    ):
+        return 7
+
+    return 6
 
 
 def remover_problemas_duplicados(
@@ -466,7 +781,13 @@ def obter_valor(
     objeto,
     atributo
 ):
-    if isinstance(objeto, dict):
+    if objeto is None:
+        return None
+
+    if isinstance(
+        objeto,
+        dict
+    ):
         return objeto.get(
             atributo
         )

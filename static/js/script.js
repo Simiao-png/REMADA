@@ -1,151 +1,7 @@
-let modalProf = null;
 let modalDisciplina = null;
 let modalTurma = null;
 
 let dadosPlanejamento = null;
-
-
-function abrirModalCadastro() {
-    document.getElementById("formNovoProfessor").reset();
-    document.getElementById("professorId").value = "";
-    document.getElementById("modalNovoProfessorLabel").innerText =
-        "Cadastrar Novo Professor";
-
-    const cargaHorariaSemanal =
-        document.getElementById(
-            "cargaHorariaSemanalProfessor"
-        );
-
-    if (cargaHorariaSemanal) {
-        cargaHorariaSemanal.value = 0;
-    }
-
-    const selectDisciplinas =
-        document.getElementById("disciplinasProfessor");
-
-    if (selectDisciplinas) {
-        Array.from(selectDisciplinas.options).forEach(option => {
-            option.selected = false;
-        });
-    }
-
-    document.querySelectorAll(".segmento-professor").forEach(check => {
-        check.checked = false;
-    });
-
-    const trabalhaOutraEscola =
-        document.getElementById("trabalhaOutraEscolaProfessor");
-
-    if (trabalhaOutraEscola) {
-        trabalhaOutraEscola.checked = false;
-    }
-
-    const observacoes =
-        document.getElementById("observacoesProfessor");
-
-    if (observacoes) {
-        observacoes.value = "";
-    }
-
-    if (!modalProf) {
-        modalProf = new bootstrap.Modal(
-            document.getElementById("modalNovoProfessor")
-        );
-    }
-
-    modalProf.show();
-}
-
-
-function abrirModalEdicao(botao) {
-    document.getElementById("professorId").value =
-        botao.dataset.id;
-
-    document.getElementById("nomeProfessor").value =
-        botao.dataset.nome;
-
-    const cargaHorariaSemanal =
-        document.getElementById(
-            "cargaHorariaSemanalProfessor"
-        );
-
-    if (cargaHorariaSemanal) {
-        cargaHorariaSemanal.value =
-            Number(botao.dataset.cargaHoraria || 0);
-    }
-
-    const segmentosSelecionados = botao.dataset.segmentos
-        ? botao.dataset.segmentos.split(",").filter(Boolean)
-        : [];
-
-    document.querySelectorAll(".segmento-professor").forEach(check => {
-        check.checked = segmentosSelecionados.includes(check.value);
-    });
-
-    const selectDisciplinas =
-        document.getElementById("disciplinasProfessor");
-
-    const disciplinasSelecionadas = botao.dataset.disciplinas
-        ? botao.dataset.disciplinas.split(",").filter(Boolean)
-        : [];
-
-    if (selectDisciplinas) {
-        Array.from(selectDisciplinas.options).forEach(option => {
-            option.selected =
-                disciplinasSelecionadas.includes(option.value);
-        });
-    }
-
-    const trabalhaOutraEscola =
-        document.getElementById("trabalhaOutraEscolaProfessor");
-
-    if (trabalhaOutraEscola) {
-        trabalhaOutraEscola.checked =
-            botao.dataset.outraEscola === "true";
-    }
-
-    const observacoes =
-        document.getElementById("observacoesProfessor");
-
-    if (observacoes) {
-        observacoes.value =
-            botao.dataset.observacoes || "";
-    }
-
-    document.getElementById("modalNovoProfessorLabel").innerText =
-        "Editar Professor";
-
-    if (!modalProf) {
-        modalProf = new bootstrap.Modal(
-            document.getElementById("modalNovoProfessor")
-        );
-    }
-
-    modalProf.show();
-}
-
-
-function deletarProfessor(id, nome) {
-    if (
-        confirm(
-            `Tem certeza que deseja remover o professor "${nome}"?`
-        )
-    ) {
-        fetch(`/professores/${id}`, {
-            method: "DELETE"
-        }).then(async response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                const erro = await response.text();
-
-                alert(
-                    `Erro no Backend (${response.status}): ${erro}`
-                );
-            }
-        });
-    }
-}
 
 
 function abrirModalCadastroDisciplina() {
@@ -427,44 +283,9 @@ function carregarProfessorDisponibilidade() {
             "nomeProfessorDisponibilidade"
         );
 
-    const disciplinasProfessor =
-        document.getElementById(
-            "disciplinasProfessorDisponibilidade"
-        );
-
     if (nomeProfessor) {
         nomeProfessor.innerText =
             professor.nome;
-    }
-
-    if (disciplinasProfessor) {
-        if (
-            professor.disciplinas &&
-            professor.disciplinas.length > 0
-        ) {
-            disciplinasProfessor.innerHTML =
-                professor.disciplinas
-                    .map(disciplina => {
-                        const nome =
-                            typeof disciplina ===
-                            "object"
-                                ? disciplina.nome
-                                : disciplina;
-
-                        return (
-                            '<span class="badge ' +
-                            "bg-primary-subtle " +
-                            "text-primary me-1\">" +
-                            `${nome}</span>`
-                        );
-                    })
-                    .join("");
-        } else {
-            disciplinasProfessor.innerHTML =
-                '<span class="text-muted">' +
-                "Nenhuma disciplina vinculada" +
-                "</span>";
-        }
     }
 
     montarTabelaDisponibilidade(
@@ -643,8 +464,7 @@ function alternarDisponibilidadeBotao(
 function configurarCabecalhosDisponibilidade() {
     const cabecalhos =
         document.querySelectorAll(
-            "#disponibilidades " +
-            "thead th[data-dia]"
+            ".cabecalho-dia-disponibilidade[data-dia]"
         );
 
     cabecalhos.forEach(
@@ -741,8 +561,7 @@ function atualizarEstadoCabecalhoDia(
 ) {
     const cabecalho =
         document.querySelector(
-            `#disponibilidades ` +
-            `thead th[data-dia="${dia}"]`
+            `.cabecalho-dia-disponibilidade[data-dia="${dia}"]`
         );
 
     if (!cabecalho) {
@@ -1092,154 +911,6 @@ document.addEventListener(
         }
 
 
-        const formNovoProfessor =
-            document.getElementById(
-                "formNovoProfessor"
-            );
-
-        if (formNovoProfessor) {
-            formNovoProfessor.addEventListener(
-                "submit",
-                function (e) {
-                    e.preventDefault();
-
-                    const id =
-                        document.getElementById(
-                            "professorId"
-                        ).value;
-
-                    const url =
-                        id
-                            ? `/professores/${id}`
-                            : "/professores";
-
-                    const metodo =
-                        id
-                            ? "PUT"
-                            : "POST";
-
-                    const selectDisciplinas =
-                        document.getElementById(
-                            "disciplinasProfessor"
-                        );
-
-                    const disciplinasSelecionadas =
-                        selectDisciplinas
-                            ? Array.from(
-                                selectDisciplinas
-                                    .selectedOptions
-                            ).map(
-                                option =>
-                                    Number(
-                                        option.value
-                                    )
-                            )
-                            : [];
-
-                    const segmentosSelecionados =
-                        Array.from(
-                            document.querySelectorAll(
-                                ".segmento-professor:checked"
-                            )
-                        ).map(
-                            item =>
-                                item.value
-                        );
-
-                    if (
-                        segmentosSelecionados
-                            .length === 0
-                    ) {
-                        alert(
-                            "Selecione pelo menos um segmento."
-                        );
-
-                        return;
-                    }
-
-                    const trabalhaOutraEscola =
-                        document.getElementById(
-                            "trabalhaOutraEscolaProfessor"
-                        );
-
-                    const observacoes =
-                        document.getElementById(
-                            "observacoesProfessor"
-                        );
-
-                    const cargaHorariaSemanal =
-                        document.getElementById(
-                            "cargaHorariaSemanalProfessor"
-                        );
-
-                    const payload = {
-                        nome:
-                            document.getElementById(
-                                "nomeProfessor"
-                            ).value,
-
-                        carga_horaria_semanal:
-                            cargaHorariaSemanal
-                                ? Number(
-                                    cargaHorariaSemanal
-                                        .value
-                                ) || 0
-                                : 0,
-
-                        segmentos:
-                            segmentosSelecionados,
-
-                        disciplinas_ids:
-                            disciplinasSelecionadas,
-
-                        trabalha_outra_escola:
-                            trabalhaOutraEscola
-                                ? trabalhaOutraEscola
-                                    .checked
-                                : false,
-
-                        observacoes:
-                            observacoes
-                                ? observacoes.value
-                                : ""
-                    };
-
-                    fetch(
-                        url,
-                        {
-                            method: metodo,
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    payload
-                                )
-                        }
-                    ).then(
-                        async response => {
-                            if (response.ok) {
-                                window.location.reload();
-                            } else {
-                                const erro =
-                                    await response.text();
-
-                                alert(
-                                    `Erro no Backend ` +
-                                    `(${response.status}): ` +
-                                    erro
-                                );
-                            }
-                        }
-                    );
-                }
-            );
-        }
-
-
         const formDisciplina =
             document.getElementById(
                 "formDisciplina"
@@ -1396,47 +1067,6 @@ document.addEventListener(
                 }
             );
         }
-
-
-        const abaSalva =
-            localStorage.getItem(
-                "abaCadastroAtiva"
-            );
-
-        if (abaSalva) {
-            const botaoAba =
-                document.querySelector(
-                    `[data-bs-target="${abaSalva}"]`
-                );
-
-            if (botaoAba) {
-                const tab =
-                    new bootstrap.Tab(
-                        botaoAba
-                    );
-
-                tab.show();
-            }
-        }
-
-
-        document
-            .querySelectorAll(
-                "#cadastrosTabs " +
-                'button[data-bs-toggle="tab"]'
-            )
-            .forEach(botao => {
-                botao.addEventListener(
-                    "shown.bs.tab",
-                    function (e) {
-                        localStorage.setItem(
-                            "abaCadastroAtiva",
-                            e.target.dataset
-                                .bsTarget
-                        );
-                    }
-                );
-            });
 
 
         carregarDadosPlanejamento();

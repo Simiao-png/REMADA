@@ -19,20 +19,12 @@ def extrair_grade(
         turmas
     )
 
-    # Garantia de produção: expande dinamicamente a matriz da turma se ela for Ensino Médio (até 7 aulas)
-    for turma_id, turma in turmas.items():
-        segmento = str(getattr(turma, "segmento", "") or "").lower()
-        limite_aulas = 7 if ("médio" in segmento or "medio" in segmento) else 6
-        
-        if turma_id in grade:
-            for dia in grade[turma_id]:
-                while len(grade[turma_id][dia]) < limite_aulas:
-                    grade[turma_id][dia].append(None)
-
     quantidade_alocada = 0
 
     for chave, variavel in variaveis.items():
-        if solver.Value(variavel) != 1:
+        if solver.Value(
+            variavel
+        ) != 1:
             continue
 
         (
@@ -44,17 +36,54 @@ def extrair_grade(
         ) = chave
 
         if turma_id not in grade:
+            print(
+                "CP-SAT -> "
+                f"Turma {turma_id} não encontrada "
+                "na grade vazia."
+            )
             continue
 
-        if dia not in grade[turma_id]:
+        if dia not in grade[
+            turma_id
+        ]:
+            print(
+                "CP-SAT -> "
+                f"Dia '{dia}' não encontrado para "
+                f"a turma {turma_id}."
+            )
             continue
 
-        if indice >= len(
-            grade[turma_id][dia]
+        horarios_dia = grade[
+            turma_id
+        ][dia]
+
+        if (
+            indice < 0
+            or indice >= len(
+                horarios_dia
+            )
         ):
+            print(
+                "CP-SAT -> "
+                f"Índice {indice} inválido para "
+                f"a turma {turma_id} no dia {dia}."
+            )
             continue
 
-        grade[turma_id][dia][indice] = {
+        if horarios_dia[
+            indice
+        ] is not None:
+            print(
+                "CP-SAT -> "
+                f"Conflito inesperado na turma "
+                f"{turma_id}, dia {dia}, "
+                f"horário {indice + 1}."
+            )
+            continue
+
+        horarios_dia[
+            indice
+        ] = {
             "professor": professor_id,
             "disciplina": disciplina_id
         }

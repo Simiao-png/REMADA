@@ -124,7 +124,7 @@
                         <i class="bi bi-chevron-right setup-step-arrow"></i>
                     </a>
 
-                    <a href="/disponibilidades/tela"
+                    <a href="{{ url_for('disponibilidade_professor.tela_planejamento') }}"
                        class="setup-step {% if professores > 0 and professores_com_disponibilidade == professores %}is-complete{% else %}is-pending{% endif %}">
                         <span class="setup-step-icon">
                             <i class="bi {% if professores > 0 and professores_com_disponibilidade == professores %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
@@ -163,7 +163,7 @@
                         {% elif professores == 0 %}
                             <a href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores">
                         {% else %}
-                            <a href="/disponibilidades/tela">
+                            <a href="{{ url_for('disponibilidade_professor.tela_planejamento') }}">
                         {% endif %}
                                 Continuar configuração
                                 <i class="bi bi-arrow-right"></i>
@@ -230,7 +230,7 @@
 
 
         <a
-            href="/planejamento/tela"
+            href="{{ url_for('disponibilidade_professor.tela_planejamento') }}"
             class="stat-card"
         >
             <div class="stat-card-content">
@@ -267,7 +267,7 @@
                     </p>
                 </div>
 
-                <a href="/planejamento/tela" class="panel-link">
+                <a href="{{ url_for('disponibilidade_professor.tela_planejamento') }}" class="panel-link">
                     Abrir planejamento
                     <i class="bi bi-arrow-up-right"></i>
                 </a>
@@ -431,7 +431,7 @@
                 </div>
 
                 <a
-                    href="/planejamento/tela"
+                    href="{{ url_for('disponibilidade_professor.tela_planejamento') }}"
                     class="pending-action"
                 >
                     Resolver pendências
