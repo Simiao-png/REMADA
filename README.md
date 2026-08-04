@@ -1,244 +1,286 @@
-# REMADA
+<p align="center">
+  <img src="assets/landing.png" width="100%">
+</p>
 
-Sistema inteligente para geração automática de grades horárias escolares.
+<h1 align="center">REMADA</h1>
 
-O REMADA é uma plataforma web desenvolvida para automatizar a construção de grades horárias escolares. Utilizando otimização por restrições com Google OR-Tools CP-SAT, o sistema gera grades consistentes respeitando matriz curricular, atribuições docentes, disponibilidade dos professores, carga horária, configurações por segmento e regras pedagógicas.
+<p align="center">
+<b>Intelligent School Timetable Management Platform</b>
+</p>
 
-O objetivo é reduzir conflitos, retrabalho e o tempo gasto na montagem manual da grade.
+<p align="center">
+Sistema SaaS para gestão e geração inteligente de grades horárias escolares utilizando otimização matemática com Google OR-Tools CP-SAT.
+</p>
+
+<p align="center">
+
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Flask](https://img.shields.io/badge/Flask-3.x-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-red)
+![Google OR-Tools](https://img.shields.io/badge/Google-OR--Tools-success)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)
+
+</p>
 
 ---
 
-## Tecnologias
+# Visão Geral
 
-- Python
-- Flask
-- PostgreSQL
-- SQLAlchemy
-- Google OR-Tools — CP-SAT
-- HTML5
-- Jinja2
-- CSS3
-- JavaScript ES6+
-- Bootstrap 5
-- Git e GitHub
+O **REMADA** é uma plataforma desenvolvida para automatizar a construção de grades horárias escolares.
+
+O sistema permite configurar toda a estrutura da instituição — professores, disciplinas, turmas, matriz curricular e disponibilidades — para que o motor de otimização gere automaticamente uma grade consistente respeitando regras pedagógicas e operacionais.
+
+O objetivo é reduzir conflitos, eliminar retrabalho e diminuir significativamente o tempo gasto na elaboração manual das grades.
 
 ---
 
-## Funcionalidades
+# Principais Recursos
 
-### Apresentação e identidade visual
-
-- ✅ Landing page com identidade visual REMADA
-- ✅ Dashboard administrativo
-- ✅ Interface responsiva
-- ✅ Navegação integrada entre cadastro, planejamento, geração e diagnóstico
-- ✅ Componentes visuais com cards, indicadores, badges e estados operacionais
-
-### Estrutura multi-escola
-
-- ✅ Isolamento dos dados por escola
-- ✅ Seleção da escola ativa por sessão
-- ✅ Configurações independentes para cada instituição
-- ✅ Disciplinas vinculadas à escola
-- ✅ Criação automática de disciplinas padrão para novas escolas
-
-### Cadastros
-
-- ✅ Escolas
-- ✅ Professores
-- ✅ Disciplina de referência do professor
-- ✅ Disciplinas com paleta de cores personalizável
-- ✅ Turmas
-- ✅ Configuração horária por segmento
-- ✅ Suporte a Fundamental I, Fundamental II, Ensino Médio e Cursinho
-- ✅ CRUD completo dos módulos principais
-
-### Matriz curricular
-
-- ✅ Matriz Turma × Disciplina
-- ✅ Definição da quantidade semanal de aulas
-- ✅ Capacidade semanal calculada conforme a configuração da turma
-- ✅ Suporte a diferentes quantidades de aulas por segmento
-- ✅ Salvamento automático
-- ✅ Indicadores de carga incompleta, completa ou excedida
-- ✅ Resumo das matrizes cadastradas
-
-### Planejamento dos professores
-
-- ✅ Cadastro básico separado da configuração pedagógica
-- ✅ Limite semanal de aulas
-- ✅ Atribuição Professor × Turma × Disciplina
-- ✅ Um único professor pode assumir diferentes disciplinas
-- ✅ Cálculo automático da carga atribuída
-- ✅ Indicadores de carga completa, incompleta ou excedida
-- ✅ Identificação de turmas e disciplinas sem professor
-- ✅ Salvamento automático das atribuições
-
-### Disponibilidade dos professores
-
-- ✅ Grade semanal de disponibilidade
-- ✅ Seleção individual por aula
-- ✅ Atalho para marcar ou desmarcar um dia inteiro
-- ✅ Suporte à 7ª aula do Ensino Médio
-- ✅ Quantidade de horários conforme a configuração dos segmentos
-- ✅ Salvamento automático em segundo plano
-- ✅ Validação entre carga atribuída, limite semanal e horários disponíveis
-
-### Diagnóstico
-
-- ✅ Detecção de turma sem configuração horária
-- ✅ Detecção de carga semanal acima da capacidade da turma
-- ✅ Detecção de disciplina sem professor atribuído
-- ✅ Detecção de professor sem disponibilidade
-- ✅ Detecção de disponibilidade insuficiente
-- ✅ Detecção de limite semanal excedido
-- ✅ Mensagens orientadas para correção antes da geração
-
-### Motor de geração
-
-- ✅ Motor CP-SAT com Google OR-Tools
-- ✅ Geração automática da grade
-- ✅ Cumprimento exato da matriz curricular
-- ✅ Bloqueio de choque de horário da turma
-- ✅ Bloqueio de choque de horário do professor
-- ✅ Respeito às disponibilidades cadastradas
-- ✅ Respeito ao limite semanal do professor
-- ✅ Limite de aulas da mesma disciplina por dia
-- ✅ Preferência pelos primeiros horários
-- ✅ Penalização de concentração excessiva da carga diária
-- ✅ Distribuição pedagógica orientada por função objetivo
-- ✅ Execução paralela com múltiplos trabalhadores
-- ✅ Retorno de solução viável mesmo quando o ótimo não é provado dentro do tempo limite
-
-### Histórico, visualização e exportação
-
-- ✅ Salvamento das grades geradas no banco de dados
-- ✅ Versionamento das gerações
-- ✅ Visualização por turma
-- ✅ Visão geral da escola
-- ✅ Cores das disciplinas aplicadas à grade
+- ✅ Plataforma Web completa
+- ✅ Estrutura Multi-escola
+- ✅ Dashboard Administrativo
+- ✅ Cadastro de Professores
+- ✅ Cadastro de Disciplinas
+- ✅ Cadastro de Turmas
+- ✅ Configuração Horária por Segmento
+- ✅ Matriz Curricular
+- ✅ Planejamento Docente
+- ✅ Disponibilidade dos Professores
+- ✅ Geração Automática de Grades
+- ✅ Histórico de Gerações
+- ✅ Visualização por Turma
+- ✅ Visão Geral da Escola
 - ✅ Exportação para Excel
-- ✅ Impressão e exportação em PDF
-- ✅ Layout específico para impressão
+- ✅ Impressão em PDF
 
 ---
 
-## Marco atual
+# Tecnologias
 
-O fluxo principal já funciona de ponta a ponta:
+| Backend | Frontend | Banco de Dados | Otimização |
+|----------|-----------|----------------|------------|
+| Python | HTML5 | PostgreSQL | Google OR-Tools |
+| Flask | Bootstrap 5 | SQLAlchemy | CP-SAT |
+| Jinja2 | JavaScript | | |
+
+---
+
+# Arquitetura
 
 ```text
-Configuração da escola
-        ↓
-Cadastro de turmas
-        ↓
-Matriz curricular
-        ↓
-Cadastro de professores
-        ↓
-Atribuição de turmas e disciplinas
-        ↓
-Disponibilidade dos professores
-        ↓
-Diagnóstico
-        ↓
-Geração automática
-        ↓
-Histórico, visualização e exportação
+                  Usuário
+                      │
+                      ▼
+        HTML • Bootstrap • JavaScript
+                      │
+                      ▼
+              Aplicação Flask
+                      │
+                      ▼
+            Camada de Serviços
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+     PostgreSQL            Google OR-Tools
+                                 CP-SAT
 ```
 
-No teste completo mais recente, o motor processou:
+---
 
-- 7 turmas
-- 15 professores
-- 17 disciplinas
-- 504 registros de disponibilidade
-- 78 atribuições docentes
-- 78 itens de matriz curricular
-- 2.550 variáveis de decisão
+# Fluxo do Sistema
 
-O CP-SAT encontrou uma solução viável para toda a escola e melhorou progressivamente a função objetivo durante os 30 segundos de otimização.
+```text
+Cadastro da Escola
+        ↓
+
+Cadastro de Turmas
+        ↓
+
+Matriz Curricular
+        ↓
+
+Cadastro de Professores
+        ↓
+
+Planejamento Docente
+        ↓
+
+Disponibilidade
+        ↓
+
+Geração da Grade
+        ↓
+
+Visualização
+        ↓
+
+Excel / PDF
+```
 
 ---
 
-## Estrutura do projeto
+# Interface
+
+## Landing Page
+
+<p align="center">
+<img src="assets/landing.png">
+</p>
+
+---
+
+## Dashboard
+
+<p align="center">
+<img src="assets/dashboard.png">
+</p>
+
+---
+
+## Cadastro de Turmas
+
+<p align="center">
+<img src="assets/cadastro1.png">
+</p>
+
+---
+
+## Matriz Curricular
+
+<p align="center">
+<img src="assets/cadastro2.png">
+</p>
+
+---
+
+## Cadastro de Professores
+
+<p align="center">
+<img src="assets/cadastro3.png">
+</p>
+
+---
+
+## Planejamento Docente
+
+<p align="center">
+<img src="assets/planejamento1.png">
+</p>
+
+---
+
+## Disponibilidade dos Professores
+
+<p align="center">
+<img src="assets/planejamento2.png">
+</p>
+
+---
+
+## Grade Gerada
+
+<p align="center">
+<img src="assets/geracao.png">
+</p>
+
+---
+
+# Motor de Otimização
+
+O REMADA utiliza o **Google OR-Tools CP-SAT**, um solver de programação por restrições utilizado em problemas reais de otimização.
+
+Durante a geração da grade o algoritmo considera simultaneamente:
+
+- disponibilidade dos professores;
+- carga horária semanal;
+- matriz curricular;
+- conflitos de horário;
+- limite diário por disciplina;
+- distribuição equilibrada da carga;
+- regras pedagógicas.
+
+O objetivo é produzir automaticamente uma solução consistente minimizando conflitos e penalidades.
+
+---
+
+# Resultado Atual
+
+O fluxo principal do sistema encontra-se totalmente funcional.
+
+Em um dos testes completos foram processados aproximadamente:
+
+- 7 Turmas
+- 16 Professores
+- 17 Disciplinas
+- Centenas de disponibilidades
+- Dezenas de atribuições docentes
+- Milhares de variáveis de decisão
+
+O solver encontrou uma solução viável respeitando todas as restrições cadastradas.
+
+---
+
+# Estrutura do Projeto
 
 ```text
-REMADA/
-├── models/                      # Modelos SQLAlchemy
-├── routes/                      # Rotas e endpoints Flask
-├── services/                    # Regras de negócio
-│   ├── motor/
-│   │   ├── cp_sat/              # Solver, restrições, objetivo e diagnóstico
-│   │   └── guloso/              # Algoritmo auxiliar ou legado
-│   └── ...
+REMADA
+│
+├── assets/
+├── docs/
+├── models/
+├── routes/
+├── services/
+│   └── motor/
+│       └── cp_sat/
 ├── static/
-│   ├── css/                     # Estilos da aplicação
-│   ├── js/                      # Scripts da interface
-│   └── ...
-├── templates/                   # Templates Jinja2
-├── tests/                       # Testes e documentação de homologação
-├── docs/                        # Documentação técnica
-├── app.py                       # Ponto de entrada da aplicação
-├── config.py                    # Configurações
-├── requirements.txt             # Dependências
+├── templates/
+│
+├── app.py
+├── config.py
+├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Roadmap
+# Roadmap
 
-### Concluído
+## Concluído
 
-- ✅ Modelagem do banco de dados e relacionamentos
-- ✅ Estrutura multi-escola
-- ✅ CRUDs completos dos módulos fundamentais
-- ✅ Configuração horária por segmento
-- ✅ Matriz curricular com salvamento automático
-- ✅ Planejamento integrado dos professores
-- ✅ Atribuição Professor × Turma × Disciplina
-- ✅ Disponibilidade semanal dos professores
-- ✅ Diagnóstico preventivo
-- ✅ Motor CP-SAT funcional
-- ✅ Geração completa de múltiplas turmas
-- ✅ Histórico das versões geradas
-- ✅ Visualização por turma e visão geral
-- ✅ Exportação para Excel
-- ✅ Impressão e exportação em PDF
+- ✔ Estrutura Multi-escola
+- ✔ Dashboard Administrativo
+- ✔ Cadastro Completo
+- ✔ Matriz Curricular
+- ✔ Planejamento Docente
+- ✔ Disponibilidade dos Professores
+- ✔ Motor CP-SAT
+- ✔ Geração Automática
+- ✔ Histórico
+- ✔ Exportação Excel
+- ✔ Impressão PDF
 
-### Próximas etapas
+## Próximas Versões
 
-- 🚧 Ajustes finos de UX nas telas de cadastro e planejamento
-- 🚧 Filtros visuais por segmento, disciplina e professor
-- 🚧 Progresso do solver em tempo real na interface
-- 🚧 Relatório detalhado das penalidades da solução
-- 🚧 Preferências pedagógicas configuráveis por escola
-- 🚧 Redução de janelas dos professores
-- 🚧 Regras específicas para aulas duplas e distribuição semanal
-- 🚧 Métricas de qualidade da grade
-- 🚧 Testes automatizados de integridade e conflito
-- 🚧 Permissões e perfis de usuário
-- 🚧 Preparação para implantação em produção
+- 🚧 Diagnóstico da qualidade da grade
+- 🚧 Índice de eficiência da solução
+- 🚧 Preferências pedagógicas configuráveis
+- 🚧 Redução automática de janelas
+- 🚧 Relatórios analíticos
+- 🚧 Controle de usuários e permissões
 
 ---
 
-## Visão do produto
+# Objetivo
 
-O REMADA está sendo desenvolvido como uma plataforma SaaS especializada na geração inteligente de grades horárias escolares.
-
-A proposta é oferecer a coordenadores e gestores uma solução moderna para cadastrar a estrutura da escola, planejar a atuação dos professores, validar inconsistências e gerar automaticamente grades horárias por meio de algoritmos de otimização.
+O REMADA está sendo desenvolvido como uma plataforma SaaS para auxiliar coordenadores e gestores escolares na geração inteligente de grades horárias por meio de técnicas modernas de otimização matemática.
 
 ---
 
-## Status
-
-🟡 Em desenvolvimento ativo
-
-**Último marco alcançado:** fluxo completo funcionando do cadastro à geração, com CRUD multi-escola, planejamento de professores, diagnóstico preventivo, motor CP-SAT, histórico, visualização e exportação.
-
----
-
-## Autor
+# Autor
 
 **Silas Simião da Silva**
+
+Professor de Matemática • Desenvolvedor Python
+
+GitHub: https://github.com/Simiao-png

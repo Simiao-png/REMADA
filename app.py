@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, jsonify, session
+import os
+
+from flask import Flask, render_template, request, jsonify, session, redirect
 from config import Config
 from models.db import db
 
@@ -35,8 +37,6 @@ from routes.auth_routes import auth_bp
 app = Flask(__name__)
 app.config.from_object(Config)
 
-app.secret_key = "remada_secret_key_super_segura_2026"
-
 db.init_app(app)
 
 app.register_blueprint(auth_bp)
@@ -50,16 +50,18 @@ with app.app_context():
 # ------------------------------------------------------------------
 @app.context_processor
 def inject_escola():
-    escola_id = session.get('escola_id')
+    escola_id = session.get("escola_id")
     escola_atual = None
-    
+
     if escola_id:
-        escola_atual = db.session.query(Escola).get(escola_id)
-    else:
-        # Pega a escola mais recente cadastrada se não houver session
-        escola_atual = db.session.query(Escola).order_by(Escola.id.desc()).first()
-        
-    return dict(escola=escola_atual)
+        escola_atual = db.session.get(
+            Escola,
+            escola_id
+        )
+
+    return {
+        "escola": escola_atual
+    }
 
 
 # ------------------------------------------------------------------
@@ -82,33 +84,29 @@ app.register_blueprint(gerar_grade_bp)
 
 
 # ------------------------------------------------------------------
+# HEALTH CHECK
+# ------------------------------------------------------------------
+
+@app.route("/health")
+def health():
+    return {
+        "status": "ok",
+        "app": "REMADA"
+    }, 200
+
+
+# ------------------------------------------------------------------
 # DASHBOARD
 # ------------------------------------------------------------------
 
 @app.route("/")
 def dashboard():
+    escola_id = session.get("escola_id")
+
+    if not escola_id:
+        return redirect("/login")
 
     try:
-        escola_id = session.get('escola_id')
-        
-        if not escola_id:
-            escola_temp = db.session.query(Escola).order_by(Escola.id.desc()).first()
-            if escola_temp:
-                escola_id = escola_temp.id
-
-        if not escola_id:
-            return render_template(
-                "dashboard.html",
-                professores=0,
-                turmas=0,
-                disciplinas=0,
-                matrizes=0,
-                professores_com_disponibilidade=0,
-                progresso_geral=0,
-                progresso_turmas=[],
-                pendencias=["Cadastre uma escola para iniciar."],
-                ultimas_grades=[],
-            )
 
         # Filtros isolados por escola
         total_professores = db.session.query(Professor).filter_by(escola_id=escola_id).count()
@@ -388,4 +386,8 @@ def tela_ver_grade():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG", "0") == "1"
+    )
