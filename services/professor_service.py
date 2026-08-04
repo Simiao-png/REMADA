@@ -54,25 +54,77 @@ def normalizar_inteiro_positivo(
     return valor_normalizado
 
 
-def buscar_disciplina_da_escola(
-    disciplina_id,
+def normalizar_lista_ids(valores):
+    if not isinstance(valores, list):
+        return []
+
+    ids_normalizados = []
+
+    for valor in valores:
+        valor_normalizado = normalizar_inteiro_positivo(
+            valor
+        )
+
+        if (
+            valor_normalizado
+            and valor_normalizado not in ids_normalizados
+        ):
+            ids_normalizados.append(
+                valor_normalizado
+            )
+
+    return ids_normalizados
+
+
+def buscar_disciplinas_da_escola(
+    disciplinas_ids,
     escola_id
 ):
-    disciplina_id = normalizar_inteiro_positivo(
-        disciplina_id
+    disciplinas_ids = normalizar_lista_ids(
+        disciplinas_ids
     )
 
-    if not disciplina_id:
-        return None
+    if not disciplinas_ids:
+        return []
 
-    return (
+    disciplinas = (
         Disciplina.query
-        .filter_by(
-            id=disciplina_id,
-            escola_id=escola_id
+        .filter(
+            Disciplina.escola_id == escola_id,
+            Disciplina.id.in_(disciplinas_ids)
         )
-        .first()
+        .all()
     )
+
+    disciplinas_por_id = {
+        disciplina.id: disciplina
+        for disciplina in disciplinas
+    }
+
+    return [
+        disciplinas_por_id[disciplina_id]
+        for disciplina_id in disciplinas_ids
+        if disciplina_id in disciplinas_por_id
+    ]
+
+
+def sincronizar_disciplinas_professor(
+    professor,
+    disciplinas
+):
+    ProfessorDisciplina.query.filter_by(
+        professor_id=professor.id
+    ).delete(
+        synchronize_session=False
+    )
+
+    for disciplina in disciplinas:
+        db.session.add(
+            ProfessorDisciplina(
+                professor_id=professor.id,
+                disciplina_id=disciplina.id
+            )
+        )
 
 
 def professor_para_dict(professor):
@@ -88,6 +140,11 @@ def professor_para_dict(professor):
         professor,
         "disciplina_principal_id",
         None
+    )
+
+    disciplinas_ordenadas = sorted(
+        professor.disciplinas or [],
+        key=lambda disciplina: disciplina.nome.lower()
     )
 
     return {
@@ -111,14 +168,26 @@ def professor_para_dict(professor):
             if disciplina_principal
             else None
         ),
+        "disciplinas_ids": [
+            disciplina.id
+            for disciplina in disciplinas_ordenadas
+        ],
+        "disciplinas": [
+            {
+                "id": disciplina.id,
+                "nome": disciplina.nome,
+                "cor": getattr(
+                    disciplina,
+                    "cor",
+                    None
+                )
+            }
+            for disciplina in disciplinas_ordenadas
+        ],
         "trabalha_outra_escola": (
             professor.trabalha_outra_escola
         ),
         "observacoes": professor.observacoes,
-        "disciplinas_ids": [
-            disciplina.id
-            for disciplina in professor.disciplinas
-        ],
         "segmentos": [
             vinculo.segmento
             for vinculo in professor.segmentos
@@ -205,6 +274,13 @@ def criar_professor(dados):
             )
         }), 400
 
+    disciplinas_ids = normalizar_lista_ids(
+        dados.get(
+            "disciplinas_ids",
+            []
+        )
+    )
+
     disciplina_principal_id = (
         normalizar_inteiro_positivo(
             dados.get(
@@ -213,23 +289,37 @@ def criar_professor(dados):
         )
     )
 
-    disciplina_principal = None
-
-    if disciplina_principal_id:
-        disciplina_principal = (
-            buscar_disciplina_da_escola(
-                disciplina_principal_id,
-                escola.id
-            )
+    if (
+        disciplina_principal_id
+        and disciplina_principal_id not in disciplinas_ids
+    ):
+        disciplinas_ids.insert(
+            0,
+            disciplina_principal_id
         )
 
-        if not disciplina_principal:
-            return jsonify({
-                "erro": (
-                    "A disciplina principal selecionada "
-                    "não pertence à escola atual."
-                )
-            }), 400
+    if not disciplinas_ids:
+        return jsonify({
+            "erro": (
+                "Adicione pelo menos uma disciplina "
+                "ao professor."
+            )
+        }), 400
+
+    disciplinas = buscar_disciplinas_da_escola(
+        disciplinas_ids,
+        escola.id
+    )
+
+    if len(disciplinas) != len(disciplinas_ids):
+        return jsonify({
+            "erro": (
+                "Uma ou mais disciplinas selecionadas "
+                "não pertencem à escola atual."
+            )
+        }), 400
+
+    disciplina_principal = disciplinas[0]
 
     limite_aulas_semana = (
         normalizar_inteiro_positivo(
@@ -250,8 +340,6 @@ def criar_professor(dados):
         ),
         disciplina_principal_id=(
             disciplina_principal.id
-            if disciplina_principal
-            else None
         ),
         limite_aulas_semana=(
             limite_aulas_semana
@@ -272,10 +360,21 @@ def criar_professor(dados):
             professor
         )
 
+        db.session.flush()
+
+        sincronizar_disciplinas_professor(
+            professor,
+            disciplinas
+        )
+
         db.session.commit()
 
-        db.session.refresh(
-            professor
+        professor = (
+            Professor.query
+            .filter_by(
+                id=professor.id
+            )
+            .first()
         )
 
         return jsonify({
@@ -340,6 +439,18 @@ def atualizar_professor(id, dados):
             )
         }), 400
 
+    disciplinas_ids = normalizar_lista_ids(
+        dados.get(
+            "disciplinas_ids",
+            [
+                disciplina.id
+                for disciplina in (
+                    professor.disciplinas or []
+                )
+            ]
+        )
+    )
+
     disciplina_principal_id = (
         normalizar_inteiro_positivo(
             dados.get(
@@ -349,23 +460,37 @@ def atualizar_professor(id, dados):
         )
     )
 
-    disciplina_principal = None
-
-    if disciplina_principal_id:
-        disciplina_principal = (
-            buscar_disciplina_da_escola(
-                disciplina_principal_id,
-                professor.escola_id
-            )
+    if (
+        disciplina_principal_id
+        and disciplina_principal_id not in disciplinas_ids
+    ):
+        disciplinas_ids.insert(
+            0,
+            disciplina_principal_id
         )
 
-        if not disciplina_principal:
-            return jsonify({
-                "erro": (
-                    "A disciplina principal selecionada "
-                    "não pertence à escola atual."
-                )
-            }), 400
+    if not disciplinas_ids:
+        return jsonify({
+            "erro": (
+                "Adicione pelo menos uma disciplina "
+                "ao professor."
+            )
+        }), 400
+
+    disciplinas = buscar_disciplinas_da_escola(
+        disciplinas_ids,
+        professor.escola_id
+    )
+
+    if len(disciplinas) != len(disciplinas_ids):
+        return jsonify({
+            "erro": (
+                "Uma ou mais disciplinas selecionadas "
+                "não pertencem à escola atual."
+            )
+        }), 400
+
+    disciplina_principal = disciplinas[0]
 
     limite_aulas_semana = (
         normalizar_inteiro_positivo(
@@ -387,8 +512,6 @@ def atualizar_professor(id, dados):
 
     professor.disciplina_principal_id = (
         disciplina_principal.id
-        if disciplina_principal
-        else None
     )
 
     professor.limite_aulas_semana = (
@@ -408,10 +531,19 @@ def atualizar_professor(id, dados):
     )
 
     try:
+        sincronizar_disciplinas_professor(
+            professor,
+            disciplinas
+        )
+
         db.session.commit()
 
-        db.session.refresh(
-            professor
+        professor = (
+            Professor.query
+            .filter_by(
+                id=professor.id
+            )
+            .first()
         )
 
         return jsonify({
@@ -466,13 +598,6 @@ def deletar_professor(id):
         )
 
         ProfessorTurma.query.filter_by(
-            professor_id=professor.id
-        ).delete(
-            synchronize_session=False
-        )
-
-        # Mantidos temporariamente para limpar vínculos antigos.
-        ProfessorDisciplina.query.filter_by(
             professor_id=professor.id
         ).delete(
             synchronize_session=False

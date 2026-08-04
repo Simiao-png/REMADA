@@ -19,6 +19,67 @@
         </a>
     </div>
 
+    <section class="card-remada painel-progresso-planejamento mb-4"
+             id="painelProgressoPlanejamento">
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="planejamento-geral-icone" id="iconeProgressoPlanejamento">
+                    <i class="bi bi-clipboard-data"></i>
+                </div>
+
+                <div>
+                    <div class="text-muted small mb-1">Planejamento geral</div>
+                    <h4 class="fw-bold mb-1" id="tituloProgressoPlanejamento">
+                        Verificando atribuições...
+                    </h4>
+                    <p class="text-muted mb-0" id="mensagemProgressoPlanejamento">
+                        Calculando a matriz curricular e as aulas atribuídas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="planejamento-geral-indicadores">
+                <div class="planejamento-geral-indicador">
+                    <span>Aulas da matriz</span>
+                    <strong id="totalAulasMatrizPlanejamento">0</strong>
+                </div>
+
+                <div class="planejamento-geral-indicador">
+                    <span>Aulas atribuídas</span>
+                    <strong id="totalAulasAtribuidasPlanejamento">0</strong>
+                </div>
+
+                <div class="planejamento-geral-indicador">
+                    <span>Sem professor</span>
+                    <strong id="totalAulasPendentesPlanejamento">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                <span class="small fw-semibold text-muted">
+                    Progresso das atribuições
+                </span>
+                <strong id="percentualProgressoPlanejamento">0%</strong>
+            </div>
+
+            <div class="progress planejamento-geral-progresso"
+                 role="progressbar"
+                 aria-label="Progresso das atribuições"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="0">
+                <div class="progress-bar"
+                     id="barraProgressoPlanejamento"
+                     style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="resumoSegmentosPlanejamento"
+             class="planejamento-segmentos-grid mt-4"></div>
+    </section>
+
     {% if professores %}
 
         <div class="planejamento-professores-layout">
@@ -83,9 +144,9 @@
                             </div>
 
                             <div class="resumo-professor-card">
-                                <span>Turmas</span>
-                                <strong id="quantidadeTurmasProfessorPlanejamento">0</strong>
-                                <small>turmas vinculadas</small>
+                                <span>Aulas disponíveis</span>
+                                <strong id="aulasDisponiveisProfessorPlanejamento">0</strong>
+                                <small>ainda podem ser atribuídas</small>
                             </div>
 
                             <div class="resumo-professor-card">
@@ -111,7 +172,7 @@
                                 Atribuição de Turmas e Disciplinas
                             </h4>
                             <p class="text-muted small mb-0">
-                                Marque as aulas da matriz curricular que serão assumidas pelo professor. A carga é calculada automaticamente.
+                                Exibimos somente as disciplinas cadastradas para o professor. Marque as turmas que ele assumirá.
                             </p>
                         </div>
 
@@ -213,6 +274,107 @@
 </div>
 
 <style>
+    .painel-progresso-planejamento {
+        border: 1px solid #dbe4f0;
+        background:
+            linear-gradient(135deg, rgba(37, 99, 235, .045), transparent 42%),
+            #ffffff;
+    }
+
+    .planejamento-geral-icone {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #1d4ed8;
+        background: #dbeafe;
+        font-size: 1.35rem;
+    }
+
+    .planejamento-geral-icone.completo {
+        color: #047857;
+        background: #d1fae5;
+    }
+
+    .planejamento-geral-icone.pendente {
+        color: #b45309;
+        background: #fef3c7;
+    }
+
+    .planejamento-geral-indicadores {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+        gap: 12px;
+        width: min(100%, 520px);
+    }
+
+    .planejamento-geral-indicador {
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: rgba(248, 250, 252, .92);
+    }
+
+    .planejamento-geral-indicador span {
+        display: block;
+        color: #64748b;
+        font-size: .78rem;
+        margin-bottom: 4px;
+    }
+
+    .planejamento-geral-indicador strong {
+        display: block;
+        color: #0f172a;
+        font-size: 1.25rem;
+    }
+
+    .planejamento-geral-progresso {
+        height: 11px;
+        border-radius: 999px;
+        background: #e9eef5;
+        overflow: hidden;
+    }
+
+    .planejamento-geral-progresso .progress-bar {
+        border-radius: inherit;
+        transition: width .25s ease;
+    }
+
+    .planejamento-segmentos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 10px;
+    }
+
+    .planejamento-segmento-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .planejamento-segmento-item span {
+        color: #475569;
+        font-size: .84rem;
+    }
+
+    .planejamento-segmento-item strong {
+        color: #0f172a;
+        white-space: nowrap;
+    }
+
+    .planejamento-segmento-item.completo {
+        border-color: #a7f3d0;
+        background: #f0fdf4;
+    }
+
     .planejamento-professores-layout {
         display: grid;
         grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
@@ -377,6 +539,41 @@
         cursor: pointer;
     }
 
+
+    .resumo-atribuicoes-professor {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .resumo-atribuicoes-professor strong {
+        color: #0f172a;
+    }
+
+    .resumo-atribuicoes-professor .badge {
+        font-size: .78rem;
+    }
+
+    .linha-disciplina-fora-limite {
+        opacity: .58;
+    }
+
+    .aviso-sem-disciplina {
+        max-width: 620px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 767.98px) {
+        .planejamento-geral-indicadores {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 991.98px) {
         .planejamento-professores-layout {
             grid-template-columns: 1fr;
@@ -470,8 +667,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const cargaProfessorPlanejamento =
         document.getElementById("cargaProfessorPlanejamento");
 
-    const quantidadeTurmasProfessorPlanejamento =
-        document.getElementById("quantidadeTurmasProfessorPlanejamento");
+    const aulasDisponiveisProfessorPlanejamento =
+        document.getElementById("aulasDisponiveisProfessorPlanejamento");
 
     const situacaoProfessorPlanejamento =
         document.getElementById("situacaoProfessorPlanejamento");
@@ -481,6 +678,235 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const turmasProfessorPlanejamento =
         document.getElementById("turmasProfessorPlanejamento");
+
+    const tituloProgressoPlanejamento =
+        document.getElementById("tituloProgressoPlanejamento");
+
+    const mensagemProgressoPlanejamento =
+        document.getElementById("mensagemProgressoPlanejamento");
+
+    const iconeProgressoPlanejamento =
+        document.getElementById("iconeProgressoPlanejamento");
+
+    const totalAulasMatrizPlanejamento =
+        document.getElementById("totalAulasMatrizPlanejamento");
+
+    const totalAulasAtribuidasPlanejamento =
+        document.getElementById("totalAulasAtribuidasPlanejamento");
+
+    const totalAulasPendentesPlanejamento =
+        document.getElementById("totalAulasPendentesPlanejamento");
+
+    const percentualProgressoPlanejamento =
+        document.getElementById("percentualProgressoPlanejamento");
+
+    const barraProgressoPlanejamento =
+        document.getElementById("barraProgressoPlanejamento");
+
+    const resumoSegmentosPlanejamento =
+        document.getElementById("resumoSegmentosPlanejamento");
+
+    function obterNomeSegmento(segmento) {
+        const nomes = {
+            fundamental_1: "Fundamental I",
+            fundamental_2: "Fundamental II",
+            ensino_medio: "Ensino Médio",
+            cursinho: "Cursinho"
+        };
+
+        return nomes[segmento] || segmento || "Sem segmento";
+    }
+
+
+    function calcularProgressoGeralPlanejamento() {
+        const atribuicoesPorChave = new Set(
+            atribuicoes.map(atribuicao =>
+                `${Number(atribuicao.turma_id)}-` +
+                `${Number(atribuicao.disciplina_id)}`
+            )
+        );
+
+        let totalMatriz = 0;
+        let totalAtribuido = 0;
+        const segmentos = {};
+
+        turmas.forEach(turma => {
+            const segmento = turma.segmento || "sem_segmento";
+
+            if (!segmentos[segmento]) {
+                segmentos[segmento] = {
+                    total: 0,
+                    atribuido: 0
+                };
+            }
+
+            (turma.disciplinas || []).forEach(disciplina => {
+                const aulas = Number(
+                    disciplina.aulas_por_semana || 0
+                );
+
+                if (aulas <= 0) {
+                    return;
+                }
+
+                totalMatriz += aulas;
+                segmentos[segmento].total += aulas;
+
+                const chave =
+                    `${Number(turma.id)}-` +
+                    `${Number(disciplina.disciplina_id)}`;
+
+                if (atribuicoesPorChave.has(chave)) {
+                    totalAtribuido += aulas;
+                    segmentos[segmento].atribuido += aulas;
+                }
+            });
+        });
+
+        const pendentes = Math.max(
+            totalMatriz - totalAtribuido,
+            0
+        );
+
+        const percentual = totalMatriz > 0
+            ? Math.min(
+                Math.round(
+                    (totalAtribuido / totalMatriz) * 100
+                ),
+                100
+            )
+            : 0;
+
+        return {
+            totalMatriz,
+            totalAtribuido,
+            pendentes,
+            percentual,
+            segmentos
+        };
+    }
+
+
+    function renderizarProgressoGeralPlanejamento() {
+        const resumo =
+            calcularProgressoGeralPlanejamento();
+
+        if (totalAulasMatrizPlanejamento) {
+            totalAulasMatrizPlanejamento.textContent =
+                resumo.totalMatriz;
+        }
+
+        if (totalAulasAtribuidasPlanejamento) {
+            totalAulasAtribuidasPlanejamento.textContent =
+                resumo.totalAtribuido;
+        }
+
+        if (totalAulasPendentesPlanejamento) {
+            totalAulasPendentesPlanejamento.textContent =
+                resumo.pendentes;
+        }
+
+        if (percentualProgressoPlanejamento) {
+            percentualProgressoPlanejamento.textContent =
+                `${resumo.percentual}%`;
+        }
+
+        if (barraProgressoPlanejamento) {
+            barraProgressoPlanejamento.style.width =
+                `${resumo.percentual}%`;
+
+            barraProgressoPlanejamento.setAttribute(
+                "aria-valuenow",
+                String(resumo.percentual)
+            );
+
+            barraProgressoPlanejamento.className =
+                "progress-bar " +
+                (
+                    resumo.pendentes === 0 &&
+                    resumo.totalMatriz > 0
+                        ? "bg-success"
+                        : "bg-warning"
+                );
+        }
+
+        const completo =
+            resumo.totalMatriz > 0 &&
+            resumo.pendentes === 0;
+
+        if (tituloProgressoPlanejamento) {
+            tituloProgressoPlanejamento.textContent =
+                completo
+                    ? "Planejamento completo"
+                    : `${resumo.pendentes} aula(s) ainda sem professor`;
+        }
+
+        if (mensagemProgressoPlanejamento) {
+            mensagemProgressoPlanejamento.textContent =
+                completo
+                    ? `Todas as ${resumo.totalMatriz} aulas da matriz curricular foram atribuídas.`
+                    : `${resumo.totalAtribuido} de ${resumo.totalMatriz} aulas já possuem professor.`;
+        }
+
+        if (iconeProgressoPlanejamento) {
+            iconeProgressoPlanejamento.classList.remove(
+                "completo",
+                "pendente"
+            );
+
+            iconeProgressoPlanejamento.classList.add(
+                completo
+                    ? "completo"
+                    : "pendente"
+            );
+
+            iconeProgressoPlanejamento.innerHTML =
+                completo
+                    ? '<i class="bi bi-check-circle-fill"></i>'
+                    : '<i class="bi bi-exclamation-triangle-fill"></i>';
+        }
+
+        if (resumoSegmentosPlanejamento) {
+            const ordemSegmentos = [
+                "fundamental_1",
+                "fundamental_2",
+                "ensino_medio",
+                "cursinho",
+                "sem_segmento"
+            ];
+
+            const segmentosOrdenados = Object.entries(
+                resumo.segmentos
+            ).sort(
+                ([segmentoA], [segmentoB]) =>
+                    ordemSegmentos.indexOf(segmentoA) -
+                    ordemSegmentos.indexOf(segmentoB)
+            );
+
+            resumoSegmentosPlanejamento.innerHTML =
+                segmentosOrdenados
+                    .filter(([, valores]) => valores.total > 0)
+                    .map(([segmento, valores]) => {
+                        const segmentoCompleto =
+                            valores.atribuido === valores.total;
+
+                        return `
+                            <div class="planejamento-segmento-item ${
+                                segmentoCompleto ? "completo" : ""
+                            }">
+                                <span>
+                                    ${obterNomeSegmento(segmento)}
+                                </span>
+                                <strong>
+                                    ${valores.atribuido} / ${valores.total}
+                                </strong>
+                            </div>
+                        `;
+                    })
+                    .join("");
+        }
+    }
+
 
     function atualizarStatusSalvamentoAtribuicoes(tipo, mensagem) {
         if (!statusSalvamentoAtribuicoes) {
@@ -671,10 +1097,87 @@ document.addEventListener("DOMContentLoaded", function () {
         return {
             cargaAtribuida: cargaAtribuida,
             cargaEsperada: cargaEsperada,
+            aulasDisponiveis:
+                cargaEsperada > 0
+                    ? Math.max(
+                        cargaEsperada - cargaAtribuida,
+                        0
+                    )
+                    : null,
             turmas: Array.from(nomesTurmas).sort(),
             textoSituacao: textoSituacao,
             classeSituacao: classeSituacao
         };
+    }
+
+
+    function obterDisciplinasConfiguradasProfessor(professor) {
+        const disciplinasPorId = new Map();
+
+        (professor.disciplinas || []).forEach(disciplina => {
+            const id = Number(
+                disciplina.id ||
+                disciplina.disciplina_id
+            );
+
+            if (!id) {
+                return;
+            }
+
+            disciplinasPorId.set(id, {
+                id: id,
+                nome:
+                    disciplina.nome ||
+                    disciplina.disciplina_nome ||
+                    "Disciplina"
+            });
+        });
+
+        const disciplinaPrincipal =
+            professor.disciplina_principal || null;
+
+        const disciplinaPrincipalId = Number(
+            professor.disciplina_principal_id ||
+            disciplinaPrincipal?.id ||
+            0
+        );
+
+        if (
+            disciplinaPrincipalId &&
+            !disciplinasPorId.has(disciplinaPrincipalId)
+        ) {
+            disciplinasPorId.set(
+                disciplinaPrincipalId,
+                {
+                    id: disciplinaPrincipalId,
+                    nome:
+                        disciplinaPrincipal?.nome ||
+                        professor.disciplina_principal_nome ||
+                        "Disciplina principal"
+                }
+            );
+        }
+
+        return Array.from(
+            disciplinasPorId.values()
+        ).sort(
+            (a, b) =>
+                a.nome.localeCompare(
+                    b.nome,
+                    "pt-BR"
+                )
+        );
+    }
+
+
+    function obterIdsDisciplinasProfessor(professor) {
+        return new Set(
+            obterDisciplinasConfiguradasProfessor(
+                professor
+            ).map(
+                disciplina => Number(disciplina.id)
+            )
+        );
     }
 
 
@@ -701,19 +1204,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function criarBadgesDisciplinas(professor) {
         const disciplinas =
-            obterDisciplinasAtribuidasProfessor(
-                professor.id
+            obterDisciplinasConfiguradasProfessor(
+                professor
             );
 
         if (disciplinas.length === 0) {
-            return '<span class="text-muted">Sem atribuições</span>';
+            return (
+                '<span class="badge bg-warning text-dark">' +
+                'Nenhuma disciplina cadastrada</span>'
+            );
         }
 
         return disciplinas
             .map(
                 disciplina =>
                     `<span class="badge bg-light text-dark border me-1 mb-1">` +
-                    `${disciplina}</span>`
+                    `${disciplina.nome}</span>`
             )
             .join("");
     }
@@ -776,9 +1282,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     : `${resumo.cargaAtribuida}`;
         }
 
-        if (quantidadeTurmasProfessorPlanejamento) {
-            quantidadeTurmasProfessorPlanejamento.textContent =
-                resumo.turmas.length;
+        if (aulasDisponiveisProfessorPlanejamento) {
+            aulasDisponiveisProfessorPlanejamento.textContent =
+                resumo.aulasDisponiveis === null
+                    ? "Definir limite"
+                    : resumo.aulasDisponiveis;
         }
 
         if (situacaoProfessorPlanejamento) {
@@ -822,13 +1330,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 const resumoLista =
                     calcularResumoProfessor(professorLista);
 
-                const disciplinasAtribuidas =
-                    obterDisciplinasAtribuidasProfessor(
-                        professorLista.id
+                const disciplinasConfiguradas =
+                    obterDisciplinasConfiguradasProfessor(
+                        professorLista
                     );
 
-                const disciplinaPrincipal =
-                    disciplinasAtribuidas[0] || null;
+                const textoDisciplinas =
+                    disciplinasConfiguradas.length > 0
+                        ? disciplinasConfiguradas
+                            .map(item => item.nome)
+                            .join(" • ")
+                        : "Sem disciplina cadastrada";
 
                 const disciplinaElemento =
                     botao.querySelector(".professor-lista-disciplina");
@@ -838,9 +1350,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (disciplinaElemento) {
                     disciplinaElemento.textContent =
-                        disciplinaPrincipal
-                            ? disciplinaPrincipal
-                            : "Sem atribuições";
+                        textoDisciplinas;
                 }
 
                 if (cargaElemento) {
@@ -888,7 +1398,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function criarLinhaEdicao(
         professor,
         turma,
-        disciplina
+        disciplina,
+        resumoProfessor
     ) {
 
         const atribuicao = buscarAtribuicao(
@@ -906,7 +1417,29 @@ document.addEventListener("DOMContentLoaded", function () {
             Number(atribuicao.professor_id) !==
                 Number(professor.id);
 
+        const aulasDisciplina = Number(
+            disciplina.aulas_por_semana || 0
+        );
+
+        const limiteDefinido =
+            resumoProfessor.cargaEsperada > 0;
+
+        const ultrapassaLimite =
+            limiteDefinido &&
+            !atribuidaAoProfessorAtual &&
+            (
+                resumoProfessor.cargaAtribuida +
+                aulasDisciplina >
+                resumoProfessor.cargaEsperada
+            );
+
         const linha = document.createElement("tr");
+
+        if (ultrapassaLimite) {
+            linha.classList.add(
+                "linha-disciplina-fora-limite"
+            );
+        }
 
         linha.innerHTML = `
             <td class="text-center" style="width: 80px;">
@@ -915,9 +1448,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     class="form-check-input checkbox-atribuicao"
                     data-turma-id="${turma.id}"
                     data-disciplina-id="${disciplina.disciplina_id}"
-                    data-aulas="${disciplina.aulas_por_semana}"
+                    data-aulas="${aulasDisciplina}"
                     ${atribuidaAoProfessorAtual ? "checked" : ""}
-                    ${atribuidaOutroProfessor ? "disabled" : ""}>
+                    ${
+                        (
+                            atribuidaOutroProfessor ||
+                            ultrapassaLimite
+                        )
+                            ? "disabled"
+                            : ""
+                    }>
             </td>
 
             <td class="fw-semibold">
@@ -929,7 +1469,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </td>
 
             <td class="text-center">
-                ${disciplina.aulas_por_semana}
+                ${aulasDisciplina}
             </td>
 
             <td>
@@ -939,7 +1479,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         : (
                             atribuidaOutroProfessor
                                 ? '<span class="badge bg-secondary">Outro professor</span>'
-                                : '<span class="badge bg-warning text-dark">Sem professor</span>'
+                                : (
+                                    ultrapassaLimite
+                                        ? '<span class="badge bg-danger">Ultrapassa o limite</span>'
+                                        : '<span class="badge bg-warning text-dark">Disponível</span>'
+                                )
                         )
                 }
             </td>
@@ -951,11 +1495,115 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderizarEdicaoCargaHoraria(professor) {
 
-        if (!conteudoEdicao) {
+        if (!conteudoEdicao || !professor) {
             return;
         }
 
         conteudoEdicao.innerHTML = "";
+
+        const disciplinasConfiguradas =
+            obterDisciplinasConfiguradasProfessor(
+                professor
+            );
+
+        const idsDisciplinasProfessor =
+            obterIdsDisciplinasProfessor(
+                professor
+            );
+
+        const idsJaAtribuidosAoProfessor = new Set(
+            obterAtribuicoesProfessor(
+                professor.id
+            ).map(
+                atribuicao =>
+                    Number(atribuicao.disciplina_id)
+            )
+        );
+
+        idsJaAtribuidosAoProfessor.forEach(
+            disciplinaId =>
+                idsDisciplinasProfessor.add(
+                    disciplinaId
+                )
+        );
+
+        if (idsDisciplinasProfessor.size === 0) {
+            conteudoEdicao.innerHTML = `
+                <div class="text-center py-5 px-3 aviso-sem-disciplina">
+                    <i class="bi bi-journal-x fs-1 text-warning d-block mb-3"></i>
+
+                    <h5 class="mb-2">
+                        Professor sem disciplina cadastrada
+                    </h5>
+
+                    <p class="text-muted mb-3">
+                        Cadastre pelo menos uma disciplina para
+                        <strong>${professor.nome}</strong>.
+                        Depois, somente as aulas dessas disciplinas
+                        aparecerão nesta tela.
+                    </p>
+
+                    <a
+                        href="{{ url_for('cadastro.tela_cadastros') }}?aba=professores"
+                        class="btn btn-primary">
+                        Gerenciar cadastro do professor
+                    </a>
+                </div>
+            `;
+
+            assinaturaAtribuicoesSalva = "";
+            return;
+        }
+
+        const resumoProfessor =
+            calcularResumoProfessor(
+                professor
+            );
+
+        const resumoAtribuicoes =
+            document.createElement("div");
+
+        resumoAtribuicoes.className =
+            "resumo-atribuicoes-professor";
+
+        const nomesDisciplinas =
+            disciplinasConfiguradas
+                .map(item => item.nome)
+                .join(" • ");
+
+        resumoAtribuicoes.innerHTML = `
+            <div>
+                <small class="text-muted d-block">
+                    Disciplinas exibidas
+                </small>
+                <strong>
+                    ${nomesDisciplinas || "Disciplinas já atribuídas"}
+                </strong>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-primary">
+                    ${resumoProfessor.cargaAtribuida}
+                    aula(s) atribuída(s)
+                </span>
+
+                <span class="badge ${
+                    resumoProfessor.cargaEsperada > 0
+                        ? "bg-light text-dark border"
+                        : "bg-warning text-dark"
+                }">
+                    ${
+                        resumoProfessor.cargaEsperada > 0
+                            ? `${resumoProfessor.aulasDisponiveis} aula(s) disponível(is)`
+                            : "Limite semanal não definido"
+                    }
+                </span>
+            </div>
+        `;
+
+        conteudoEdicao.appendChild(
+            resumoAtribuicoes
+        );
 
         const tabelaResponsiva =
             document.createElement("div");
@@ -998,25 +1646,51 @@ document.addEventListener("DOMContentLoaded", function () {
         const corpo = tabela.querySelector("tbody");
         let quantidadeLinhas = 0;
 
-        turmas.forEach(turma => {
-
-            if (
-                !professorAtuaNoSegmento(
-                    professor,
-                    turma.segmento
+        const turmasOrdenadas = [
+            ...turmas
+        ].sort(
+            (a, b) =>
+                String(a.nome).localeCompare(
+                    String(b.nome),
+                    "pt-BR",
+                    {
+                        numeric: true
+                    }
                 )
-            ) {
-                return;
-            }
+        );
 
-            (turma.disciplinas || []).forEach(
+        turmasOrdenadas.forEach(turma => {
+            const disciplinasFiltradas = (
+                turma.disciplinas || []
+            )
+                .filter(
+                    disciplina =>
+                        idsDisciplinasProfessor.has(
+                            Number(
+                                disciplina.disciplina_id
+                            )
+                        )
+                )
+                .sort(
+                    (a, b) =>
+                        String(
+                            a.disciplina_nome
+                        ).localeCompare(
+                            String(
+                                b.disciplina_nome
+                            ),
+                            "pt-BR"
+                        )
+                );
+
+            disciplinasFiltradas.forEach(
                 disciplina => {
-
                     corpo.appendChild(
                         criarLinhaEdicao(
                             professor,
                             turma,
-                            disciplina
+                            disciplina,
+                            resumoProfessor
                         )
                     );
 
@@ -1026,35 +1700,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (quantidadeLinhas === 0) {
-
-            conteudoEdicao.innerHTML = `
-                <div class="text-center py-5">
+            conteudoEdicao.innerHTML += `
+                <div class="text-center py-5 px-3">
                     <i class="bi bi-exclamation-circle fs-1 text-secondary d-block mb-3"></i>
 
                     <h5 class="mb-2">
-                        Nenhuma atribuição disponível
+                        Nenhuma aula encontrada
                     </h5>
 
                     <p class="text-muted mb-0">
-                        Nenhuma aula da matriz curricular está disponível para os segmentos deste professor.
+                        A matriz curricular ainda não possui aulas
+                        das disciplinas cadastradas para este professor.
                     </p>
                 </div>
             `;
 
+            assinaturaAtribuicoesSalva =
+                obterAssinaturaAtribuicoesSelecionadas();
+
             return;
         }
 
-        tabela.classList.add("tabela-atribuicoes-planejamento");
+        tabela.classList.add(
+            "tabela-atribuicoes-planejamento"
+        );
 
-        tabelaResponsiva.appendChild(tabela);
-        conteudoEdicao.appendChild(tabelaResponsiva);
+        tabelaResponsiva.appendChild(
+            tabela
+        );
+
+        conteudoEdicao.appendChild(
+            tabelaResponsiva
+        );
 
         conteudoEdicao
             .querySelectorAll(".checkbox-atribuicao")
             .forEach(checkbox => {
                 checkbox.addEventListener(
                     "change",
-                    agendarSalvamentoAtribuicoes
+                    function () {
+                        if (
+                            !validarLimiteProfessorAoMarcar(
+                                professor,
+                                this
+                            )
+                        ) {
+                            return;
+                        }
+
+                        agendarSalvamentoAtribuicoes();
+                    }
                 );
             });
 
@@ -1089,6 +1784,62 @@ document.addEventListener("DOMContentLoaded", function () {
             )
             .sort()
             .join("|");
+    }
+
+
+    function calcularCargaSelecionadaNaTela() {
+        return Array.from(
+            document.querySelectorAll(
+                "#conteudoEdicaoCargaHoraria " +
+                ".checkbox-atribuicao:checked"
+            )
+        ).reduce(
+            (total, checkbox) =>
+                total + Number(
+                    checkbox.dataset.aulas || 0
+                ),
+            0
+        );
+    }
+
+
+    function validarLimiteProfessorAoMarcar(
+        professor,
+        checkbox
+    ) {
+        if (!checkbox.checked) {
+            return true;
+        }
+
+        const limite = Number(
+            professor.limite_aulas_semana || 0
+        );
+
+        if (limite <= 0) {
+            return true;
+        }
+
+        const cargaSelecionada =
+            calcularCargaSelecionadaNaTela();
+
+        if (cargaSelecionada <= limite) {
+            return true;
+        }
+
+        checkbox.checked = false;
+
+        alertaEdicao.className =
+            "alert alert-warning m-3";
+
+        alertaEdicao.textContent =
+            `Essa atribuição ultrapassa o limite semanal ` +
+            `de ${limite} aula(s) de ${professor.nome}.`;
+
+        alertaEdicao.classList.remove(
+            "d-none"
+        );
+
+        return false;
     }
 
 
@@ -1241,6 +1992,7 @@ document.addEventListener("DOMContentLoaded", function () {
             atribuicoes.push(...selecionadas);
             assinaturaAtribuicoesSalva = assinaturaAtual;
 
+            renderizarProgressoGeralPlanejamento();
             renderizarPainelProfessor(professorEmEdicao);
             renderizarEdicaoCargaHoraria(professorEmEdicao);
 
@@ -1294,13 +2046,35 @@ document.addEventListener("DOMContentLoaded", function () {
             document
                 .querySelectorAll(".professor-planejamento-item")
                 .forEach(botao => {
+                    const professor = professores.find(
+                        item =>
+                            Number(item.id) ===
+                            Number(
+                                botao.dataset.professorId
+                            )
+                    );
+
                     const nome = normalizarTexto(
                         botao.dataset.professorNome
                     );
 
+                    const disciplinas = normalizarTexto(
+                        professor
+                            ? obterDisciplinasConfiguradasProfessor(
+                                professor
+                            )
+                                .map(item => item.nome)
+                                .join(" ")
+                            : ""
+                    );
+
+                    const corresponde =
+                        nome.includes(termo) ||
+                        disciplinas.includes(termo);
+
                     botao.classList.toggle(
                         "d-none",
-                        termo && !nome.includes(termo)
+                        Boolean(termo) && !corresponde
                     );
                 });
         });
@@ -1316,6 +2090,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         );
     }
+
+    renderizarProgressoGeralPlanejamento();
 
     const professorInicial = obterProfessorSelecionado();
 

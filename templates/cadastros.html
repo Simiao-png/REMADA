@@ -155,7 +155,7 @@
                 <div>
                     <h4 class="fw-bold mb-1">Cadastro de Professores</h4>
                     <p class="text-muted mb-0">
-                        Cadastre os dados básicos e a disciplina principal. Limite semanal, atribuições e disponibilidade são configurados no Planejamento.
+                        Cadastre o professor e informe todas as disciplinas que ele pode lecionar.
                     </p>
                 </div>
 
@@ -178,8 +178,8 @@
             <div class="alert alert-info d-flex align-items-start gap-2">
                 <i class="bi bi-info-circle-fill mt-1"></i>
                 <div>
-                    A disciplina principal identifica o professor e facilita as atribuições. Depois, abra o
-                    <strong>Planejamento</strong> para definir limite semanal, aulas atribuídas e disponibilidade.
+                    As disciplinas cadastradas aqui filtram as aulas exibidas no
+                    <strong>Planejamento</strong>. Um professor pode lecionar várias disciplinas sem criar cadastros duplicados.
                 </div>
             </div>
 
@@ -188,8 +188,8 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Nome</th>
-                                <th>Disciplina principal</th>
+                                <th>Professor</th>
+                                <th>Disciplinas que leciona</th>
                                 <th>Outra escola</th>
                                 <th>Observações</th>
                                 <th class="text-end" style="width: 150px;">Ações</th>
@@ -206,19 +206,32 @@
                                                      style="width:40px;height:40px;">
                                                     <i class="bi bi-person fs-5"></i>
                                                 </div>
-
-                                                <span class="fw-semibold">{{ prof.nome }}</span>
+                                                <div>
+                                                    <div class="fw-semibold">{{ prof.nome }}</div>
+                                                    <small class="text-muted">
+                                                        {{ prof.disciplinas|length }} disciplina{% if prof.disciplinas|length != 1 %}s{% endif %}
+                                                    </small>
+                                                </div>
                                             </div>
                                         </td>
 
                                         <td>
-                                            {% if prof.disciplina_principal %}
+                                            {% if prof.disciplinas %}
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    {% for disciplina in prof.disciplinas %}
+                                                        <span class="badge badge-disciplina-colorida"
+                                                              data-cor-disciplina="{{ disciplina.cor or '#2563EB' }}">
+                                                            {{ disciplina.nome }}
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% elif prof.disciplina_principal %}
                                                 <span class="badge badge-disciplina-colorida"
                                                       data-cor-disciplina="{{ prof.disciplina_principal.cor or '#2563EB' }}">
                                                     {{ prof.disciplina_principal.nome }}
                                                 </span>
                                             {% else %}
-                                                <span class="text-muted">Não definida</span>
+                                                <span class="badge bg-warning text-dark">Nenhuma disciplina</span>
                                             {% endif %}
                                         </td>
 
@@ -245,6 +258,7 @@
                                                         title="Editar"
                                                         data-id="{{ prof.id }}"
                                                         data-nome="{{ prof.nome }}"
+                                                        data-disciplinas-ids="{{ prof.disciplinas|map(attribute='id')|list|tojson|forceescape }}"
                                                         data-disciplina-principal-id="{{ prof.disciplina_principal_id or '' }}"
                                                         data-outra-escola="{{ 'true' if prof.trabalha_outra_escola else 'false' }}"
                                                         data-observacoes="{{ prof.observacoes or '' }}"
@@ -267,8 +281,9 @@
                                     <td colspan="5" class="text-center py-5">
                                         <i class="bi bi-person-workspace fs-1 text-secondary d-block mb-3"></i>
                                         <h5 class="mb-2">Nenhum professor cadastrado</h5>
-                                        <p class="text-muted mb-3">Cadastre o professor e conclua a configuração no Planejamento.</p>
-
+                                        <p class="text-muted mb-3">
+                                            Cadastre o professor e informe as disciplinas que ele leciona.
+                                        </p>
                                         <button type="button"
                                                 class="btn btn-primary"
                                                 onclick="abrirModalCadastroProfessorBasico()">
@@ -456,85 +471,108 @@
 
 <!-- Modal Professor -->
 <div class="modal fade" id="modalNovoProfessor" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header border-0 pb-0">
                 <div>
-                    <h5 class="modal-title" id="modalNovoProfessorLabel">Cadastrar Professor</h5>
+                    <h5 class="modal-title fw-bold" id="modalNovoProfessorLabel">Cadastrar Professor</h5>
                     <p class="text-muted small mb-0">
-                        Informe os dados básicos e a disciplina principal.
+                        Informe os dados básicos e selecione todas as disciplinas que o professor leciona.
                     </p>
                 </div>
-
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form id="formNovoProfessor">
                 <input type="hidden" id="professorId">
 
-                <div class="modal-body">
+                <div class="modal-body pt-4">
                     <div id="alertaProfessorBasico" class="alert d-none" role="alert"></div>
 
-                    <div class="mb-3">
-                        <label for="nomeProfessor" class="form-label">Nome</label>
+                    <div class="mb-4">
+                        <label for="nomeProfessor" class="form-label fw-semibold">Nome do professor</label>
                         <input type="text"
                                id="nomeProfessor"
-                               class="form-control"
+                               class="form-control form-control-lg"
                                maxlength="150"
+                               placeholder="Ex.: Alessandro"
                                required>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="disciplinaPrincipalProfessor" class="form-label">
-                            Disciplina principal
-                        </label>
+                    <div class="disciplinas-professor-box mb-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div>
+                                <label for="seletorDisciplinaProfessor" class="form-label fw-semibold mb-1">
+                                    Disciplinas que leciona
+                                </label>
+                                <p class="text-muted small mb-0">
+                                    Adicione uma ou mais disciplinas. A primeira será usada como referência visual.
+                                </p>
+                            </div>
+                            <span id="contadorDisciplinasProfessor" class="badge bg-primary-subtle text-primary">0 selecionadas</span>
+                        </div>
 
-                        <select id="disciplinaPrincipalProfessor"
-                                class="form-select"
-                                required>
-                            <option value="">Selecione uma disciplina</option>
-                            {% for disciplina in disciplinas %}
-                                <option value="{{ disciplina.id }}">
-                                    {{ disciplina.nome }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        <div class="input-group">
+                            <select id="seletorDisciplinaProfessor" class="form-select">
+                                <option value="">Selecione uma disciplina</option>
+                                {% for disciplina in disciplinas %}
+                                    <option value="{{ disciplina.id }}"
+                                            data-nome="{{ disciplina.nome }}"
+                                            data-cor="{{ disciplina.cor or '#2563EB' }}">
+                                        {{ disciplina.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="button"
+                                    id="btnAdicionarDisciplinaProfessor"
+                                    class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Adicionar
+                            </button>
+                        </div>
 
-                        <div class="form-text">
-                            Serve para identificar e organizar o professor. Outras disciplinas ainda poderão ser atribuídas no Planejamento.
+                        <div id="disciplinasSelecionadasProfessor"
+                             class="disciplinas-selecionadas-professor mt-3">
+                            <div class="estado-vazio-disciplinas">
+                                <i class="bi bi-journal-plus"></i>
+                                <span>Nenhuma disciplina adicionada.</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               id="trabalhaOutraEscolaProfessor">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-5">
+                            <div class="form-check form-switch pt-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="trabalhaOutraEscolaProfessor">
+                                <label class="form-check-label" for="trabalhaOutraEscolaProfessor">
+                                    Trabalha em outra escola
+                                </label>
+                            </div>
+                        </div>
 
-                        <label class="form-check-label" for="trabalhaOutraEscolaProfessor">
-                            Trabalha em outra escola
-                        </label>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="observacoesProfessor" class="form-label">Observações</label>
-                        <textarea id="observacoesProfessor"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Informação opcional"></textarea>
+                        <div class="col-12">
+                            <label for="observacoesProfessor" class="form-label fw-semibold">Observações</label>
+                            <textarea id="observacoesProfessor"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Informação opcional"></textarea>
+                        </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                <div class="modal-footer border-0 pt-0">
                     <button type="button"
-                            class="btn btn-secondary"
+                            class="btn btn-light border"
                             data-bs-dismiss="modal">
                         Cancelar
                     </button>
-
                     <button type="submit"
-                            class="btn btn-primary"
+                            class="btn btn-primary px-4"
                             id="botaoSalvarProfessorBasico">
-                        Salvar
+                        <i class="bi bi-check-lg me-1"></i>
+                        Salvar professor
                     </button>
                 </div>
             </form>
@@ -741,6 +779,67 @@
             align-items: flex-start;
             flex-direction: column;
         }
+    }
+
+
+    .disciplinas-professor-box {
+        border: 1px solid #dbe3ef;
+        border-radius: 16px;
+        padding: 18px;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+
+    .disciplinas-selecionadas-professor {
+        min-height: 72px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+    }
+
+    .estado-vazio-disciplinas {
+        width: 100%;
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: .9rem;
+    }
+
+    .disciplina-professor-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid;
+        border-radius: 999px;
+        font-size: .85rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .disciplina-professor-chip button {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,.72);
+        color: inherit;
+        padding: 0;
+    }
+
+    .disciplina-professor-chip button:hover {
+        background: #ffffff;
+        box-shadow: 0 1px 5px rgba(15,23,42,.14);
     }
 </style>
 
@@ -1372,6 +1471,17 @@
     });
 
 
+    const disciplinasCatalogoProfessor = Array.from(
+        document.querySelectorAll("#seletorDisciplinaProfessor option[data-nome]")
+    ).map(option => ({
+        id: Number(option.value),
+        nome: option.dataset.nome,
+        cor: option.dataset.cor || "#2563EB"
+    }));
+
+    let disciplinasSelecionadasProfessor = [];
+
+
     function obterModalProfessorBasico() {
         return bootstrap.Modal.getOrCreateInstance(
             document.getElementById("modalNovoProfessor")
@@ -1399,6 +1509,144 @@
     }
 
 
+    function obterDisciplinaCatalogoProfessor(disciplinaId) {
+        return disciplinasCatalogoProfessor.find(
+            disciplina => Number(disciplina.id) === Number(disciplinaId)
+        ) || null;
+    }
+
+
+    function atualizarContadorDisciplinasProfessor() {
+        const contador = document.getElementById(
+            "contadorDisciplinasProfessor"
+        );
+
+        if (!contador) return;
+
+        const quantidade = disciplinasSelecionadasProfessor.length;
+
+        contador.textContent =
+            `${quantidade} selecionada${quantidade === 1 ? "" : "s"}`;
+    }
+
+
+    function renderizarDisciplinasSelecionadasProfessor() {
+        const container = document.getElementById(
+            "disciplinasSelecionadasProfessor"
+        );
+
+        if (!container) return;
+
+        atualizarContadorDisciplinasProfessor();
+
+        if (disciplinasSelecionadasProfessor.length === 0) {
+            container.innerHTML = `
+                <div class="estado-vazio-disciplinas">
+                    <i class="bi bi-journal-plus"></i>
+                    <span>Nenhuma disciplina adicionada.</span>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = disciplinasSelecionadasProfessor
+            .map((disciplina, indice) => {
+                const cor = disciplina.cor || "#2563EB";
+                const referencia = indice === 0
+                    ? '<span class="badge bg-white text-dark border ms-1">Referência</span>'
+                    : "";
+
+                return `
+                    <span class="disciplina-professor-chip"
+                          style="color:${cor};background:${cor}14;border-color:${cor}55;">
+                        <span>${disciplina.nome}</span>
+                        ${referencia}
+                        <button type="button"
+                                title="Remover ${disciplina.nome}"
+                                onclick="removerDisciplinaProfessor(${disciplina.id})">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </span>
+                `;
+            })
+            .join("");
+    }
+
+
+    function adicionarDisciplinaProfessorSelecionada() {
+        const seletor = document.getElementById(
+            "seletorDisciplinaProfessor"
+        );
+
+        const disciplinaId = Number(seletor?.value || 0);
+
+        if (!disciplinaId) {
+            mostrarAlertaProfessorBasico(
+                "warning",
+                "Selecione uma disciplina para adicionar."
+            );
+            return;
+        }
+
+        const jaSelecionada = disciplinasSelecionadasProfessor.some(
+            disciplina => Number(disciplina.id) === disciplinaId
+        );
+
+        if (jaSelecionada) {
+            mostrarAlertaProfessorBasico(
+                "info",
+                "Essa disciplina já foi adicionada."
+            );
+            return;
+        }
+
+        const disciplina = obterDisciplinaCatalogoProfessor(
+            disciplinaId
+        );
+
+        if (!disciplina) {
+            mostrarAlertaProfessorBasico(
+                "danger",
+                "A disciplina selecionada não foi encontrada."
+            );
+            return;
+        }
+
+        disciplinasSelecionadasProfessor.push(disciplina);
+        seletor.value = "";
+        limparAlertaProfessorBasico();
+        renderizarDisciplinasSelecionadasProfessor();
+    }
+
+
+    window.removerDisciplinaProfessor = function (disciplinaId) {
+        disciplinasSelecionadasProfessor =
+            disciplinasSelecionadasProfessor.filter(
+                disciplina =>
+                    Number(disciplina.id) !== Number(disciplinaId)
+            );
+
+        renderizarDisciplinasSelecionadasProfessor();
+    };
+
+
+    function definirDisciplinasProfessor(ids) {
+        const idsNormalizados = Array.from(
+            new Set(
+                (ids || [])
+                    .map(Number)
+                    .filter(Boolean)
+            )
+        );
+
+        disciplinasSelecionadasProfessor = idsNormalizados
+            .map(obterDisciplinaCatalogoProfessor)
+            .filter(Boolean);
+
+        renderizarDisciplinasSelecionadasProfessor();
+    }
+
+
     window.abrirModalCadastroProfessorBasico = function () {
         const form = document.getElementById("formNovoProfessor");
 
@@ -1407,6 +1655,7 @@
         document.getElementById("modalNovoProfessorLabel").textContent =
             "Cadastrar Professor";
 
+        definirDisciplinasProfessor([]);
         limparAlertaProfessorBasico();
         obterModalProfessorBasico().show();
     };
@@ -1419,14 +1668,32 @@
         document.getElementById("nomeProfessor").value =
             botao.dataset.nome || "";
 
-        document.getElementById("disciplinaPrincipalProfessor").value =
-            botao.dataset.disciplinaPrincipalId || "";
-
         document.getElementById("trabalhaOutraEscolaProfessor").checked =
             botao.dataset.outraEscola === "true";
 
         document.getElementById("observacoesProfessor").value =
             botao.dataset.observacoes || "";
+
+        let disciplinasIds = [];
+
+        try {
+            disciplinasIds = JSON.parse(
+                botao.dataset.disciplinasIds || "[]"
+            );
+        } catch (erro) {
+            disciplinasIds = [];
+        }
+
+        if (
+            disciplinasIds.length === 0 &&
+            botao.dataset.disciplinaPrincipalId
+        ) {
+            disciplinasIds = [
+                Number(botao.dataset.disciplinaPrincipalId)
+            ];
+        }
+
+        definirDisciplinasProfessor(disciplinasIds);
 
         document.getElementById("modalNovoProfessorLabel").textContent =
             "Editar Professor";
@@ -1466,6 +1733,30 @@
 
     function prepararFormularioProfessorBasico() {
         const form = document.getElementById("formNovoProfessor");
+        const botaoAdicionar = document.getElementById(
+            "btnAdicionarDisciplinaProfessor"
+        );
+        const seletor = document.getElementById(
+            "seletorDisciplinaProfessor"
+        );
+
+        if (botaoAdicionar && botaoAdicionar.dataset.listener !== "true") {
+            botaoAdicionar.dataset.listener = "true";
+            botaoAdicionar.addEventListener(
+                "click",
+                adicionarDisciplinaProfessorSelecionada
+            );
+        }
+
+        if (seletor && seletor.dataset.listener !== "true") {
+            seletor.dataset.listener = "true";
+            seletor.addEventListener("keydown", function (evento) {
+                if (evento.key === "Enter") {
+                    evento.preventDefault();
+                    adicionarDisciplinaProfessorSelecionada();
+                }
+            });
+        }
 
         if (!form || form.dataset.listenerBasico === "true") return;
 
@@ -1481,12 +1772,18 @@
             const botaoSalvar =
                 document.getElementById("botaoSalvarProfessorBasico");
 
+            const disciplinasIds =
+                disciplinasSelecionadasProfessor.map(
+                    disciplina => Number(disciplina.id)
+                );
+
             const payload = {
                 nome: document.getElementById("nomeProfessor").value.trim(),
                 disciplina_principal_id:
-                    document.getElementById(
-                        "disciplinaPrincipalProfessor"
-                    ).value || null,
+                    disciplinasIds.length > 0
+                        ? disciplinasIds[0]
+                        : null,
+                disciplinas_ids: disciplinasIds,
                 trabalha_outra_escola:
                     document.getElementById(
                         "trabalhaOutraEscolaProfessor"
@@ -1505,16 +1802,18 @@
                 return;
             }
 
-            if (!payload.disciplina_principal_id) {
+            if (payload.disciplinas_ids.length === 0) {
                 mostrarAlertaProfessorBasico(
                     "warning",
-                    "Selecione a disciplina principal do professor."
+                    "Adicione pelo menos uma disciplina."
                 );
                 return;
             }
 
             botaoSalvar.disabled = true;
-            botaoSalvar.textContent = "Salvando...";
+            botaoSalvar.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+
             limparAlertaProfessorBasico();
 
             try {
@@ -1549,7 +1848,8 @@
                 );
             } finally {
                 botaoSalvar.disabled = false;
-                botaoSalvar.textContent = "Salvar";
+                botaoSalvar.innerHTML =
+                    '<i class="bi bi-check-lg me-1"></i>Salvar professor';
             }
         }, true);
     }
@@ -1557,6 +1857,7 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         prepararFormularioProfessorBasico();
+        renderizarDisciplinasSelecionadasProfessor();
     });
 
 
